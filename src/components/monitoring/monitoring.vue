@@ -1,0 +1,34 @@
+<template>
+ <div style="padding: 10px">
+  <component :is="currentComponent" v-on:component-link="componentLink"></component>
+ </div>
+</template>
+
+<script>
+ import monitoringList from './monitoringList'
+ import monitoringGroup from "./monitoringGroup";
+ export default {
+  data(){
+   return{
+    search: '',
+    currentComponent: 'monitoringList'
+   }
+  },
+  components: {
+   monitoringList,
+   monitoringGroup
+  },
+  methods: {
+   componentLink(componentName){
+    this.currentComponent = componentName
+   }
+  },
+  mounted() {
+   this.$store.dispatch('loadObjects')
+  },
+ }
+</script>
+
+<style scoped>
+
+</style>

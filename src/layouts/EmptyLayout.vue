@@ -1,12 +1,10 @@
 <template>
-    <div>
-        monitoring
-    </div>
+   <router-view></router-view>
 </template>
 
 <script>
  export default {
-  name: "monitoring"
+  name: "EmptyLayout"
  }
 </script>
 

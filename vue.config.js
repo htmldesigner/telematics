@@ -1,5 +1,10 @@
 module.exports = {
-  "transpileDependencies": [
-    "vuetify"
-  ]
-}
+    "transpileDependencies": [],
+    outputDir:  '../wwwroot/js',
+    configureWebpack: {
+     output: {
+      filename: '[name].js',
+      chunkFilename: '[name].js',
+     }
+    }
+   }

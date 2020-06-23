@@ -4,17 +4,21 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "dev": "vue-cli-service build --watch --mode development --no-clean"
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "bootstrap": "^4.5.0",
     "core-js": "^3.6.5",
+    "jquery": "^3.5.1",
     "leaflet": "^1.6.0",
+    "splitpanes": "^2.2.1",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
-    "vue-split-panel": "^1.0.4",
     "vue2-leaflet": "^2.5.2",
-    "vuetify": "^2.2.32",
+    "vue2-leaflet-rotatedmarker": "^1.0.9",
+    "vuelidate": "^0.7.5",
     "vuex": "^3.4.0"
   },
   "devDependencies": {
@@ -22,11 +26,10 @@
     "@vue/cli-plugin-router": "~4.4.0",
     "@vue/cli-plugin-vuex": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
+    "node-sass": "^4.14.1",
     "sass": "^1.26.8",
     "sass-loader": "^8.0.2",
-    "vue-cli-plugin-vuetify": "~2.0.5",
-    "vue-template-compiler": "^2.6.11",
-    "vuetify-loader": "^1.4.4"
+    "vue-template-compiler": "^2.6.11"
   },
   "browserslist": [
     "> 1%",

@@ -1,82 +1,135 @@
 <template>
+ <l-map
+  :zoom="zoom"
+  :center="defaultCenter"
+  ref="map"
+  :options="{zoomControl: false}"
+ >
+
+  <v-rotated-marker
+   v-if="object.selected"
+   v-for="(object, index) in objects"
+   :key="index"
+   :lat-lng="latLng(object.geo.latitude, object.geo.longitude)"
+   :icon="arrowicon"
+   :rotationAngle="object.geo.course">
+   <l-popup>
+    <table>
+     <tr>
+      <td>{{object.name}}</td>
+     </tr>
+     <tr>
+      <td>{{object.geo.speed}}</td>
+     </tr>
+
+     <tr>
+      <td>{{object.geo.course}}</td>
+     </tr>
+    </table>
+   </l-popup>
 
 
-    <div style="height: 100%; width: 100%">
+   <l-tooltip>
 
-      <l-map
-              v-if="showMap"
-              :zoom="zoom"
-              :center="center"
-              :options="mapOptions"
+    <table>
+     <tr>
+      <td>{{object.name}}</td>
+     </tr>
+     <tr>
+      <td>{{object.geo.speed}}</td>
+     </tr>
+     <tr>
+      <td>{{object.geo.course}}</td>
+     </tr>
+    </table>
 
-              @update:center="centerUpdate"
-              @update:zoom="zoomUpdate"
-      >
-        <l-tile-layer
-                :url="url"
-        />
-        <l-marker :lat-lng="withPopup">
-          <l-popup>
-            <div @click="innerClick">
-              I am a popup
-              <p v-show="showParagraph">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-                sed pretium nisl, ut sagittis sapien. Sed vel sollicitudin nisi.
-                Donec finibus semper metus id malesuada.
-              </p>
-            </div>
-          </l-popup>
-        </l-marker>
-        <l-marker :lat-lng="withTooltip">
-          <l-tooltip :options="{ permanent: true, interactive: true }">
-            I am a tooltip
-          </l-tooltip>
-        </l-marker>
-      </l-map>
-    </div>
+   </l-tooltip>
 
+  </v-rotated-marker>
+
+
+  <l-tile-layer
+   :url="url"
+   :attribution="attribution"
+  />
+  <l-control-zoom position="bottomright"></l-control-zoom>
+ </l-map>
 </template>
 
 <script>
-  import { latLng } from "leaflet";
-  import { LMap, LTileLayer, LMarker, LPopup, LTooltip } from "vue2-leaflet";
+ import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
+ import {latLng, icon} from "leaflet";
+ import {LMap, LTileLayer, LControl, LControlZoom, LMarker, LPopup, LTooltip, LIcon} from "vue2-leaflet";
+ import {mapGetters} from 'vuex';
 
-  export default {
-    name: "llmap",
-    components: {
-      LMap,
-      LTileLayer,
-      LMarker,
-      LPopup,
-      LTooltip
-    },
-    data() {
-      return {
-        zoom: 13,
-        center: latLng(47.41322, -1.219482),
-        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        withPopup: latLng(47.41322, -1.219482),
-        withTooltip: latLng(47.41422, -1.250482),
-        currentZoom: 11.5,
-        currentCenter: latLng(47.41322, -1.219482),
-        showParagraph: false,
-        marker: L.latLng(47.413220, -1.219482),
-        mapOptions: {
-          zoomSnap: 0.5
-        },
-        showMap: true
-      };
-    },
-    methods: {
-      zoomUpdate(zoom) {
-        this.currentZoom = zoom;
-      },
-      centerUpdate(center) {
-        this.currentCenter = center;
-      },
-      innerClick() {
-        alert("Click!");
-      }
-    }
-  };
+ export default {
+  name: "Example",
+  components: {
+   'v-rotated-marker': Vue2LeafletRotatedMarker,
+   LMap,
+   LTileLayer,
+   LControl,
+   LControlZoom,
+   LMarker,
+   LPopup,
+   LTooltip,
+   LIcon
+  },
+  data() {
+   return {
+    marker: '',
+    zoom: 10,
+
+    icon: icon({
+     iconUrl: "http://leafletjs.com/examples/custom-icons/leaf-green.png",
+     iconSize: [32, 37],
+     iconAnchor: [16, 37]
+    }),
+
+    arrowicon: icon({
+     iconUrl: '/img/navigator64.png',
+     shadowUrl: 'https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0',
+     iconSize: [25, 25],
+     iconAnchor: [8, 8],
+
+     shadowAnchor: [-25, 12],
+     shadowSize:   [25, 25],
+    }),
+
+    defaultCenter: [51.7971, 55.1137],
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+   };
+  },
+  computed: {
+   ...mapGetters({
+    objects: 'getObjects',
+    flyTo: 'getToFly'
+   }),
+  },
+  watch: {
+   flyTo() {
+    this.$refs.map.mapObject.flyTo([this.flyTo.geo.latitude, this.flyTo.geo.longitude])
+   }
+  },
+  methods: {
+   latLng(lat, Lng) {
+    return L.latLng(lat, Lng)
+   },
+   onResize() {
+    setTimeout(() => {
+     this.$refs.map.mapObject.invalidateSize();
+    }, 400);
+   }
+  },
+  mounted() {
+   this.onResize()
+   document.getElementsByClassName('leaflet-control-attribution')[0].style.display = 'none';
+  }
+ };
 </script>
+
+<style scoped>
+
+
+</style>
