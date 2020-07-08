@@ -1,8 +1,8 @@
 <template>
  <div>
-
   <div class="monitoring-container">
-   <input class="monitoring_filter" type="text" placeholder="Введите название, IMEI, регномер" name="query" v-model="search">
+   <input class="monitoring_filter" type="text" placeholder="Введите название, IMEI, регномер" name="query"
+          v-model="search">
   </div>
   <div class="table-responsive">
    <table class="table">
@@ -33,27 +33,40 @@
     </tr>
     </thead>
     <tbody>
+
     <tr v-for="(object, index) in filtered"
         :key="index"
     >
      <td>
+
       <input type="checkbox" :checked="object.selected"
              @change="objectSelect(object.id, object.selected = !object.selected)"
       ></td>
+
      <td>
       <img class="size_16 monitoring_units_custom_icon_16917756" id="monitoring_units_custom_icon_0_16917756"
            src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
            style="cursor:pointer;">
      </td>
+
      <td class="monitoring-unit-name"
-         @click="moveTo(object), objectSelect(object.id, object.selected = true)"
+         @click="objectSelect(object.id, object.selected = true), moveTo(object)"
      >
       {{object.name}}
      </td>
-     <td><input type="checkbox" :disabled="!object.selected"></td>
+
+     <td><input type="checkbox" :disabled="!object.selected" :value="object.imei"  v-model="checkedCategories" @click="watchDevice(object)"></td>
+
+     <td class="text-center">
+      <div class="monitoring_units_state_move">
+       <span class="icon-device" v-bind:class="{'green-color': object.geo.speed}"></span>
+      </div>
+     </td>
+
      <td class="text-center">
       <div class="icon-remove" @click="removeObject(object)">&times;</div>
      </td>
+
     </tr>
     </tbody>
    </table>
@@ -68,12 +81,16 @@
   name: "monitoringList",
   data() {
    return {
-    search: ''
+    isActive: true,
+    search: '',
+    checkedCategories: [],
    }
   },
   computed: {
    ...mapGetters({
     objects: 'getObjects',
+    selected: 'getSelectedObjects',
+    selectedImei: 'getSelectedObjectsImei',
    }),
    filtered() {
     let grobjects = Object.filter(this.objects, obj => (this.objects[obj.id]));
@@ -86,20 +103,30 @@
    }
   },
   methods: {
-   ...mapActions(['selectObject', 'flyToObject', 'selectAllObject']),
+   ...mapActions(['selectObject', 'flyToObject', 'selectAllObject', 'updateSelectedObjectsPositionByImei']),
    objectSelect(id, value) {
     this.selectObject({id, value})
    },
    selectAllObject() {
     this.$store.dispatch('selectAllObject', event.target.checked)
    },
-   moveTo(id) {
-    this.flyToObject(id)
+   moveTo(object) {
+    this.flyToObject(object)
    },
    removeObject(object) {
     console.log(object)
    },
-  }
+   watchDevice(object) {
+     setInterval(() => {
+      console.log(
+       this.updateSelectedObjectsPositionByImei(object))
+     }, 1000)
+
+   }
+
+  },
+
+
  }
 </script>
 
@@ -125,7 +152,7 @@
  .table td, .table th {
   padding: 0;
   border: none;
-  vertical-align: center;
+  vertical-align: middle;
  }
 
  tr {
@@ -153,9 +180,6 @@
 
  }
 
- .done {
-  text-decoration: line-through;
- }
 
  .monitoring_panel_filter {
   width: 100%;
@@ -172,4 +196,17 @@
   width: 40px;
   justify-content: space-between;
  }
+
+ .icon-device {
+  background-color: #979797;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: block;
+ }
+
+ .green-color {
+  background-color: green;
+ }
+
 </style>

@@ -8,7 +8,7 @@
    </button>
    <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
-     <li v-for="(link, index) in links" class="nav-item">
+     <li v-for="(link, index) in links" :key="index" class="nav-item">
       <a href="" class="nav-link" @click.prevent="currentLink = link.alias">{{link.title}}</a>
      </li>
     </ul>
@@ -52,7 +52,7 @@
       </keep-alive>
      </pane>
      <pane min-size="60" size="100" max-size="100">
-      <llmap></llmap>
+      <llmap ref="llmap"></llmap>
      </pane>
     </splitpanes>
    </div>
@@ -62,13 +62,13 @@
 </template>
 
 <script>
- import llmap from '@/components/llmap'
- import monitoring from "@/components/monitoring/monitoring";
- import tracker from "@/components/tracker";
- import message from "@/components/message";
+
+ import monitoring from "../components/monitoring/monitoring";
+ import tracker from "../components/tracker";
+ import message from "../components/message";
+ import llmap from '../components/llmap'
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
-
  export default {
   components: {
    llmap,
@@ -77,9 +77,7 @@
    message,
    Splitpanes,
    Pane
-  },
-
-  data() {
+  },  data() {
    return {
     currentLink: "monitoring",
     links: [
@@ -117,5 +115,5 @@
 </script>
 
 <style scoped>
- @import "~leaflet/dist/leaflet.css";
+
 </style>

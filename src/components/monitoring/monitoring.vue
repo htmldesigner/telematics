@@ -23,9 +23,8 @@
     this.currentComponent = componentName
    }
   },
-  mounted() {
-   this.$store.dispatch('loadObjects')
-  },
+
+
  }
 </script>
 

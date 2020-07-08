@@ -16,6 +16,11 @@ export default ({
    state.objectsgroups = payload
   },
 
+  updateObject(state, payload) {
+   let obj = Object.values(Object.filter(state.objects, el => el.imei == payload.geo.imei))
+   state.objects[obj[0].id].geo = payload.geo
+  },
+
   selectObject(state, payload) {
    state.objects[payload.id].selected = payload.value;
   },
@@ -34,9 +39,8 @@ export default ({
    commit('clearError')
    commit('setLoading', true)
    try {
-    let response = await api.getObjects()
-    let item = response.data
-    // console.log(response.data)
+    const response = await api.getObjects()
+    const item = response.data.data
     commit('setObjects', item.objects)
     commit('setObjectsGroups', item.objectsgroups)
     commit('setLoading', false)
@@ -46,6 +50,31 @@ export default ({
     throw error
    }
   },
+
+  async updateSelectedObjectsPositionByImei({commit}, params) {
+   console.log(params)
+   commit('clearError')
+   try {
+    const response = await api.getObjectsPositionByImei(params.imei)
+    if (response) {
+     let items = response.data.data
+     for (let i in items) {
+      let obj = items[i]
+      commit({
+       type: 'updateObject',
+       geo: obj
+      })
+     }
+    }
+
+   } catch (error) {
+    commit('setError', 'нет данных')
+    throw error
+   }
+
+  },
+
+
   selectObject({commit}, payload) {
    commit('selectObject', payload)
   },
@@ -56,14 +85,25 @@ export default ({
    commit('flyToObject', payload)
   },
  },
+
  getters: {
   getObjects(state) {
    return state.objects
   },
+
   getObjectsGroups(state) {
-   return  state.objectsgroups
+   return state.objectsgroups
   },
-  getToFly(state) {
+
+  getSelectedObjects(state) {
+   return Object.filter(state.objects, el => el.selected);
+  },
+
+  getSelectedObjectsImei(state, getters) {
+   return Object.values(Object.map(getters.getSelectedObjects, el => el.imei));
+  },
+
+  getToFly(state,) {
    return state.flyTo
   }
  }

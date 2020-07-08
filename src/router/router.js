@@ -19,7 +19,7 @@ Vue.use(VueRouter)
       path: '/profile',
       name: 'profile',
       // meta: {layout: 'empty'},
-      component: () => import('../views/Profile'),
+      component: Profile,
       // beforeEnter: AuthGuard
     },
     {

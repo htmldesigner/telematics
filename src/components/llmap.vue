@@ -1,135 +1,161 @@
 <template>
- <l-map
-  :zoom="zoom"
-  :center="defaultCenter"
-  ref="map"
-  :options="{zoomControl: false}"
- >
-
-  <v-rotated-marker
-   v-if="object.selected"
-   v-for="(object, index) in objects"
-   :key="index"
-   :lat-lng="latLng(object.geo.latitude, object.geo.longitude)"
-   :icon="arrowicon"
-   :rotationAngle="object.geo.course">
-   <l-popup>
-    <table>
-     <tr>
-      <td>{{object.name}}</td>
-     </tr>
-     <tr>
-      <td>{{object.geo.speed}}</td>
-     </tr>
-
-     <tr>
-      <td>{{object.geo.course}}</td>
-     </tr>
-    </table>
-   </l-popup>
-
-
-   <l-tooltip>
-
-    <table>
-     <tr>
-      <td>{{object.name}}</td>
-     </tr>
-     <tr>
-      <td>{{object.geo.speed}}</td>
-     </tr>
-     <tr>
-      <td>{{object.geo.course}}</td>
-     </tr>
-    </table>
-
-   </l-tooltip>
-
-  </v-rotated-marker>
-
-
-  <l-tile-layer
-   :url="url"
-   :attribution="attribution"
-  />
-  <l-control-zoom position="bottomright"></l-control-zoom>
- </l-map>
+ <div class="rel">
+  <div ref="mapContainer" id="mapContainer" class="l-map"></div>
+ </div>
 </template>
 
 <script>
- import Vue2LeafletRotatedMarker from 'vue2-leaflet-rotatedmarker'
- import {latLng, icon} from "leaflet";
- import {LMap, LTileLayer, LControl, LControlZoom, LMarker, LPopup, LTooltip, LIcon} from "vue2-leaflet";
- import {mapGetters} from 'vuex';
+ import 'leaflet/dist/leaflet.css'
+ import L from 'leaflet'
+ import RotatedMarker from 'leaflet-rotatedmarker'
+ // BUG https://github.com/Leaflet/Leaflet/issues/4968
+ import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png'
+ import iconUrl from 'leaflet/dist/images/marker-icon.png'
+ import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
+ import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
 
  export default {
-  name: "Example",
+  name: "llmap",
   components: {
-   'v-rotated-marker': Vue2LeafletRotatedMarker,
-   LMap,
-   LTileLayer,
-   LControl,
-   LControlZoom,
-   LMarker,
-   LPopup,
-   LTooltip,
-   LIcon
+   RotatedMarker
   },
   data() {
    return {
-    marker: '',
-    zoom: 10,
-
-    icon: icon({
-     iconUrl: "http://leafletjs.com/examples/custom-icons/leaf-green.png",
-     iconSize: [32, 37],
-     iconAnchor: [16, 37]
-    }),
-
-    arrowicon: icon({
+    map: null,
+    arrowicon: L.icon({
      iconUrl: '/img/navigator64.png',
-     shadowUrl: 'https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0',
-     iconSize: [25, 25],
-     iconAnchor: [8, 8],
-
-     shadowAnchor: [-25, 12],
-     shadowSize:   [25, 25],
+     iconSize: [32, 32],
+     iconAnchor: [16, 16]
     }),
-
-    defaultCenter: [51.7971, 55.1137],
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    markers: []
    };
   },
   computed: {
    ...mapGetters({
     objects: 'getObjects',
-    flyTo: 'getToFly'
+    selectedObjects: 'getSelectedObjects',
+    getFly: 'getToFly'
    }),
   },
   watch: {
-   flyTo() {
-    this.$refs.map.mapObject.flyTo([this.flyTo.geo.latitude, this.flyTo.geo.longitude])
+   objects: {
+    handler(newValue) {
+     this.addMarker(newValue)
+    },
+    deep: true,
+   },
+   getFly: {
+    handler(point){
+     this.moveToMarker(point)
+    }
    }
   },
   methods: {
-   latLng(lat, Lng) {
-    return L.latLng(lat, Lng)
+   fixBug() {
+    // https://github.com/Leaflet/Leaflet/issues/4968
+    L.Marker.prototype.options.icon = L.icon({
+     iconRetinaUrl,
+     iconUrl,
+     shadowUrl,
+     iconSize: [25, 41],
+     iconAnchor: [12, 41],
+     popupAnchor: [1, -34],
+     tooltipAnchor: [16, -28],
+     shadowSize: [41, 41]
+    })
    },
-   onResize() {
+
+   createMapInstance() {
+    this.map = L.map(this.$refs.mapContainer, {preferCanvas: true}).setView([51.7971, 55.1137], 4)
+    const spinalLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+     maxZoom: 18,
+     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    })
+    const osmLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
+     attribution: '&copy; <a href="copyright">Openstreetmap</a>'
+    })
     setTimeout(() => {
-     this.$refs.map.mapObject.invalidateSize();
-    }, 400);
-   }
+     this.map.invalidateSize();
+    }, 400)
+    document.getElementsByClassName('leaflet-control-attribution')[0].style.display = 'none';
+    const baseMaps = {
+     OSM: osmLayer,
+     Spinal: spinalLayer,
+    };
+    L.control.layers(baseMaps).addTo(this.map)
+    this.map.addLayer(spinalLayer)
+   },
+
+   //
+   // latLng(lat, Lng) {
+   //  return new L.latLng(lat, Lng)
+   // },
+
+   addMarker(newValue) {
+    for (let i in this.markers) {
+     this.map.removeLayer(this.markers[i])
+    }
+    this.markers = []
+    for (let i in newValue) {
+     if (newValue[i].selected) {
+      const marker = L.marker(new L.LatLng(newValue[i].geo.latitude, newValue[i].geo.latitude),
+       {
+        rotationAngle: newValue[i].geo.course,
+        icon: this.arrowicon
+       })
+
+      this.markers.push(marker)
+
+    function customTip() {
+     this.unbindTooltip();
+     if (!this.isPopupOpen()) {
+      this.bindTooltip(`
+        <h5>${newValue[i].name}</h5><span>${newValue[i].geo.fix_date}</span>
+        <br/><span>${newValue[i].reg_number}</span>
+        <br><span>${newValue[i].imei}</span>
+        `,
+       {className: "custom-tooltips", interactive: true}).openTooltip();
+     }
+    }
+
+      function customPop() {
+       this.unbindTooltip();
+      }
+
+      this.map.addLayer(marker.bindPopup('доп функции', {className: "custom-popup"}))
+      marker.on('mouseover', customTip);
+      marker.on('click', customPop)
+     }
+    }
+   },
+
+   moveToMarker(point) {
+    if (point.selected === true || point.length === 1) {
+     this.map.flyTo([point.geo.latitude, point.geo.latitude], 8, {
+      animate: true,
+      duration: 1
+     })
+    }
+   },
+
   },
   mounted() {
-   this.onResize()
-   document.getElementsByClassName('leaflet-control-attribution')[0].style.display = 'none';
-  }
+   this.createMapInstance()
+  },
+  created() {
+   this.fixBug()
+  },
  };
 </script>
 
 <style scoped>
 
+ .rel {
+  position: relative;
+ }
 
+ .l-map {
+  height: 100vh;
+  width: 100%;
+ }
 </style>

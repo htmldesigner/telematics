@@ -14,10 +14,7 @@
     <ul style="padding-left: 20px;list-style: none;">
      <li v-for="objectId in filteredObjects(group)" :key="objectId">
       <label>
-       asas
        <input type="checkbox"/>
-
-
        {{ objects[objectId].name }}
       </label>
      </li>
