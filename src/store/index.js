@@ -1,23 +1,25 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import monitoring from "./monitoring";
-import user from "./user";
 import common from "./common";
-import mapInstance from "./mapInstance";
 
-
+import mapModule from './modules/mapInstance'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+ const store = new Vuex.Store({
   state: {
-    mapInstance: null
+   mapInstance: null
   },
   mutations: {
   },
   actions: {
   },
   modules: {
-    common, user, monitoring
+    common, monitoring
   }
 })
+
+store.registerModule('mapModule', mapModule)
+
+export default store

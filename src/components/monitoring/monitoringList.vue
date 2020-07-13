@@ -55,7 +55,9 @@
       {{object.name}}
      </td>
 
-     <td><input type="checkbox" :disabled="!object.selected" :value="object.imei"  v-model="checkedCategories" @click="watchDevice(object)"></td>
+     <td><input type="checkbox" :disabled="!object.selected"
+                @click="watchDevice(object ,object.id, object.monitor = !object.monitor)"
+     ></td>
 
      <td class="text-center">
       <div class="monitoring_units_state_move">
@@ -75,22 +77,24 @@
 </template>
 
 <script>
- import {mapActions, mapGetters} from "vuex";
+ import {mapActions, mapGetters, mapState} from "vuex";
 
  export default {
   name: "monitoringList",
   data() {
    return {
+    map: null,
     isActive: true,
     search: '',
-    checkedCategories: [],
+    timer: null
    }
   },
   computed: {
    ...mapGetters({
     objects: 'getObjects',
-    selected: 'getSelectedObjects',
+    selectedObjects: 'getSelectedObjects',
     selectedImei: 'getSelectedObjectsImei',
+    getMonitor: 'getMonitorObjects',
    }),
    filtered() {
     let grobjects = Object.filter(this.objects, obj => (this.objects[obj.id]));
@@ -103,29 +107,38 @@
    }
   },
   methods: {
-   ...mapActions(['selectObject', 'flyToObject', 'selectAllObject', 'updateSelectedObjectsPositionByImei']),
+   ...mapActions([
+    'selectObject',
+    'selectAllObject',
+    'monitorObject'
+   ]),
+
+
    objectSelect(id, value) {
     this.selectObject({id, value})
    },
    selectAllObject() {
     this.$store.dispatch('selectAllObject', event.target.checked)
    },
+
+   ...mapState('mapModule', ['mapInstance']),
+
    moveTo(object) {
-    this.flyToObject(object)
+    this.mapInstance().flyTo([object.geo.latitude, object.geo.longitude], 8, {animate: true})
    },
+
    removeObject(object) {
     console.log(object)
    },
-   watchDevice(object) {
-     setInterval(() => {
-      console.log(
-       this.updateSelectedObjectsPositionByImei(object))
-     }, 1000)
 
+   watchDevice(object, id, value) {
+    this.monitorObject({id, value})
+   },
+
+   mounted() {
    }
 
-  },
-
+  }
 
  }
 </script>

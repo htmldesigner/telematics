@@ -53,6 +53,7 @@
      </pane>
      <pane min-size="60" size="100" max-size="100">
       <llmap ref="llmap"></llmap>
+
      </pane>
     </splitpanes>
    </div>
@@ -65,19 +66,20 @@
 
  import monitoring from "../components/monitoring/monitoring";
  import tracker from "../components/tracker";
- import message from "../components/message";
  import llmap from '../components/llmap'
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
+ import {mapActions, mapGetters} from "vuex";
+
  export default {
   components: {
    llmap,
    monitoring,
    tracker,
-   message,
    Splitpanes,
    Pane
-  },  data() {
+  },
+  data() {
    return {
     currentLink: "monitoring",
     links: [
@@ -97,20 +99,30 @@
    }
   },
   computed: {
+   ...mapGetters({
+    objects: 'getObjects',
+   }),
    currentComponent: function () {
     return this.currentLink;
    },
   },
   methods: {
-   logOut() {
-    this.$store.dispatch('logOut')
-     .then(() => {
-      this.$router.push('/login')
-     })
-     .catch(() => {
-     })
-   }
+   ...mapActions([
+    'updateSelectedObjectsPositionByImei',
+    'getObjectsPosition'
+   ]),
+   // updateRealTime() {
+   //  if (this.objects)
+   //  setInterval(()=>{
+   //   for (let i in this.objects) {
+   //    this.updateSelectedObjectsPositionByImei(this.objects[i].imei)
+   //   }
+   //  }, 3000)
+   // }
   },
+  mounted() {
+   // this.updateRealTime()
+  }
  }
 </script>
 

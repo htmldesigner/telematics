@@ -5,7 +5,7 @@ export default ({
  state: {
   objects: [],
   objectsgroups: [],
-  flyTo: []
+  tracks: [],
  },
  mutations: {
   setObjects(state, payload) {
@@ -17,22 +17,40 @@ export default ({
   },
 
   updateObject(state, payload) {
-   let obj = Object.values(Object.filter(state.objects, el => el.imei == payload.geo.imei))
+   let obj = Object.values(Object.filter(state.objects, el => el.imei === payload.geo.imei))
+   state.objects[obj[0].id].geo = payload.geo
+  },
+
+
+  REAL_TIME_UPDATE_POSITION(state, payload) {
+   let obj = Object.values(Object.filter(state.objects, el => el.id === payload.id))
    state.objects[obj[0].id].geo = payload.geo
   },
 
   selectObject(state, payload) {
    state.objects[payload.id].selected = payload.value;
   },
+
   flyToObject(state, payload) {
    state.flyTo = payload
   },
+
   selectAllObject(store, payload) {
    let objects = store.objects
    for (let obj in objects) {
     objects[obj].selected = payload
    }
-  }
+  },
+
+  monitorObject(state, payload) {
+   state.objects[payload.id].monitor = payload.value;
+  },
+
+  addTrack(state, payload) {
+   state.tracks = payload;
+   console.log(state.tracks)
+  },
+
  },
  actions: {
   async loadObjects({commit}) {
@@ -51,11 +69,26 @@ export default ({
    }
   },
 
-  async updateSelectedObjectsPositionByImei({commit}, params) {
-   console.log(params)
+// Always update
+  async realTimeWatch({commit}) {
    commit('clearError')
    try {
-    const response = await api.getObjectsPositionByImei(params.imei)
+    const response = await api.getObjects()
+    const items = response.data.data
+    for (let i in items.objects) {
+     commit('REAL_TIME_UPDATE_POSITION', items.objects[i])
+    }
+   } catch (error) {
+    commit('setError', 'error conection')
+    throw error
+   }
+  },
+
+// Update selected object is check monitor object
+  async updateSelectedObjectsPositionByImei({commit}, params) {
+   commit('clearError')
+   try {
+    const response = await api.getObjectsPositionByImei(params)
     if (response) {
      let items = response.data.data
      for (let i in items) {
@@ -66,13 +99,68 @@ export default ({
       })
      }
     }
-
    } catch (error) {
     commit('setError', 'нет данных')
     throw error
    }
-
   },
+
+
+  // async loadTracksFor({commit}, params) {
+  //  commit('clearError')
+  //  try {
+  //   const response = await api.getTracksForv2(params.ids, params.dateFrom, params.dateTo, params.speedLimit)
+  //   return response.data.data
+  //  } catch (error) {
+  //   commit('setError', 'Не найдены данные для ')
+  //   throw error
+  //  }
+  // },
+
+  async loadTracksFor({ commit, state }, params) {
+   return Promise.resolve(api.getTracksForv2(params.ids, params.dateFrom, params.dateTo, params.speedLimit).then(response => {
+     if (response.status == 200) {
+      let items = response.data.data
+      if (items == "") {
+       items = [];
+      }
+      commit('clearError')
+      items.forEach(item => {
+       // console.log(item);
+       if (item.playback.length > 0) {
+        commit('addTrack', item)
+       } else {
+        commit('setError', 'Не найдены данные для указанного интервала для объекта ' + item.obj.name)
+       }
+      });
+     }else{
+      console.errors(response.data);
+     }
+    }).catch(error => { console.error(error) })
+   );
+  },
+
+
+
+  // async getObjectsPosition({commit}, params) {
+  //  commit('clearError')
+  //  try {
+  //   const response = await api.getObjectsPosition(params)
+  //   if (response) {
+  //    let items = response.data.data
+  //    for (let i in items) {
+  //     let obj = items[i]
+  //     commit({
+  //      type: 'updateObject',
+  //      geo: obj
+  //     })
+  //    }
+  //   }
+  //  } catch (error) {
+  //   commit('setError', 'нет данных')
+  //   throw error
+  //  }
+  // },
 
 
   selectObject({commit}, payload) {
@@ -83,6 +171,9 @@ export default ({
   },
   flyToObject({commit}, payload) {
    commit('flyToObject', payload)
+  },
+  monitorObject({commit}, payload) {
+   commit('monitorObject', payload)
   },
  },
 
@@ -99,12 +190,11 @@ export default ({
    return Object.filter(state.objects, el => el.selected);
   },
 
-  getSelectedObjectsImei(state, getters) {
-   return Object.values(Object.map(getters.getSelectedObjects, el => el.imei));
+
+  getMonitorObjects(state) {
+   return Object.values(Object.filter(state.objects, el => el.monitor))
   },
 
-  getToFly(state,) {
-   return state.flyTo
-  }
+  getTracks: state => state.tracks,
  }
 })
