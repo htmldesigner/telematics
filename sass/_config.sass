@@ -39,6 +39,11 @@ $gutter: $grid-gutter-width
   background-color: $accent
   color: #fff
 
+.form-control
+  &:focus, &:active
+    box-shadow: none
+    border: 1px solid #ced4da
+
 input, textarea
   outline: none
   &:focus:required:invalid

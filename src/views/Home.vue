@@ -26,18 +26,10 @@
       </div>
      </li>
      <li class="nav-item">
-      <router-link
-       class="nav-link"
-       teg="a" exact
-       to="/Profile"
-      >Профиль
-      </router-link>
+      <a href="/profile" class="nav-link">Профиль</a>
      </li>
      <li class="nav-item">
-      <a href="/login"
-         @click.prevent="logOut"
-         class="nav-link"
-      >Выход</a>
+      <a href="/login" class="nav-link">Выход</a>
      </li>
     </ul>
    </div>
@@ -53,7 +45,6 @@
      </pane>
      <pane min-size="60" size="100" max-size="100">
       <llmap ref="llmap"></llmap>
-
      </pane>
     </splitpanes>
    </div>
@@ -65,7 +56,8 @@
 <script>
 
  import monitoring from "../components/monitoring/monitoring";
- import tracker from "../components/tracker";
+ import tracker from "../components/tracker/tracker";
+ import sittings from "../components/settings/sittings";
  import llmap from '../components/llmap'
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
@@ -75,6 +67,7 @@
   components: {
    llmap,
    monitoring,
+   sittings,
    tracker,
    Splitpanes,
    Pane
@@ -85,16 +78,9 @@
     links: [
      {title: 'Маниторинг', alias: 'monitoring', icon: 'mdi-earth'},
      {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
-     {title: 'Сообщения', alias: 'message', icon: 'mdi-message-text-outline'},
+     {title: 'Настройки', alias: 'sittings', icon: 'mdi-message-text-outline'},
      {title: 'Отчеты', icon: 'mdi-playlist-check'},
      {title: 'Геозоны', icon: 'mdi-shape-polygon-plus'},
-     // {title: 'Маршруты', icon: 'mdi-highway'},
-     // {title: 'Водители', icon: 'mdi-steering'},
-     // {title: 'Пассажиры', icon: 'mdi-transit-transfer'},
-     // {title: 'Задания', icon: 'mdi-format-list-checks'},
-     // {title: 'Уведомления', icon: 'mdi-timetable'},
-     // {title: 'Пользователи', icon: 'mdi-account'},
-     // {title: 'Обьекты', icon: 'mdi-bus'},
     ]
    }
   },
@@ -105,23 +91,6 @@
    currentComponent: function () {
     return this.currentLink;
    },
-  },
-  methods: {
-   ...mapActions([
-    'updateSelectedObjectsPositionByImei',
-    'getObjectsPosition'
-   ]),
-   // updateRealTime() {
-   //  if (this.objects)
-   //  setInterval(()=>{
-   //   for (let i in this.objects) {
-   //    this.updateSelectedObjectsPositionByImei(this.objects[i].imei)
-   //   }
-   //  }, 3000)
-   // }
-  },
-  mounted() {
-   // this.updateRealTime()
   }
  }
 </script>

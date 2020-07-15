@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import monitoring from "./monitoring";
+import sittings from "./sittings";
 import common from "./common";
 
 import mapModule from './modules/mapInstance'
@@ -16,7 +17,9 @@ Vue.use(Vuex)
   actions: {
   },
   modules: {
-    common, monitoring
+   sittings,
+   common,
+   monitoring,
   }
 })
 

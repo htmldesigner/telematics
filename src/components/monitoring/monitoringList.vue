@@ -55,20 +55,33 @@
       {{object.name}}
      </td>
 
-     <td><input type="checkbox" :disabled="!object.selected"
-                @click="watchDevice(object ,object.id, object.monitor = !object.monitor)"
-     ></td>
+     <td>
+      <div class="icon-watch" title="Следить за объектом на карте">
+
+       <input type="checkbox"
+              class="d-none"
+              :id="`iconWatch${index}`"
+              :disabled="!object.selected"
+              @click="watchDevice(object ,object.id, object.monitor = !object.monitor)">
+       <label :for="`iconWatch${index}`" class="m-0">
+        <img v-if="object.monitor && object.selected" :src="icon.watch" alt="Alt">
+        <img v-else :src="icon.notWatch" alt="Alt">
+       </label>
+      </div>
+     </td>
 
      <td class="text-center">
       <div class="monitoring_units_state_move">
-       <span class="icon-device" v-bind:class="{'green-color': object.geo.speed}"></span>
+       <span class="icon-device">
+        <img v-if="object.geo.speed" :src="icon.move" alt="Alt" class="" :title="'Скорость ' + object.geo.speed + 'km/ч'">
+        <img v-else :src="icon.stop" :title="'Скорость ' + object.geo.speed + 'km/ч'" alt="Alt" class="">
+       </span>
       </div>
      </td>
 
      <td class="text-center">
       <div class="icon-remove" @click="removeObject(object)">&times;</div>
      </td>
-
     </tr>
     </tbody>
    </table>
@@ -84,9 +97,13 @@
   data() {
    return {
     map: null,
-    isActive: true,
     search: '',
-    timer: null
+    icon: {
+     stop: '/img/stop-stroke.svg',
+     move: '/img/start.svg',
+     watch: '/img/watch-green.svg',
+     notWatch: '/img/watch-grey.svg'
+    }
    }
   },
   computed: {
@@ -210,16 +227,25 @@
   justify-content: space-between;
  }
 
- .icon-device {
-  background-color: #979797;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: block;
- }
+ /*.icon-device {*/
+ /* background-color: #979797;*/
+ /* width: 18px;*/
+ /* height: 18px;*/
+ /* border-radius: 50%;*/
+ /* display: block;*/
+ /*}*/
 
  .green-color {
   background-color: green;
  }
+
+ /*.icon-watch label:before{*/
+ /* content: 'Новьё';*/
+ /* width: 10px;*/
+ /* height: 10px;*/
+ /* background-color: red;*/
+ /*}*/
+
+
 
 </style>

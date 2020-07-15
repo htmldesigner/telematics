@@ -1,5 +1,5 @@
-import map from "./map";
+import playback from "./playback";
 
 export default {
- map
+ playback
 };

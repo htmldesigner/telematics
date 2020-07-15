@@ -69,7 +69,7 @@ export default ({
    }
   },
 
-// Always update
+// Realtime update
   async realTimeWatch({commit}) {
    commit('clearError')
    try {
@@ -105,17 +105,6 @@ export default ({
    }
   },
 
-
-  // async loadTracksFor({commit}, params) {
-  //  commit('clearError')
-  //  try {
-  //   const response = await api.getTracksForv2(params.ids, params.dateFrom, params.dateTo, params.speedLimit)
-  //   return response.data.data
-  //  } catch (error) {
-  //   commit('setError', 'Не найдены данные для ')
-  //   throw error
-  //  }
-  // },
 
   async loadTracksFor({ commit, state }, params) {
    return Promise.resolve(api.getTracksForv2(params.ids, params.dateFrom, params.dateTo, params.speedLimit).then(response => {

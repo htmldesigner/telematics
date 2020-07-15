@@ -7,6 +7,8 @@
 <script>
 
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
+ import * as ELG from "esri-leaflet-geocoder";
+ import * as LCG from "leaflet-control-geocoder";
 
  export default {
   name: "llmap",
@@ -17,22 +19,22 @@
     defaultCenter: [51.7971, 55.1137],
     OSMUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
-    singleLine: [
-     [
-      [51.49282033577651, -0.11432647705078126],
-      [51.48010001366223, -0.10265350341796876],
-      [51.48084836613703, -0.08222579956054689],
-      [51.49591970845512, -0.08239746093750001]
-     ],
-     [
-      [51.47614423230301, -0.08909225463867188],
-      [51.47571655971428, -0.05973815917968751],
-      [51.4829864484029, -0.03398895263671876],
-      [51.49025517833079, -0.008239746093750002],
-      [51.477641054786694, 0.008583068847656252],
-      [51.487796767005534, 0.021800994873046875]
-     ]
-    ],
+    // singleLine: [
+    //  [
+    //   [51.49282033577651, -0.11432647705078126],
+    //   [51.48010001366223, -0.10265350341796876],
+    //   [51.48084836613703, -0.08222579956054689],
+    //   [51.49591970845512, -0.08239746093750001]
+    //  ],
+    //  [
+    //   [51.47614423230301, -0.08909225463867188],
+    //   [51.47571655971428, -0.05973815917968751],
+    //   [51.4829864484029, -0.03398895263671876],
+    //   [51.49025517833079, -0.008239746093750002],
+    //   [51.477641054786694, 0.008583068847656252],
+    //   [51.487796767005534, 0.021800994873046875]
+    //  ]
+    // ],
 
     arrowicon: L.icon({
      iconUrl: '/img/navigator64.png',
@@ -82,8 +84,6 @@
      map.invalidateSize()
     }, 200)
 
-
-
     let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     let osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: ''});
@@ -97,7 +97,18 @@
      attribution: 'google'
     });
 
-    let custom = L.tileLayer('/img?x={x}&y={y}&z={z}', {minZoom: 7,maxZoom: 16, attribution: 'ccs',tms:false});
+    let custom = L.tileLayer('/img?x={x}&y={y}&z={z}', {minZoom: 7, maxZoom: 16, attribution: 'ccs', tms: false});
+
+    var searchControl = new ELG.Geosearch({placeholder: "Поиск"}).addTo(map);
+
+    var results = L.layerGroup().addTo(map);
+    searchControl.on('results', function (data) {
+     results.clearLayers();
+     for (var i = data.results.length - 1; i >= 0; i--) {
+      results.addLayer(L.marker(data.results[i].latlng));
+      console.log(data)
+     }
+    });
 
     L.control.layers({
      'OSM': osm,
@@ -105,8 +116,6 @@
      "google": google1.addTo(map),
      "google2": google2,
     }).addTo(map)
-
-
 
     return map
    },
@@ -130,15 +139,59 @@
        })
       this.markers.push(marker)
 
+      let geocodeService = ELG.geocodeService()
+      geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude]).run(function (error, result) {
+       if (error) {
+        return;
+       }
+       return newValue[i].address = result.address.Match_addr
+      })
+
       function customTip() {
        this.unbindTooltip();
        if (!this.isPopupOpen()) {
         this.bindTooltip(`
-        <h5>${newValue[i].name}</h5><span>${newValue[i].geo.fix_date}</span>
-        <br/><span>${newValue[i].reg_number}</span>
-        <br><span>${newValue[i].imei}</span>
+        <div class="custom-tooltips d-flex flex-column p-2" style="width: 320px">
+
+<div class="header-tooltips d-flex justify-content-between align-content-start">
+
+  <div class="custom-tooltips-name">
+    <h5>${newValue[i].name}</h5>
+  </div>
+
+  <div class="custom-tooltips-time">
+    <span style="font-size: 10px">${newValue[i].geo.fix_date}</span>
+ </div>
+
+</div>
+<hr class="p-0 m-0">
+  <div class="content-container">
+
+      <div class="custom-tooltips-address mb-1 mt-1">
+         <span style="font-size: 12px">${newValue[i].address}</span>
+         </div>
+      </div>
+<hr class="p-0 m-0">
+  <div class="unit-content-container d-flex flex-row justify-content-between mt-2">
+        <div class="text-center">
+        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Скорость</p>
+        <span>${newValue[i].geo.speed} км/ч</span>
+        </div>
+        <div class="text-center">
+        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Imei</p>
+        <span>${newValue[i].imei}</span>
+        </div>
+        <div class="text-center">
+        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Координаты</p>
+        <span>${newValue[i].geo.latitude}<br>${newValue[i].geo.longitude}</span>
+        </div>
+  </div>
+
+
+
+</div>
         `,
-         {className: "custom-tooltips", interactive: true}).openTooltip();
+         {interactive: true}).openTooltip();
        }
       }
 
@@ -160,21 +213,21 @@
     })
    },
 
-  async loadTracks(id) {
+   async loadTracks(id) {
     let params = {
      ids: id,
      dateFrom: new Date(new Date().getTime() - 3600 * 3 * 1000 - 3600 * 24 * 170 * 1000).toLocaleString(),
      dateTo: new Date(new Date().getTime() - 3600 * 24 * 170 * 1000).toLocaleString(),
      speedLimit: '0,11,20'
     }
-   await this.loadTracksFor(params)
-   this.addPolyline()
+    await this.loadTracksFor(params)
+    this.addPolyline()
    },
 
    addPolyline() {
     let item = []
-    this.getTracks.playback.forEach(el =>{
-    item.push([el[0], el[1]])
+    this.getTracks.playback.forEach(el => {
+     item.push([el[0], el[1]])
     })
     console.log(item)
     let singleLineStyle = {
@@ -213,6 +266,8 @@
 </script>
 
 <style scoped>
+
+
 
  .rel {
   position: relative;

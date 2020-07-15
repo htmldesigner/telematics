@@ -11,18 +11,24 @@
 </template>
 <script>
  import Loader from "./components/Loader";
- import {mapActions} from "vuex";
+ import {mapActions, mapGetters} from "vuex";
+
  export default {
   name: 'App',
   data() {
    return {
-    load: true
+    load: true,
+    interval: null
    }
   },
   components: {
    Loader
   },
   computed: {
+   ...mapGetters({
+    realtime: 'isRealTime',
+    timerInterval: 'getTimerInterval',
+   }),
    loader() {
     return this.$store.getters.loading
    },
@@ -30,23 +36,41 @@
     return this.$store.getters.error
    },
   },
+  watch: {
+   realtime: {
+    handler(val) {
+     if (val) {
+      this.watcher()
+     } else {
+      clearInterval(this.interval)
+     }
+    }
+   }
+  },
   methods: {
    ...mapActions(['realTimeWatch']),
 
-   alweysWatch(){
-    setInterval(()=>{
-     this.realTimeWatch()
-    },1000 * 30)
+   watcher() {
+    if (this.realtime) {
+     this.interval = setInterval(() => {
+      this.realTimeWatch()
+     }, (this.timerInterval > 0 ? this.timerInterval : 5) * 1000)
+    } else {
+     clearInterval(this.interval)
+     return false
+    }
    }
-
   },
   async created() {
    await this.$store.dispatch('loadObjects')
    await setTimeout(() => {
     this.load = false
-   }, 1000)
-   this.alweysWatch()
+   }, 500)
+  },
+  mounted() {
+   this.watcher()
   }
+
  }
 </script>
 <style>
