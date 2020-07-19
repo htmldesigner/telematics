@@ -1,5 +1,16 @@
 @import "config"
-
+.navbar-brand
+  padding: 0
+  img
+    width: 40px
+    height: 100%
+  .brand-text
+    font-weight: bold
+    font-size: 20px
+    text-transform: uppercase
+    color: #505050
+    vertical-align: middle
+    margin-left: 5px
 .custom-switch
   .custom-control-label
     &:before
@@ -20,3 +31,16 @@
       top: 7px
       width: 12px
       height: 12px
+
+.btn-custom
+  color: #fff
+  background-color: #0066cc
+  border: none
+  padding: 4px 15px
+  border-radius: 3px
+  &:hover
+    background-color: lighten(#0066cc, 5%)
+  &:focus
+    outline: none!important
+  &:active
+    background-color: lighten(#0066cc, 1%)

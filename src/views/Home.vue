@@ -1,7 +1,9 @@
 <template>
  <div>
   <nav class="navbar navbar-expand-xl navbar-light bg-light">
-   <a class="navbar-brand" href="#">LOGO</a>
+   <a class="navbar-brand mr-3" href="#">
+    <img src="/img/logo.png" alt="Alt">
+   </a>
    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -9,7 +11,7 @@
    <div class="collapse navbar-collapse" id="navbarText">
     <ul class="navbar-nav mr-auto">
      <li v-for="(link, index) in links" :key="index" class="nav-item">
-      <a href="" class="nav-link" @click.prevent="currentLink = link.alias">{{link.title}}</a>
+      <a href="" class="nav-link text-dark" @click.prevent="currentLink = link.alias">{{link.title}}</a>
      </li>
     </ul>
 
@@ -37,15 +39,21 @@
 
   <div class="container-fluid">
    <div class="row">
-    <splitpanes class="default-theme" style="height: calc(100vh - 56px)">
-     <pane min-size="12" size="20" max-size="40">
+    <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
+                style="height: calc(100vh - 56px)">
+     <pane min-size="15" max-size="50" :size="paneSize">
       <keep-alive>
        <component :is="currentComponent"></component>
       </keep-alive>
      </pane>
-     <pane min-size="60" size="100" max-size="100">
-      <llmap ref="llmap"></llmap>
+     <pane min-size="60" :size="100 - paneSize" max-size="100">
+      <splitpanes horizontal>
+       <pane min-size="10"><llmap ref="llmap"></llmap></pane>
+       <pane v-if="currentLink ==='tracker'" mix-size="90" style="background-color:#f5f5f5 !important; overflow-y: scroll; display: block;"><Playback /></pane>
+      </splitpanes>
+
      </pane>
+
     </splitpanes>
    </div>
   </div>
@@ -58,25 +66,52 @@
  import monitoring from "../components/monitoring/monitoring";
  import tracker from "../components/tracker/tracker";
  import sittings from "../components/settings/sittings";
- import llmap from '../components/llmap'
+ import llmap from '../components/llmap';
+ import Playback from "../components/Playback";
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
- import {mapActions, mapGetters} from "vuex";
+ import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
 
  export default {
   components: {
    llmap,
+   Playback,
    monitoring,
    sittings,
    tracker,
    Splitpanes,
    Pane
   },
+  computed: {
+   ...mapGetters({
+    objects: 'getObjects',
+    getPaneSize: 'getPaneSize',
+    getCurrentComponent: 'getCurrentComponent',
+   }),
+   currentLink: {
+    set(val){
+     this.setCurrentComponent(val)
+    },
+    get(){
+     return this.getCurrentComponent
+    }
+   },
+   paneSize: {
+    set(val){
+     this.setPaneSize(val)
+    },
+    get(){
+     return this.getPaneSize
+    }
+   },
+   currentComponent: function () {
+    return this.currentLink;
+   },
+  },
   data() {
    return {
-    currentLink: "monitoring",
     links: [
-     {title: 'Маниторинг', alias: 'monitoring', icon: 'mdi-earth'},
+     {title: 'Мониторинг', alias: 'monitoring', icon: 'mdi-earth'},
      {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
      {title: 'Настройки', alias: 'sittings', icon: 'mdi-message-text-outline'},
      {title: 'Отчеты', icon: 'mdi-playlist-check'},
@@ -84,14 +119,24 @@
     ]
    }
   },
-  computed: {
-   ...mapGetters({
-    objects: 'getObjects',
-   }),
-   currentComponent: function () {
-    return this.currentLink;
-   },
+  methods: {
+   ...mapMutations(['setPaneSize', 'setCurrentComponent']),
+   ...mapState('mapModule', ['mapInstance']),
+
+   //Responsive map interface belong with "Splitpanes" component
+   paneSizeResize() {
+    setTimeout(() => {
+     this.mapInstance().invalidateSize()
+    }, 400)
+   }
+
+  },
+  mounted() {
+   setTimeout(() => {
+    this.mapInstance().invalidateSize()
+   }, 400)
   }
+
  }
 </script>
 

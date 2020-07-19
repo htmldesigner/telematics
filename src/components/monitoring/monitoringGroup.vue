@@ -1,9 +1,10 @@
 <template>
  <div>
+  <input type="text" class="form-control mb-3" v-model="filter" aria-describedby="button-addon4" placeholder="Введите название, IMEI, регномер">
+
   <div class="monitoring_list" v-on:click="$emit('component-link', 'monitoringList')">
-   <img class="size_16" src="/img/list.png" alt="Alt">
+   <img :src="icon.group" alt="Alt">
   </div>
-  <input type="text" class="form-control" v-model="filter" aria-describedby="button-addon4" placeholder="Введите название, IMEI, регномер">
 
   <div style="padding:10px;">
    <div v-for="(group,index) in objectsgroups" :key="index">
@@ -32,7 +33,15 @@
   name: "monitoringGroup",
   data(){
    return {
-    filter: ''
+    filter: '',
+    icon: {
+     stop: '/img/stop-stroke.svg',
+     move: '/img/start.svg',
+     watch: '/img/watch-green.svg',
+     notWatch: '/img/watch-grey.svg',
+     list: '/img/list.svg',
+     group: '/img/group.svg'
+    }
    }
   },
   computed: {

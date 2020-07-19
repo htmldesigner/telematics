@@ -8,8 +8,7 @@
 
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import * as ELG from "esri-leaflet-geocoder";
- import * as LCG from "leaflet-control-geocoder";
-
+import moment from 'moment'
  export default {
   name: "llmap",
   components: {},
@@ -18,23 +17,6 @@
     defaultZoom: 8,
     defaultCenter: [51.7971, 55.1137],
     OSMUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-
-    // singleLine: [
-    //  [
-    //   [51.49282033577651, -0.11432647705078126],
-    //   [51.48010001366223, -0.10265350341796876],
-    //   [51.48084836613703, -0.08222579956054689],
-    //   [51.49591970845512, -0.08239746093750001]
-    //  ],
-    //  [
-    //   [51.47614423230301, -0.08909225463867188],
-    //   [51.47571655971428, -0.05973815917968751],
-    //   [51.4829864484029, -0.03398895263671876],
-    //   [51.49025517833079, -0.008239746093750002],
-    //   [51.477641054786694, 0.008583068847656252],
-    //   [51.487796767005534, 0.021800994873046875]
-    //  ]
-    // ],
 
     arrowicon: L.icon({
      iconUrl: '/img/navigator64.png',
@@ -53,7 +35,6 @@
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
-    getTracks: 'getTracks'
    }),
   },
   watch: {
@@ -72,7 +53,8 @@
   },
   methods: {
    ...mapMutations('mapModule', ['SET_MAP_INSTANCE']),
-   ...mapActions(['updateSelectedObjectsPositionByImei', 'loadTracksFor']),
+   ...mapActions(['updateSelectedObjectsPositionByImei']),
+
 // Global map instance
    createMapInstance() {
     const map = L.map(this.$refs.mapContainer,).setView(this.defaultCenter, this.defaultZoom)
@@ -80,9 +62,6 @@
      maxZoom: 18,
      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     })
-    setTimeout(() => {
-     map.invalidateSize()
-    }, 200)
 
     let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
@@ -139,6 +118,7 @@
        })
       this.markers.push(marker)
 
+      // Need optimization
       let geocodeService = ELG.geocodeService()
       geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude]).run(function (error, result) {
        if (error) {
@@ -160,7 +140,7 @@
   </div>
 
   <div class="custom-tooltips-time">
-    <span style="font-size: 10px">${newValue[i].geo.fix_date}</span>
+    <span style="font-size: 10px">${moment(newValue[i].geo.fix_date).format('MM-DD-YYYY hh:mm')}</span>
  </div>
 
 </div>
@@ -207,40 +187,10 @@
    },
 
    async moveTo(object) {
+    console.log(object)
     object.forEach((el) => {
      this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 7, {animate: true})
-     this.loadTracks(el.imei)
     })
-   },
-
-   async loadTracks(id) {
-    let params = {
-     ids: id,
-     dateFrom: new Date(new Date().getTime() - 3600 * 3 * 1000 - 3600 * 24 * 170 * 1000).toLocaleString(),
-     dateTo: new Date(new Date().getTime() - 3600 * 24 * 170 * 1000).toLocaleString(),
-     speedLimit: '0,11,20'
-    }
-    await this.loadTracksFor(params)
-    this.addPolyline()
-   },
-
-   addPolyline() {
-    let item = []
-    this.getTracks.playback.forEach(el => {
-     item.push([el[0], el[1]])
-    })
-    console.log(item)
-    let singleLineStyle = {
-     stroke: true,
-     color: "#0040ff",
-     weight: 2,
-     opacity: 1
-    };
-
-    let polyline = L.polyline(item, singleLineStyle)
-    polyline.addTo(this.mapInstance)
-    return polyline
-
    },
 
    monitorObjects(object) {
@@ -252,7 +202,7 @@
         this.updateSelectedObjectsPositionByImei(object[i].imei)
        }
       }
-     }, 1000 * 2);
+     }, 1000 * 5);
     } else {
      clearInterval(this.interval)
     }

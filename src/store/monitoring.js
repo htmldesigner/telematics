@@ -1,11 +1,10 @@
 import api from "@/app/api"
 import axios from "axios";
 
-export default ({
+export default {
  state: {
   objects: [],
   objectsgroups: [],
-  tracks: [],
  },
  mutations: {
   setObjects(state, payload) {
@@ -45,12 +44,6 @@ export default ({
   monitorObject(state, payload) {
    state.objects[payload.id].monitor = payload.value;
   },
-
-  addTrack(state, payload) {
-   state.tracks = payload;
-   console.log(state.tracks)
-  },
-
  },
  actions: {
   async loadObjects({commit}) {
@@ -105,32 +98,6 @@ export default ({
    }
   },
 
-
-  async loadTracksFor({ commit, state }, params) {
-   return Promise.resolve(api.getTracksForv2(params.ids, params.dateFrom, params.dateTo, params.speedLimit).then(response => {
-     if (response.status == 200) {
-      let items = response.data.data
-      if (items == "") {
-       items = [];
-      }
-      commit('clearError')
-      items.forEach(item => {
-       // console.log(item);
-       if (item.playback.length > 0) {
-        commit('addTrack', item)
-       } else {
-        commit('setError', 'Не найдены данные для указанного интервала для объекта ' + item.obj.name)
-       }
-      });
-     }else{
-      console.errors(response.data);
-     }
-    }).catch(error => { console.error(error) })
-   );
-  },
-
-
-
   // async getObjectsPosition({commit}, params) {
   //  commit('clearError')
   //  try {
@@ -179,11 +146,9 @@ export default ({
    return Object.filter(state.objects, el => el.selected);
   },
 
-
   getMonitorObjects(state) {
    return Object.values(Object.filter(state.objects, el => el.monitor))
   },
 
-  getTracks: state => state.tracks,
  }
-})
+}

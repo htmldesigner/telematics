@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import monitoring from "./monitoring";
 import sittings from "./sittings";
 import common from "./common";
-
+import tracker from "./tracker";
 import mapModule from './modules/mapInstance'
 
 Vue.use(Vuex)
@@ -20,6 +20,7 @@ Vue.use(Vuex)
    sittings,
    common,
    monitoring,
+   tracker,
   }
 })
 

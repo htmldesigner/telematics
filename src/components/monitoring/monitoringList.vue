@@ -1,8 +1,7 @@
 <template>
  <div>
   <div class="monitoring-container">
-   <input class="monitoring_filter" type="text" placeholder="Введите название, IMEI, регномер" name="query"
-          v-model="search">
+   <input type="text" class="form-control mb-3" v-model="filter" aria-describedby="button-addon4" placeholder="Введите название, IMEI, регномер">
   </div>
   <div class="table-responsive">
    <table class="table">
@@ -20,7 +19,7 @@
         <img class="size_16" src="/img/sort-up.png" alt="Alt">
        </div>
        <div class="monitoring_list" v-on:click="$emit('component-link', 'monitoringGroup')">
-        <img class="size_16" src="/img/list.png" alt="Alt">
+        <img  :src="icon.list" alt="Alt">
        </div>
       </div>
      </td>
@@ -97,12 +96,14 @@
   data() {
    return {
     map: null,
-    search: '',
+    filter: '',
     icon: {
      stop: '/img/stop-stroke.svg',
      move: '/img/start.svg',
      watch: '/img/watch-green.svg',
-     notWatch: '/img/watch-grey.svg'
+     notWatch: '/img/watch-grey.svg',
+     list: '/img/list.svg',
+     group: '/img/group.svg'
     }
    }
   },
@@ -116,9 +117,9 @@
    filtered() {
     let grobjects = Object.filter(this.objects, obj => (this.objects[obj.id]));
     let result = Object.filter(
-     grobjects, obj => obj.name.toLowerCase().indexOf(this.search.toLowerCase()) != -1 ||
-      obj.imei.toLowerCase().indexOf(this.search.toLowerCase()) != -1 ||
-      obj.reg_number.toLowerCase().indexOf(this.search.toLowerCase()) != -1
+     grobjects, obj => obj.name.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
+      obj.imei.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
+      obj.reg_number.toLowerCase().indexOf(this.filter.toLowerCase()) != -1
     );
     return result
    }
