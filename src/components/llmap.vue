@@ -8,7 +8,11 @@
 
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import * as ELG from "esri-leaflet-geocoder";
-import moment from 'moment'
+ import moment from 'moment'
+ import Draw from 'leaflet-draw'
+ import Zoomslider from 'leaflet.zoomslider'
+ import {eventBus} from '../eventBus'
+
  export default {
   name: "llmap",
   components: {},
@@ -27,14 +31,19 @@ import moment from 'moment'
     markers: [],
     watchingObjects: [],
     interval: null,
+
+    drawControl: null,
+    zoomZoomslider: null
    }
   },
   computed: {
    ...mapState('mapModule', ['mapInstance']),
    ...mapGetters({
+    currentComponent: 'getCurrentComponent',
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
+    selectedGeozone: 'selectedGeozone'
    }),
   },
   watch: {
@@ -49,6 +58,11 @@ import moment from 'moment'
      this.monitorObjects(object)
      this.moveTo(object)
     }
+   },
+   selectedGeozone: {
+    handler(zone) {
+     this.geozonesDraw(zone)
+    }
    }
   },
   methods: {
@@ -57,7 +71,7 @@ import moment from 'moment'
 
 // Global map instance
    createMapInstance() {
-    const map = L.map(this.$refs.mapContainer,).setView(this.defaultCenter, this.defaultZoom)
+    const map = L.map(this.$refs.mapContainer, {zoomControl: false}).setView(this.defaultCenter, this.defaultZoom)
     const mapLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
      maxZoom: 18,
      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -78,29 +92,141 @@ import moment from 'moment'
 
     let custom = L.tileLayer('/img?x={x}&y={y}&z={z}', {minZoom: 7, maxZoom: 16, attribution: 'ccs', tms: false});
 
-    var searchControl = new ELG.Geosearch({placeholder: "Поиск"}).addTo(map);
-
-    var results = L.layerGroup().addTo(map);
-    searchControl.on('results', function (data) {
-     results.clearLayers();
-     for (var i = data.results.length - 1; i >= 0; i--) {
-      results.addLayer(L.marker(data.results[i].latlng));
-      console.log(data)
-     }
-    });
+    // Поиск
+    // var searchControl = new ELG.Geosearch({placeholder: "Поиск"}).addTo(map);
+    // var results = L.layerGroup().addTo(map);
+    // searchControl.on('results', function (data) {
+    //  results.clearLayers();
+    //  for (var i = data.results.length - 1; i >= 0; i--) {
+    //   results.addLayer(L.marker(data.results[i].latlng));
+    //   console.log(data)
+    //  }
+    // });
 
     L.control.layers({
      'OSM': osm,
      'custom': custom,
      "google": google1.addTo(map),
      "google2": google2,
-    }).addTo(map)
+    }, {}, {position: 'topleft', collapsed: true}).addTo(map)
+
+
+    L.control.zoom({
+     position: 'topleft'
+    }).addTo(map);
+
+    L.control.scale().addTo(map);
+
+    this.geozonesLayer = new L.featureGroup();
+    this.geozonesLayer.addTo(map);
+
+    this.zoomZoomslider = new L.Control.Zoomslider({position: 'topleft'})
 
     return map
    },
 
    renderMap() {
     this.SET_MAP_INSTANCE(this.createMapInstance())
+
+   },
+
+
+   drawInit() {
+    let self = this;
+    // Initialise the FeatureGroup to store editable layers
+    this.editableLayers = new L.FeatureGroup();
+    this.mapInstance.addLayer(this.editableLayers);
+
+    let drawPluginOptions = {
+     position: 'topleft',
+     draw: {
+      polygon: {
+       allowIntersection: false, // Restricts shapes to simple polygons
+       drawError: {
+        color: '#e1e100', // Color the shape will turn when intersects
+        message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+       },
+       shapeOptions: {
+        color: '#97009c'
+       }
+      },
+      // disable toolbar item by setting it to false
+      polyline: true,
+      circle: true, // Turns off this drawing tool
+      circlemarker: true,
+      rectangle: true,
+      marker: true,
+     },
+     edit: {
+      featureGroup: this.editableLayers //REQUIRED!!
+     }
+    };
+
+    // Initialise the draw control and pass it the FeatureGroup of editable layers
+    let drawControl = new L.Control.Draw(drawPluginOptions)
+
+    this.drawControl = new L.Control.Draw(drawPluginOptions)
+
+    this.mapInstance.on('draw:created', function (e) {
+     let type = e.layerType,
+      layer = e.layer;
+     let feature = layer.feature = layer.feature || {}; // Initialize feature
+     feature.type = feature.type || "Feature"; // Initialize feature.type
+     let props = feature.properties = feature.properties || {}; // Initialize feature.properties
+     props.title = props.title = props.title || "Пустое название";
+     self.editableLayers.addLayer(layer);
+
+     layer.on("click", function (e) {
+      let props = e.sourceTarget.feature.properties; // Initialize feature.properties
+      let title = prompt("Укажите название объекта", props.title);
+      if (title != null) {
+       props.title = title;
+      } else {
+       props.title = "";
+      }
+     });
+    });
+   },
+
+   drawShow() {
+    this.mapInstance.addControl(this.drawControl)
+   },
+   drawHide() {
+    this.mapInstance.removeControl(this.drawControl)
+    this.editableLayers.clearLayers()
+   },
+   drawGetGeozones() {
+    return this.editableLayers.getLayers();
+   },
+
+   geozonesDraw(geozonesList) {
+    // Show all geozones in list
+    this.geozonesClear();
+    for (let i in geozonesList) {
+     let geozone = geozonesList[i];
+     let geom = JSON.parse('{"type": "Feature", "geometry": ' + geozone.geom + ', "properties": {"id": 1, "name": "one", "color":"red"}}');
+     let geolayer = L.geoJSON(geom, {
+      style: function (feature) {
+       return {color: feature.properties.color};
+      }
+     }).bindPopup(geozone.name).addTo(this.geozonesLayer);
+    }
+
+    if (geozonesList.length > 0) {
+     this.mapInstance.flyToBounds(this.geozonesLayer.getBounds()) // полет к выделенному
+    }
+   },
+
+   geozonesClear() {
+    this.geozonesLayer.clearLayers();
+   },
+
+   zoomSliderShow(){
+    this.mapInstance.addControl(this.zoomZoomslider)
+   },
+
+   zoomSliderShow(){
+    this.mapInstance.addControl(this.zoomZoomslider)
    },
 
 // Add\Remove marker on the map
@@ -158,7 +284,7 @@ import moment from 'moment'
         <span>${newValue[i].geo.speed} км/ч</span>
         </div>
         <div class="text-center">
-        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Imei</p>
+        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">IMEI</p>
         <span>${newValue[i].imei}</span>
         </div>
         <div class="text-center">
@@ -209,14 +335,14 @@ import moment from 'moment'
    },
 
   },
-  mounted() {
-   this.renderMap()
-  }
+  async mounted() {
+   await this.renderMap()
+   await this.drawInit()
+ }
  }
 </script>
 
 <style scoped>
-
 
 
  .rel {

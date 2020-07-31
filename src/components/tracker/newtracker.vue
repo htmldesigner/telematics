@@ -1,10 +1,10 @@
 <template>
- <div class="tracker-container mt-3">
+ <div class="tracker-container">
   <div class="container">
 
    <div class="row mb-3">
     <div class="col">
-     <div class="objectSelector d-flex align-items-center">
+     <div class="objectSelector d-flex">
       <label for="objectSelector1">Объект:</label>
       <select v-model="selectedObjectId" class="form-control" id="objectSelector1">
        <option v-for="object of objects" v-bind:value="object.id">
@@ -15,51 +15,51 @@
     </div>
    </div>
 
-<!--   <div class="track-control mb-3">-->
-<!--    <div class="row">-->
-<!--     <div class="col d-flex justify-content-end">-->
+   <div class="track-control mb-3">
+    <div class="row">
+     <div class="col d-flex justify-content-end">
 
-<!--      <div class="tracker-stop-selector mx-1" title="Остановки">-->
-<!--       <input v-model="boolStops" class="form-check-input d-none" type="checkbox" value="" id="boolStops1">-->
-<!--       <label class="form-check-label" for="boolStops1">-->
-<!--        <img v-if="boolStops" :src="icon.stop" alt="alt">-->
-<!--        <img v-else :src="icon.stop_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
+      <div class="tracker-stop-selector mx-1" title="Остановки">
+       <input v-model="boolStops" class="form-check-input d-none" type="checkbox" value="" id="boolStops1">
+       <label class="form-check-label" for="boolStops1">
+        <img v-if="boolStops" :src="icon.stop" alt="alt">
+        <img v-else :src="icon.stop_off" alt="alt">
+       </label>
+      </div>
 
-<!--      <div class="tracker-speed-selector mx-1" title="Привышения">-->
-<!--       <input v-model="boolOverspeed" class="form-check-input d-none" type="checkbox" value="" id="boolOverspeed1">-->
-<!--       <label class="form-check-label" for="boolOverspeed1">-->
-<!--        <img v-if="boolOverspeed" :src="icon.speed" alt="alt">-->
-<!--        <img v-else :src="icon.speed_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
+      <div class="tracker-speed-selector mx-1" title="Привышения">
+       <input v-model="boolOverspeed" class="form-check-input d-none" type="checkbox" value="" id="boolOverspeed1">
+       <label class="form-check-label" for="boolOverspeed1">
+        <img v-if="boolOverspeed" :src="icon.speed" alt="alt">
+        <img v-else :src="icon.speed_off" alt="alt">
+       </label>
+      </div>
 
-<!--      <div class="tracker-parking-selector mx-1" title="Парковки">-->
-<!--       <input v-model="boolParking" class="form-check-input d-none" type="checkbox" value="" id="boolParking1">-->
-<!--       <label class="form-check-label" for="boolParking1">-->
-<!--        <img v-if="boolParking" :src="icon.parking" alt="alt">-->
-<!--        <img v-else :src="icon.parking_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
+      <div class="tracker-parking-selector mx-1" title="Парковки">
+       <input v-model="boolParking" class="form-check-input d-none" type="checkbox" value="" id="boolParking1">
+       <label class="form-check-label" for="boolParking1">
+        <img v-if="boolParking" :src="icon.parking" alt="alt">
+        <img v-else :src="icon.parking_off" alt="alt">
+       </label>
+      </div>
 
-<!--      <div class="tracker-fillings-selector mx-1" title="Парковки">-->
-<!--       <input v-model="boolFilling" class="form-check-input d-none" type="checkbox" value="" id="boolFilling1">-->
-<!--       <label class="form-check-label" for="boolFilling1">-->
-<!--        <img v-if="boolFilling" :src="icon.filling" alt="alt">-->
-<!--        <img v-else :src="icon.filling_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
+      <div class="tracker-fillings-selector mx-1" title="Парковки">
+       <input v-model="boolFilling" class="form-check-input d-none" type="checkbox" value="" id="boolFilling1">
+       <label class="form-check-label" for="boolFilling1">
+        <img v-if="boolFilling" :src="icon.filling" alt="alt">
+        <img v-else :src="icon.filling_off" alt="alt">
+       </label>
+      </div>
 
-<!--     </div>-->
-<!--    </div>-->
-<!--   </div>-->
+     </div>
+    </div>
+   </div>
 
 
    <div class="row">
     <div class="col">
 
-     <h6 class="mb-3 mt-3 font-weight-bold text-secondary">Загрузить трек за периуд:</h6>
+     <h6 class="mb-3 font-weight-bold text-secondary">Загрузить трек за периуд:</h6>
 
      <div class="form-group row">
       <label for="example-datetime-local-input1" class="col-2 col-form-label">От:</label>
@@ -75,7 +75,7 @@
       </div>
      </div>
 
-     <button type="button" :disabled="loading" class="btn-custom float-right w-50 mt-2" @click="loadTracks">
+     <button type="button" class="btn-custom float-right mt-2" @click="loadData">
       <span v-if="loading">Загрузка...</span>
       <span v-else>Загрузить треки</span>
      </button>
@@ -88,21 +88,20 @@
      <div class="col p-0 m-0">
       <ul class="routes-list">
 
-       <li v-for="(object, index) in objects" :key="index" class="tracker-result">
-        <div class="routes-target d-flex justify-content-between"><p>{{object.name}}</p>
-         <div class="route-navigation-panel d-flex mr-1 align-items-center">
+       <li v-for="(track, index) in tracks" :key="index">
+        <div class="routes-target d-flex justify-content-between"><p>{{track.obj.name}}</p>
+         <div class="route-navigation-panel d-flex mr-3 align-items-center">
 
-          <div class="route-remove mx-1">
+          <div class="route-play mx-2">
+           <img :src="icon.play" alt="Alt">
+          </div>
+
+          <div class="route-remove mx-2">
            <img :src="icon.remove" alt="Alt">
           </div>
 
          </div>
         </div>
-
-        <div class="player">
-       <Player />
-        </div>
-
        </li>
       </ul>
 
@@ -119,13 +118,9 @@
  import {mapState, mapGetters, mapMutations, mapActions} from "vuex";
  import moment from 'moment'
  import api from "@/app/api"
- import Player from "../Player";
-
  export default {
   name: "tracker",
-  components: {
-   Player,
-  },
+  components: {},
   data() {
    return {
     time: null,
@@ -138,32 +133,23 @@
      parking_off: '/img/parkings-off.svg',
      filling: '/img/fillings.svg',
      filling_off: '/img/fillings-off.svg',
-     playButton: '/img/play.svg',
-     pauseButton: '/img/pause.svg',
+     play: '/img/play.svg',
      remove: '/img/remove.svg'
     },
-    play: false,
     loading: null,
-
     selectedObjectId: "",
-
     boolOverspeed: true,
     boolStops: true,
     boolParking: true,
     boolFilling: true,
-
-    data: [],
-    layers: [],
-
     timeIntervalStart: new Date('02/02/2020').getTime() / 1000,
     timeIntervalEnd: new Date('02/03/2020').getTime() / 1000,
-
    }
   },
   computed: {
    ...mapGetters({
     objects: 'getObjects',
-    objectsById: 'getObjects',
+    tracks: 'getTracks',
     timeIntervalStartDate: 'getTimeIntervalStart',
     timeIntervalEndDate: 'getTimeIntervalEnd',
    }),
@@ -187,16 +173,17 @@
   methods: {
    ...mapMutations(['setTimeIntervalStart', 'setTimeIntervalEnd']),
    ...mapState('mapModule', ['mapInstance']),
-
-
-   loadTracks() {
+   ...mapActions(['loadTracksFor']),
+   async  loadData() {
     this.loading = true
+
 
     const id = this.selectedObjectId;
 
     var query = [];
     var startTime = moment(this.timeIntervalStart * 1000).format('DD.MM.yyyy, HH:mm');
     var endTime = moment(this.timeIntervalEnd * 1000).format('DD.MM.yyyy, HH:mm');
+
 
     query.push(
      {
@@ -222,22 +209,27 @@
        dateTo: endTime,
        speedLimits: '0, 10, 20, 30'
       });
-
-
     api.serviceQuery(query).then(response => {
-     console.log(response.data.data)
-     this.loading = false
+     console.log(response.data)
+       this.loading = false
     }).catch(error => {
      console.error(error)
     });
 
 
-   },
 
-   onPlayPause(id) {
-    console.log(id)
-   },
 
+    // let params = {
+    //  ids: this.selectedImei,
+    //  dateFrom: moment(this.timeIntervalStartDate).format('DD.MM.YYYY, hh:mm:ss'),
+    //  dateTo: moment(this.timeIntervalEndDate).format('DD.MM.YYYY, hh:mm:ss'),
+    //  speedLimit: '0,11,20, 40'
+    // }
+
+   // await this.loadTracksFor(params).then(() => {
+   //   this.loading = false
+   //  })
+   }
   },
   mounted() {
    // Load value in select
@@ -245,24 +237,23 @@
     let key = Object.keys(this.objects)[0];
     this.selectedObjectId = this.objects[key].id;
    }
-
-  },
-  created() {
-
   }
-
  }
 </script>
 
 <style scoped>
+ .tracker-container {
+  margin-top: 20px;
+ }
+
+ .objectSelector {
+  align-items: center;
+
+ }
+
  .objectSelector label {
   margin: 0 20px 0 0;
   padding: 0;
- }
- .tracker-result{
-  border-bottom: 1px solid #c2c2c2;
-  margin-bottom: 10px;
-
  }
 
  .routes-target {

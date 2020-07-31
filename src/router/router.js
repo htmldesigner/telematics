@@ -7,7 +7,7 @@ Vue.use(VueRouter)
 
   const routes = [
     {
-      path: '/admin/map',
+      path: '/map/',
       name: 'home',
       component: Home,
     },

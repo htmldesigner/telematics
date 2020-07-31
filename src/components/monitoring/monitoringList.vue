@@ -15,9 +15,9 @@
     <tr>
      <td>
       <div class="monitoring_panel">
-       <div class="monitoring_sort">
-        <img class="size_16" src="/img/sort-up.png" alt="Alt">
-       </div>
+<!--       <div class="monitoring_sort">-->
+<!--        <img class="size_16" src="/img/sort-up.png" alt="Alt">-->
+<!--       </div>-->
        <div class="monitoring_list" v-on:click="$emit('component-link', 'monitoringGroup')">
         <img  :src="icon.list" alt="Alt">
        </div>
@@ -78,9 +78,7 @@
       </div>
      </td>
 
-     <td class="text-center">
-      <div class="icon-remove" @click="removeObject(object)">&times;</div>
-     </td>
+
     </tr>
     </tbody>
    </table>
@@ -131,6 +129,7 @@
     'monitorObject'
    ]),
 
+   ...mapState('mapModule', ['mapInstance']),
 
    objectSelect(id, value) {
     this.selectObject({id, value})
@@ -139,7 +138,7 @@
     this.$store.dispatch('selectAllObject', event.target.checked)
    },
 
-   ...mapState('mapModule', ['mapInstance']),
+
 
    moveTo(object) {
     this.mapInstance().flyTo([object.geo.latitude, object.geo.longitude], 8, {animate: true})

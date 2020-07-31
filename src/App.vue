@@ -12,6 +12,7 @@
 <script>
  import Loader from "./components/Loader";
  import {mapActions, mapGetters} from "vuex";
+ import {eventBus} from "./eventBus";
 
  export default {
   name: 'App',
@@ -69,7 +70,7 @@
   },
   mounted() {
    this.watcher()
-  }
+  },
 
  }
 </script>

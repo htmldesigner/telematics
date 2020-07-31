@@ -1,5 +1,5 @@
 <template>
- <div style="padding: 10px">
+ <div class="mt-3 px-3">
   <component :is="currentComponent" v-on:component-link="componentLink"></component>
  </div>
 </template>

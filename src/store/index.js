@@ -4,13 +4,19 @@ import monitoring from "./monitoring";
 import sittings from "./sittings";
 import common from "./common";
 import tracker from "./tracker";
+import profile from "./profile";
+import geozones from "./geozones";
 import mapModule from './modules/mapInstance'
+
+import draw from './draw'
+import playbackModule from './modules/playbackInstance'
 
 Vue.use(Vuex)
 
  const store = new Vuex.Store({
   state: {
-   mapInstance: null
+   mapInstance: null,
+   playbackInstance: null
   },
   mutations: {
   },
@@ -21,9 +27,13 @@ Vue.use(Vuex)
    common,
    monitoring,
    tracker,
+   profile,
+   draw,
+   geozones,
   }
 })
 
 store.registerModule('mapModule', mapModule)
+store.registerModule('playbackModule', playbackModule)
 
 export default store
