@@ -147,7 +147,6 @@
 <script>
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import {eventBus} from '../eventBus'
- import 'leaflet-play/dist/LeafletPlayback.min'
 
  export default {
   name: "Playback",

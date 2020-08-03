@@ -51,10 +51,10 @@
         <llmap ref="llmap"></llmap>
        </pane>
 
-       <pane v-if="currentLink === 'tracker'"
-             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
-        <Playback ref="playback"/>
-       </pane>
+<!--       <pane v-if="currentLink === 'tracker'"-->
+<!--             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">-->
+<!--        <Playback ref="playback"/>-->
+<!--       </pane>-->
 
        <pane v-if="currentLink === 'raports'"
              mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
@@ -144,15 +144,12 @@
   methods: {
    ...mapMutations(['setPaneSize', 'setCurrentComponent']),
    ...mapState('mapModule', ['mapInstance']),
-   ...mapState('playbackModule', ['playbackInstance']),
-   ...mapActions(['getUserInfo']),
    //Responsive map interface belong with "Splitpanes" component
    paneSizeResize() {
     setTimeout(() => {
      this.mapInstance().invalidateSize()
     }, 400)
    },
-
 
    onAction(action) {
     switch (action) {
@@ -166,23 +163,18 @@
       this.$refs.llmap.drawClear();
       break;
      case "save":
-      this.$refs.drawnew.saveList(this.$refs.llmap.drawGetGeozones());
+      this.$refs.llmap.saveList(this.$refs.llmap.drawGetGeozones());
       break;
     }
    },
-
-
   },
+
   async mounted() {
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)
-   this.getUserInfo()
-
-   $('.dropdown-toggle').dropdown()
-
+   // $('.dropdown-toggle').dropdown()
    this.$refs.llmap.zoomSliderShow()
-
   },
 
   created() {

@@ -5,7 +5,7 @@ export default {
  state: {
   geozones: {},
   geozonesgroups: [],
-  geotree: [],
+  // geotree: [],
   selectedGeozone: []
  },
 
@@ -45,7 +45,6 @@ export default {
    if (Array.isArray(payload)) {
     payload.forEach(el => {
      let index = state.selectedGeozone.findIndex(n => n.id === el)
-     console.log(index)
      if (index !== -1) {
       state.selectedGeozone.splice(index, 2);
      }
@@ -64,18 +63,34 @@ export default {
  actions: {
   async loadGeozones({commit}) {
    commit('clearError')
+   commit('setLoading', true)
    try {
     const response = await api.getGeozones()
     const items = response.data.data
     commit('setGeozonesGroups', items.geozonesgroups)
     commit('setGeozones', items.geozones)
-    commit('setGeotree', items.geotree)
+    commit('setLoading', false)
    } catch (error) {
     commit('setLoading', false)
     commit('setError', 'error conection')
     throw error
    }
   },
+
+
+  saveGeozones({ commit, state },params) {
+   return Promise.resolve(api.saveGeozoneGeometry(params.id,params.layersData).then(response => {
+    if(response.status == 200){
+     console.log(response.data.data);
+    }else{
+
+     console.errors(response.data);
+    }
+   }).catch(error => {
+
+    console.log(error) }));
+  },
+
 
   async getSelectedGeozone({commit}, id) {
    commit('clearError')
@@ -95,6 +110,7 @@ export default {
    commit('clearError')
    try {
     const response = await api.getGeozonesTree(id)
+
     const items = response.data.data
     commit('SELECTED_GEOZONE', items)
    } catch (error) {

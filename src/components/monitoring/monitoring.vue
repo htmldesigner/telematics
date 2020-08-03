@@ -22,9 +22,7 @@
    componentLink(componentName){
     this.currentComponent = componentName
    }
-  },
-
-
+  }
  }
 </script>
 

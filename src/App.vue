@@ -1,5 +1,5 @@
 <template>
- <div id="app" v-if="loader === false">
+ <div id="app">
   <Loader v-if="load"/>
   <template v-if="error">
    <div class="alert alert-danger text-center" role="alert">
@@ -63,6 +63,7 @@
    }
   },
   async created() {
+   await this.$store.dispatch('getUserInfo')
    await this.$store.dispatch('loadObjects')
    await setTimeout(() => {
     this.load = false

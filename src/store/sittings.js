@@ -6,9 +6,9 @@ export default {
   //panel spliter
   paneSize: localStorage.getItem('paneSize') != null ? JSON.parse(localStorage.getItem('paneSize')) : 20,
   //Realtime watcher
-  bool_realTime: localStorage.getItem('bool_realTime') != null ? JSON.parse(localStorage.getItem('bool_realTime')) : false,
+  bool_realTime: false,
   //Update interval
-  int_timerInterval: localStorage.getItem('int_timerInterval') != null ? JSON.parse(localStorage.getItem('int_timerInterval')) : 5,
+  int_timerInterval: 5,
  //Set tima for track loader
   long_timeIntervalStart: localStorage.getItem('long_timeIntervalStart') != null ? JSON.parse(localStorage.getItem('long_timeIntervalStart')) : moment().subtract(1200, 'days').format("YYYY-MM-DDTHH:mm"),
   long_timeIntervalEnd: localStorage.getItem('long_timeIntervalEnd') != null ? JSON.parse(localStorage.getItem('long_timeIntervalEnd')) : moment().format("YYYY-MM-DDTHH:mm"),

@@ -67,7 +67,9 @@
   },
   methods: {
    ...mapMutations('mapModule', ['SET_MAP_INSTANCE']),
-   ...mapActions(['updateSelectedObjectsPositionByImei']),
+   ...mapMutations('playbackModule', ['SET_PLAYBACK_INSTANCE']),
+   ...mapActions(['updateSelectedObjectsPositionByImei', 'saveGeozones']),
+
 
 // Global map instance
    createMapInstance() {
@@ -125,9 +127,56 @@
     return map
    },
 
+
+   createPlaybackInstance() {
+    console.log("playback map init")
+    this.map = this.mapInstance;
+    var self = this;
+    // Playback options
+    let playbackOptions = {
+     // layer and marker options
+     tracksLayer: true,
+     orientIcons: true,
+     layer: {
+      pointToLayer: function (featureData, latlng) {
+       let result = {};
+       if (featureData && featureData.properties && featureData.properties.path_options) {
+        result = featureData.properties.path_options;
+       }
+       if (!result.radius) {
+        result.radius = 5;
+       }
+       result.weight = 1;
+       return new L.CircleMarker(latlng, result);
+      }
+     },
+     marker: function () {
+      return {
+       icon: L.icon({
+        iconUrl: '/img/navigator48.png',
+        iconSize: [32, 32], // size of the icon
+        shadowSize: [0, 0], // size of the shadow
+        iconAnchor: [16, 16], // point of the icon which will correspond to marker's location
+        shadowAnchor: [0, 0], // the same for the shadow
+        popupAnchor: [10, 10] // point from which the popup should open relative to the iconAnchor
+       }),
+       zIndexOffset: 10100
+      }
+     },
+     moveCallback (e) {
+       self.map.panTo([e.latlng.lat, e.latlng.lng]);
+     },
+
+    };
+
+    // Initialize playback
+    return  new L.Playback(this.map, [], null, playbackOptions);
+   },
+
+
    renderMap() {
     this.SET_MAP_INSTANCE(this.createMapInstance())
-
+    this.SET_PLAYBACK_INSTANCE(this.createPlaybackInstance())
    },
 
 
@@ -151,10 +200,10 @@
        }
       },
       // disable toolbar item by setting it to false
-      polyline: true,
-      circle: true, // Turns off this drawing tool
-      circlemarker: true,
-      rectangle: true,
+      polyline: false,
+      circle: false, // Turns off this drawing tool
+      circlemarker: false,
+      rectangle: false,
       marker: true,
      },
      edit: {
@@ -196,8 +245,26 @@
     this.editableLayers.clearLayers()
    },
    drawGetGeozones() {
-    return this.editableLayers.getLayers();
+    return this.editableLayers.getLayers()
    },
+
+   saveList(layers) {
+    let layersData = [];
+    this.currentGroup = 1
+    // if (this.currentGroup === 0){
+    //  alert("Необходимо выбрать группу, куда будут сохранены геозоны");
+    //  return;
+    // }
+    for (let layer of layers) {
+     let geom = layer.toGeoJSON();
+     layersData.push({title: geom.properties.title, geometry: JSON.stringify(geom.geometry)});
+     //here send to server
+    }
+    this.saveGeozones({id: this.currentGroup, layersData})
+    // here saveList...
+    // нужно сделать запрос названия для каждого элемента...
+   },
+
 
    geozonesDraw(geozonesList) {
     // Show all geozones in list
@@ -221,11 +288,7 @@
     this.geozonesLayer.clearLayers();
    },
 
-   zoomSliderShow(){
-    this.mapInstance.addControl(this.zoomZoomslider)
-   },
-
-   zoomSliderShow(){
+   zoomSliderShow() {
     this.mapInstance.addControl(this.zoomZoomslider)
    },
 
@@ -338,7 +401,7 @@
   async mounted() {
    await this.renderMap()
    await this.drawInit()
- }
+  }
  }
 </script>
 

@@ -1,19 +1,16 @@
 import Vue from 'vue'
 import App from './App.vue'
-
-// Importing the Nova Light PrimeVue theme styles
-import 'primevue/resources/themes/nova/theme.css';
-// Importing the base PrimeVue component styles
-import 'primevue/resources/primevue.min.css';
-// Importing the base PrimeIcon styles
-import 'primeicons/primeicons.css';
-
 import router from './router/router'
 import store from './store'
 import Vuelidate from 'vuelidate'
-import utils from './utils'
+
+import './utils/LeafletPlayback'
 import RotatedMarker from 'leaflet-rotatedmarker'
 
+
+import 'primevue/resources/themes/nova/theme.css';
+import 'primevue/resources/primevue.min.css';
+import 'primeicons/primeicons.css';
 import InputText from 'primevue/inputtext';
 import Slider from 'primevue/slider';
 import TreeTable from 'primevue/treetable';
@@ -51,12 +48,8 @@ Vue.component('ColumnGroup', ColumnGroup);
 Vue.component('InputText', InputText);
 Vue.component('Checkbox', Checkbox);
 
-
-
-
-Vue.prototype.$utils = utils
+// Vue.prototype.$utils = utils
 Vue.config.productionTip = false
-
 
 new Vue({
   router,

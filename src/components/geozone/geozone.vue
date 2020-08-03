@@ -9,7 +9,7 @@
 
    <select class="form-control mr-1 mb-3">
     <option v-for="(geozone, index) in root" :key="index" :value="geozone.data.id">
-     {{geozone.data.name}}
+     {{geozone.data.name, geozone.data.id}}
     </option>
    </select>
 
@@ -20,7 +20,7 @@
 
      <button @click="drawHide" class="btn btn-info mx-1 px-3 py-1">Завершить</button>
 
-     <button type="button" class="btn-custom mx-1 px-3 py-1">
+     <button @click="drawSave" type="button" class="btn-custom mx-1 px-3 py-1">
       <span>Сохранить</span>
      </button>
     </div>
@@ -98,18 +98,10 @@
     geozones: 'getGeozones',
     geozonesgroups: 'getGeozonesGroups',
     geotree: 'getGeotree',
-    permission: 'getUserPermission'
    }),
-
   },
+
   methods: {
-
-   loadZone() {
-    setTimeout(() => {
-     this.result(this.geozonesgroups, this.geozones)
-    }, 200)
-   },
-
    result(group, geozone) {
     let keyFirst = 0
     let keySecond = 0
@@ -127,6 +119,7 @@
      }
      this.root.push(createArray)
     }
+    console.log(this.root)
    },
 
    drawShow() {
@@ -135,9 +128,9 @@
    drawHide() {
     this.$emit("on-Action", "hide");
    },
-   drawClear() {
-    this.$emit("on-Action", "clear");
-   },
+   // drawClear() {
+   //  this.$emit("on-Action", "clear");
+   // },
    drawSave() {
     this.$emit("on-Action", "save");
    },
@@ -159,23 +152,27 @@
 
    },
 
-   detectPermission() {
-    this.permission.forEach(el => {
-     if (el === 'resource.1.ResourceEditGeozones') {
-      return this.userPermission = true
-     } else {
-      return this.userPermission = false
-     }
-    })
+   detectPermission(permission) {
+    if (permission) {
+     permission.forEach(el => {
+      if (el === 'resource.1.ResourceEditGeozones') {
+       return this.userPermission = true
+      } else {
+       return this.userPermission = false
+      }
+     })
+    }
    }
 
   },
-  mounted() {
-   this.loadZone()
-   this.detectPermission()
+  async mounted() {
+   this.userPermission = await this.$store.getters.getUserPermission
+   this.detectPermission(this.userPermission)
+   await this.$store.dispatch('loadGeozones')
+   await this.result(this.geozonesgroups, this.geozones)
   },
   created() {
-   this.$store.dispatch('loadGeozones')
+
   },
 
 

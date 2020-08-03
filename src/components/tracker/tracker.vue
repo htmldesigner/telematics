@@ -15,47 +15,6 @@
     </div>
    </div>
 
-<!--   <div class="track-control mb-3">-->
-<!--    <div class="row">-->
-<!--     <div class="col d-flex justify-content-end">-->
-
-<!--      <div class="tracker-stop-selector mx-1" title="Остановки">-->
-<!--       <input v-model="boolStops" class="form-check-input d-none" type="checkbox" value="" id="boolStops1">-->
-<!--       <label class="form-check-label" for="boolStops1">-->
-<!--        <img v-if="boolStops" :src="icon.stop" alt="alt">-->
-<!--        <img v-else :src="icon.stop_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
-
-<!--      <div class="tracker-speed-selector mx-1" title="Привышения">-->
-<!--       <input v-model="boolOverspeed" class="form-check-input d-none" type="checkbox" value="" id="boolOverspeed1">-->
-<!--       <label class="form-check-label" for="boolOverspeed1">-->
-<!--        <img v-if="boolOverspeed" :src="icon.speed" alt="alt">-->
-<!--        <img v-else :src="icon.speed_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
-
-<!--      <div class="tracker-parking-selector mx-1" title="Парковки">-->
-<!--       <input v-model="boolParking" class="form-check-input d-none" type="checkbox" value="" id="boolParking1">-->
-<!--       <label class="form-check-label" for="boolParking1">-->
-<!--        <img v-if="boolParking" :src="icon.parking" alt="alt">-->
-<!--        <img v-else :src="icon.parking_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
-
-<!--      <div class="tracker-fillings-selector mx-1" title="Парковки">-->
-<!--       <input v-model="boolFilling" class="form-check-input d-none" type="checkbox" value="" id="boolFilling1">-->
-<!--       <label class="form-check-label" for="boolFilling1">-->
-<!--        <img v-if="boolFilling" :src="icon.filling" alt="alt">-->
-<!--        <img v-else :src="icon.filling_off" alt="alt">-->
-<!--       </label>-->
-<!--      </div>-->
-
-<!--     </div>-->
-<!--    </div>-->
-<!--   </div>-->
-
-
    <div class="row">
     <div class="col">
 
@@ -86,25 +45,10 @@
    <div class="routes mt-5">
     <div class="row">
      <div class="col p-0 m-0">
-      <ul class="routes-list">
 
-       <li v-for="(object, index) in objects" :key="index" class="tracker-result">
-        <div class="routes-target d-flex justify-content-between"><p>{{object.name}}</p>
-         <div class="route-navigation-panel d-flex mr-1 align-items-center">
-
-          <div class="route-remove mx-1">
-           <img :src="icon.remove" alt="Alt">
-          </div>
-
-         </div>
-        </div>
-
-        <div class="player">
-       <Player />
-        </div>
-
-       </li>
-      </ul>
+      <div class="player">
+       <Player/>
+      </div>
 
      </div>
     </div>
@@ -118,7 +62,6 @@
 <script>
  import {mapState, mapGetters, mapMutations, mapActions} from "vuex";
  import moment from 'moment'
- import api from "@/app/api"
  import Player from "../Player";
 
  export default {
@@ -128,6 +71,7 @@
   },
   data() {
    return {
+    trackLayers: [],
     time: null,
     icon: {
      stop: '/img/stops.svg',
@@ -144,26 +88,18 @@
     },
     play: false,
     loading: null,
-
     selectedObjectId: "",
-
     boolOverspeed: true,
     boolStops: true,
-    boolParking: true,
-    boolFilling: true,
 
-    data: [],
-    layers: [],
-
-    timeIntervalStart: new Date('02/02/2020').getTime() / 1000,
-    timeIntervalEnd: new Date('02/03/2020').getTime() / 1000,
+    timeIntervalStart: '02.02.2020 18:00',
+    timeIntervalEnd: '03.02.2020 18:02',
 
    }
   },
   computed: {
    ...mapGetters({
     objects: 'getObjects',
-    objectsById: 'getObjects',
     timeIntervalStartDate: 'getTimeIntervalStart',
     timeIntervalEndDate: 'getTimeIntervalEnd',
    }),
@@ -191,12 +127,11 @@
 
    loadTracks() {
     this.loading = true
-
     const id = this.selectedObjectId;
+    let query = [];
+    let startTime = this.timeIntervalStart; // moment(this.timeIntervalStart).format('DD.MM.yyyy, HH:mm');
+    let endTime = this.timeIntervalEnd; // moment(this.timeIntervalEnd).format('DD.MM.yyyy, HH:mm');
 
-    var query = [];
-    var startTime = moment(this.timeIntervalStart * 1000).format('DD.MM.yyyy, HH:mm');
-    var endTime = moment(this.timeIntervalEnd * 1000).format('DD.MM.yyyy, HH:mm');
 
     query.push(
      {
@@ -223,21 +158,14 @@
        speedLimits: '0, 10, 20, 30'
       });
 
-
-    api.serviceQuery(query).then(response => {
-     console.log(response.data.data)
+    this.$store.dispatch('loadTracks',
+     {
+      query: query,
+      id: this.selectedObjectId
+     }).then(() => {
      this.loading = false
-    }).catch(error => {
-     console.error(error)
-    });
-
-
+    })
    },
-
-   onPlayPause(id) {
-    console.log(id)
-   },
-
   },
   mounted() {
    // Load value in select
@@ -259,7 +187,8 @@
   margin: 0 20px 0 0;
   padding: 0;
  }
- .tracker-result{
+
+ .tracker-result {
   border-bottom: 1px solid #c2c2c2;
   margin-bottom: 10px;
 

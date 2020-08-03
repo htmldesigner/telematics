@@ -76,7 +76,7 @@ export default {
     getGeozonesTree(id) {
         return axios(this.dataGet("/geozone/getgroup/"+id));
     },
-    saveGeozoneGeometry(geozonegroupid,params) {
+    saveGeozoneGeometry(geozonegroupid, params) {
         //return axios.post('/geozone/savegeometry/', {data:JSON.stringify({groupid:geozonegroupid, geozones: params })})
         return axios(this.dataPost('/geozone/savegeometry', { data: JSON.stringify({groupid:geozonegroupid, geozones: params }), isIndicatorRequired:true}))
     },

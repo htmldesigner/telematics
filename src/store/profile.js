@@ -32,32 +32,33 @@ export default {
  actions: {
   async getUserInfo({commit}) {
    commit('clearError')
+   commit('setLoading', true)
    try {
     const response = await api.getUserInfo()
+    this.dispatch("getUserPermission");
     const items = response.data.data
     commit('setUserInfo', items)
-    this.dispatch("getUserPermission");
+    commit('setLoading', false)
    } catch (error) {
     commit('setError', 'error user')
     throw error
    }
   },
 
-
-  getUserPermission({commit, state}) {
-   api.getUserPermission().then(response => {
-    if (response.status == 200) {
-     let items = response.data.data
-     commit('setUserPermission', items)
-    } else {
-     // eventBus.$emit('showmessage', response.data.errors,'error');
-     console.errors(response.data);
-    }
-   }).catch(error => {
-    // eventBus.$emit('showmessage', error.data.errors,'error');
-    console.error(error)
-   })
+  async getUserPermission({commit}) {
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    const response = await api.getUserPermission()
+    const items = response.data.data
+    commit('setUserPermission', items)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setError', 'error user')
+    throw error
+   }
   },
+
   clearUserData({commit}) {
    commit('clearUserData')
   }

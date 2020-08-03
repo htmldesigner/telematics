@@ -65,12 +65,14 @@ export default {
 // Realtime update
   async realTimeWatch({commit}) {
    commit('clearError')
+   commit('setLoading', true)
    try {
     const response = await api.getObjects()
     const items = response.data.data
     for (let i in items.objects) {
      commit('REAL_TIME_UPDATE_POSITION', items.objects[i])
     }
+    commit('setLoading', false)
    } catch (error) {
     commit('setError', 'error conection')
     throw error
