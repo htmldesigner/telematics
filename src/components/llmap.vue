@@ -18,7 +18,7 @@
   components: {},
   data() {
    return {
-    defaultZoom: 8,
+    defaultZoom: 10,
     defaultCenter: [51.7971, 55.1137],
     OSMUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
@@ -26,6 +26,12 @@
      iconUrl: '/img/navigator64.png',
      iconSize: [32, 32],
      iconAnchor: [16, 16]
+    }),
+
+    directionicon: L.icon({
+     iconUrl: '/img/directionicon.png',
+     iconSize: [10, 16],
+     iconAnchor: [5, 8]
     }),
 
     markers: [],
@@ -105,6 +111,8 @@
     //  }
     // });
 
+    this.myRenderer = L.canvas({padding: 0.5});
+
     L.control.layers({
      'OSM': osm,
      'custom': custom,
@@ -129,13 +137,12 @@
 
 
    createPlaybackInstance() {
-    console.log("playback map init")
     this.map = this.mapInstance;
     var self = this;
     // Playback options
     let playbackOptions = {
      // layer and marker options
-     tracksLayer: true,
+     tracksLayer: false,
      orientIcons: true,
      layer: {
       pointToLayer: function (featureData, latlng) {
@@ -169,7 +176,6 @@
 
     };
 
-    // Initialize playback
     return  new L.Playback(this.map, [], null, playbackOptions);
    },
 
@@ -376,7 +382,6 @@
    },
 
    async moveTo(object) {
-    console.log(object)
     object.forEach((el) => {
      this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 7, {animate: true})
     })

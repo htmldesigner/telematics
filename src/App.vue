@@ -65,6 +65,7 @@
   async created() {
    await this.$store.dispatch('getUserInfo')
    await this.$store.dispatch('loadObjects')
+   await this.$store.dispatch('loadState')
    await setTimeout(() => {
     this.load = false
    }, 500)

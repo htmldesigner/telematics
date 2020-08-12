@@ -13,6 +13,14 @@ export default {
   long_timeIntervalStart: localStorage.getItem('long_timeIntervalStart') != null ? JSON.parse(localStorage.getItem('long_timeIntervalStart')) : moment().subtract(1200, 'days').format("YYYY-MM-DDTHH:mm"),
   long_timeIntervalEnd: localStorage.getItem('long_timeIntervalEnd') != null ? JSON.parse(localStorage.getItem('long_timeIntervalEnd')) : moment().format("YYYY-MM-DDTHH:mm"),
 
+
+  int_stopminradius: 30,
+  int_stopminduration: 2,
+
+  int_overspeedminduration: 2,
+  int_geozonevisitminduration: 2,
+
+
  },
  mutations: {
 
@@ -68,7 +76,20 @@ export default {
 
   getCurrentComponent(state){
    return state.currentComponent
-  }
+  },
+
+
+
+  getStopminradius: state => {
+   return state.int_stopminradius > 1 ? state.int_stopminradius : 30;
+  },
+  getStopminduration: state => {
+   return state.int_stopminduration > 1 ? state.int_stopminduration : 2;
+  },
+  getOverSpeedMinduration: state => {
+   return state.int_overspeedminduration > 1 ? state.int_overspeedminduration : 2;
+  },
+
 
  }
 }

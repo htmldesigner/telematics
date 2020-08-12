@@ -1,33 +1,37 @@
 <template>
  <div class="player">
   <ul class="routes-list">
-   <li class="tracker-result" v-for="(track, index) in tracks" :key="index">
+   <li class="tracker-result"
+       v-for="(track, index) in layers"
+       :key="index"
+   >
 
     <div class="routes-target d-flex justify-content-between">
-     <p>{{track.info.name}}</p>
-     <span>{{comp_sliderValue | moment('MM-DD-YYYY hh:mm')}}</span>
+     <div class="initPlayer" @click="itemInit(track.id, index)"><p>{{track.name}}</p></div>
      <div class="route-remove mx-1">
       <label :for="'inputRemove' + index" class="m-0 p-0">
        <img :src="icon.remove" alt="Alt">
       </label>
-      <input type="button" :id="'inputRemove' + index" class="d-none" @click="removeTrack">
+      <input type="button" :id="'inputRemove' + index" class="d-none" @click="deleteTrack(index)">
      </div>
     </div>
 
-    <div class="routes-navigation-panel d-flex mt-2 mb-2 align-items-center">
+
+    <div class="routes-navigation-panel mt-2 mb-2 align-items-center d-none" :id="'example' + index">
      <div class="play-button">
       <label :for="'inputPlay' + index" class="play-stop-icon m-0 p-0">
-       <img v-if="track.info.play" :src="icon.pauseButton" alt="Alt">
+       <img v-if="play" :src="icon.pauseButton" alt="Alt">
        <img v-else :src="icon.playButton" alt="Alt">
       </label>
-      <input type="button" :id="'inputPlay' + index" class="d-none" @click="playbackLoad">
+      <input type="button" :id="'inputPlay' + index" class="d-none" @click="onPlayPause">
      </div>
 
-     <div class="col">
+     <div class="col ">
       <Slider @change="onPlayBackSliderChange"
               :min="sliderMin"
               :max="sliderMax"
               v-model="comp_sliderValue"/>
+      <!--      <span style="font-size: 10px">{{comp_sliderValue | moment('MM-DD-YYYY hh:mm')}}</span>-->
      </div>
 
      <select class="mr-2" v-model="comp_sliderSpeedValue">
@@ -53,29 +57,29 @@
 <script>
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import moment from 'moment'
+
  export default {
 
   name: "Player",
   components: {},
   data() {
    return {
-    playbackTracks: null,
+    mapLayers: ['track', 'stop', 'overspeed', 'overspeed2'],
+    mapTrackLayer: null,
+
+    list: [],
+    play: false,
+    layers: {},
+    trackLayer: new L.featureGroup(),
+    result: {
+     type: "LineString",
+     coordinates: []
+    },
+
     icon: {
      playButton: '/img/playBig.svg',
      pauseButton: '/img/pause.svg',
      remove: '/img/remove.svg',
-     // stop: '/img/stops.svg',
-     // stop_off: '/img/stops-off.svg',
-     // speed: '/img/speedings.svg',
-     // speed_off: '/img/speedings-off.svg',
-     // parking: '/img/parkings.svg',
-     // parking_off: '/img/parkings-off.svg',
-     // filling: '/img/fillings.svg',
-     // filling_off: '/img/fillings-off.svg',
-
-     // pdf: '/img/pdf_icon.svg',
-     // exel: '/img/excel-file.svg',
-     // printer: '/img/printer.svg',
     },
     sliderMin: null,
     sliderMax: null,
@@ -94,56 +98,112 @@
    ...mapState('playbackModule', ['playbackInstance']),
    comp_sliderSpeedValue: {
     set(val) {
-     this.sliderSpeedValue = val - 0;
+     this.sliderSpeedValue = val;
      if (this.sliderSpeedValue >= 100) {
-      this.step = 10000 / (this.sliderSpeedValue - 0)
+      this.step = 100000 / this.sliderSpeedValue
      }
     },
     get() {
      return this.sliderSpeedValue;
     }
    },
-    comp_sliderValue: {
+   comp_sliderValue: {
     set(val) {
-     //if (!this.play) {
      this.sliderValue = val - 0;
-     //}
     },
     get() {
      return this.sliderValue
     }
    }
 
-
-
   },
   methods: {
-   clear() {
-    this.playback.clearData();
-    this.sliderMin = new Date().getTime() - 10000;
-    this.sliderMax = new Date().getTime() + 10000;
-    this.sliderValue = new Date().getTime();
-    this.comp_sliderSpeedValue = 1;
-    this.playbackTracks = {};
 
-    this.track = [];
-    this.stops = [];
-    this.speedList = [];
-    this.speedListOver = [];
-    this.step = 500;
+   ...mapActions(['removeTrackInPlayer']),
+
+   trackFilterforPayer(id) {
+    let trackPlayer = Object.filter(this.layers, obj => {
+     return obj.id === id
+    })
+    for (let layer of trackPlayer[id].layers) {
+     switch (layer.type) {
+      case "stop":
+       // this.addStop(layer.data);
+       break;
+      case "overspeed":
+       // this.addOverSpeed(layer.data);
+       break;
+      case "playback":
+       this.clear();
+       this.playbackInstance.clearData();
+       this.playbackLoad(layer.data);
+       break;
+     }
+    }
    },
+
+   itemInit(id, index) {
+    let element = document.querySelectorAll('#example' + index)
+    if (element) {
+     this.list.push(element)
+    }
+    this.list.forEach(elemets => {
+     elemets.forEach(el => {
+      el.classList.remove('d-flex')
+     })
+    })
+    let elementOpen = document.querySelector('#example' + index)
+
+    if (elementOpen) {
+     elementOpen.classList.add('d-flex')
+    } else {
+     elementOpen.classList.remove('d-flex')
+    }
+    this.trackFilterforPayer(id)
+    this.showTrack(index)
+   },
+
+   clear() {
+    this.playbackTracks = null
+    this.playbackInstance.clearData()
+    this.sliderMin = 0
+    this.sliderMax = 0
+    this.sliderValue = 0
+    this.comp_sliderSpeedValue = 1;
+    this.play = false
+    this.result.coordinates = []
+   },
+
    onPlayBackSliderChange(ms) {
+    this.play = false
     this.playbackInstance.setCursor(this.sliderValue);
    },
 
-
-   removeTrack() {
-    console.log('removeTrack')
+   onPlayPause() {
+    this.play = !this.play;
+    if (this.play)
+     return setTimeout(() => {
+      this.onTimer()
+     }, this.step)
    },
 
-   async playbackLoad() {
+   onTimer() {
+    if (this.play) {
+     let newVal = this.sliderValue + this.step * this.sliderSpeedValue;
+     if (newVal > this.sliderMax) {
+      this.sliderValue = this.sliderMin;
+      this.play = false;
+     } else {
+      this.sliderValue = newVal;
+     }
+     this.playbackInstance.setCursor(newVal);
+     return setTimeout(() => {
+      this.onTimer()
+     }, this.step)
+    }
+   },
 
-    //let tracks = JSON.parse(tracks);
+   async playbackLoad(obj) {
     this.playbackTracks = {
      "type": "Feature",
      "geometry": {
@@ -156,48 +216,115 @@
      }
     };
 
-
-
-    let playBackTrack = null
-    for (let i in this.tracks) {
-     if (this.tracks[i]) {
-      playBackTrack = Object.filter(this.tracks[i].data, el => {
-       return el.queryType === 'track'
-      })
-     }
+    for (let point of obj.data) {
+     let date = point[3];
+     let speed = point[2];
+     this.playbackTracks.geometry.coordinates.push([point[1], point[0]]);
+     this.playbackTracks.properties.time.push(date);
+     this.playbackTracks.properties.speed.push(speed);
+     this.makeGeoJson(point[1], point[0])
     }
-
-    for (let i in playBackTrack) {
-     this.LatLng(playBackTrack[i].data)
-    }
-
-
-  await this.playbackInstance.addData(this.playbackTracks);
-
-   },
-
-   LatLng(points) {
-    for (let i in points) {
-     this.playbackTracks.geometry.coordinates.push([points[i][1], points[i][0]])
-     this.playbackTracks.properties.speed.push(points[i][2]);
-     this.playbackTracks.properties.time.push(points[i][3]);
-    }
-
-    // this.sliderMin = this.playbackInstance.getStartTime()
-    // this.sliderMax = this.playbackInstance.getEndTime();
 
     this.sliderValue = this.playbackTracks.properties.time[0]
     this.sliderMin = this.playbackTracks.properties.time[0]
     this.sliderMax = this.playbackTracks.properties.time[this.playbackTracks.properties.time.length - 1];
 
+    this.playbackInstance.addData(this.playbackTracks);
    },
+
+   makeGeoJson(lt, ln) {
+    this.result.coordinates.push([lt, ln]);
+   },
+
+   addTrack(layer) {
+    Vue.set(this.layers, layer.id, layer);
+   },
+
+
+   showTrack(index) {
+    this.mapTrackLayer.clearLayers()
+    this.layers[index].visible = true;
+    // цикл по сервисрезалт
+    for (let servicelayer of this.layers[index].layers) {
+     // цикл по внутренним слоям, например у трека
+     if (this.mapLayers.indexOf(servicelayer.type) >= 0) {
+      for (let layer of servicelayer.data) {
+       if (!this.mapTrackLayer.hasLayer(layer.layer)) {
+        layer.layer.addTo(this.mapTrackLayer);
+       }
+      }
+     }
+    }
+
+    // this.$emit('onplay', index)
+    //
+    this.mapInstance.setZoom(7)
+    console.log(this.mapInstance.getZoom())
+    this.OnMapZoomEnd(this.mapInstance);
+    //
+    try {
+     this.mapInstance.flyToBounds(this.mapTrackLayer.getBounds()) // полет к выделенному
+    } catch (ex) {
+     console.error(ex);
+    }
+
+   },
+
+   deleteTrack(index) {
+    this.layers[index].visible = false;
+    for (let servicelayer of this.layers[index].layers) {
+     // цикл по внутренним слоям, например у трека
+     if (this.mapLayers.indexOf(servicelayer.type) >= 0) {
+      for (let layer of servicelayer.data) {
+       if (this.mapTrackLayer.hasLayer(layer.layer)) {
+        this.mapTrackLayer.removeLayer(layer.layer);
+       }
+      }
+     }
+    }
+    Vue.delete(this.layers, index)
+    // this.playbackInstance.clearData();
+    this.clear()
+   },
+
+
+   OnMapZoomEnd(map) {
+    //this.cLog("map zoomend");
+    const z = map.getZoom()
+    let keys = Object.keys(this.layers);
+    for (let key of keys) { // every query
+     let querylayer = this.layers[key];
+     if (querylayer.visible) {
+      for (let serviceLayer of querylayer.layers) { // everyService in query
+       if (this.mapLayers.indexOf(serviceLayer.type) >= 0) {
+        for (let layer of serviceLayer.data) {
+         // layer.layer[layerIndex].addTo(this.mapTrackLayer);
+         let minZoom = layer.minZoom
+         let maxZoom = layer.maxZoom || 30
+         if (z < minZoom || z > maxZoom) {
+          // быть не должно, удаляем если есть
+          if (this.mapTrackLayer.hasLayer(layer.layer)) {
+           this.mapTrackLayer.removeLayer(layer.layer);
+          }
+         } else {
+          // тут слой должен быть. добавляем если нет.
+          if (!this.mapTrackLayer.hasLayer(layer.layer)) {
+           this.mapTrackLayer.addLayer(layer.layer);
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+
 
   },
 
-
-
-  mounted() {
-
+  async mounted() {
+   this.mapTrackLayer = await new L.featureGroup();
+   this.mapTrackLayer.addTo(this.mapInstance).bringToFront();
   },
  }
 
@@ -216,7 +343,7 @@
 
  .tracker-result {
   border-bottom: 1px solid #c2c2c2;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   width: 100%;
 
  }
@@ -231,5 +358,14 @@
   padding: 0;
   margin: 0;
   font-size: 14px;
+ }
+
+ .initPlayer {
+  width: 100%;
+  cursor: pointer;
+ }
+
+ .route-remove {
+  z-index: 9999;
  }
 </style>

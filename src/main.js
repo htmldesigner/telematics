@@ -1,3 +1,6 @@
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import 'bootstrap/js/dist/util.js'
+import 'jquery'
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router/router'
@@ -22,8 +25,7 @@ import ColumnGroup from 'primevue/columngroup';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import 'bootstrap/js/dist/util.js'
+
 import '../sass/main.sass'
 import "esri-leaflet-geocoder/dist/esri-leaflet-geocoder.css"
 

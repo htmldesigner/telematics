@@ -6,6 +6,7 @@ import common from "./common";
 import tracker from "./tracker";
 import profile from "./profile";
 import geozones from "./geozones";
+import setup from "./setup";
 import mapModule from './modules/mapInstance'
 
 import draw from './draw'
@@ -30,6 +31,7 @@ Vue.use(Vuex)
    profile,
    draw,
    geozones,
+   setup
   }
 })
 

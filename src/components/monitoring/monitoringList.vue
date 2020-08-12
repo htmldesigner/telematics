@@ -72,8 +72,8 @@
      <td class="text-center">
       <div class="monitoring_units_state_move">
        <span class="icon-device">
-        <img v-if="object.geo.speed" :src="icon.move" alt="Alt" class="" :title="'Скорость ' + object.geo.speed + 'km/ч'">
-        <img v-else :src="icon.stop" :title="'Скорость ' + object.geo.speed + 'km/ч'" alt="Alt" class="">
+        <img v-if="object.geo && object.geo.speed" :src="icon.move" alt="Alt" class="" :title="'Скорость ' + object.geo.speed + 'km/ч'">
+        <img v-else :src="icon.stop" :title="'Скорость 0 km/ч'" alt="Alt" class="">
        </span>
       </div>
      </td>

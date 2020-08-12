@@ -1,7 +1,7 @@
 <template>
  <div>
   <nav class="navbar navbar-expand-xl navbar-dark bg-blue">
-   <a class="navbar-brand mr-3" href="#">
+   <a class="navbar-brand mr-3" href="/">
     <img src="/img/logo.svg" alt="Alt">
    </a>
    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
@@ -73,10 +73,9 @@
 </template>
 
 <script>
-
+ import $ from 'jquery'
  import monitoring from "../components/monitoring/monitoring";
  import tracker from "../components/tracker/tracker";
- import newtracker from "../components/tracker/newtracker";
  import sittings from "../components/settings/sittings";
  import raports from "../components/raport/raports";
  import geozone from "../components/geozone/geozone";
@@ -84,8 +83,10 @@
  import llmap from '../components/llmap';
  import Playback from "../components/Playback";
  import raportPanel from "../components/raport/raportPanel";
+
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
+
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
  import {eventBus} from '../eventBus'
 
@@ -100,7 +101,6 @@
    geozone,
    drawnew,
    tracker,
-   newtracker,
    Splitpanes,
    Pane
   },
@@ -169,11 +169,11 @@
    },
   },
 
-  async mounted() {
+  mounted() {
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)
-   // $('.dropdown-toggle').dropdown()
+   $('.dropdown-toggle').dropdown()
    this.$refs.llmap.zoomSliderShow()
   },
 
