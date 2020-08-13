@@ -127,6 +127,14 @@
 
     L.control.scale().addTo(map);
 
+
+    map.on('zoomend', function () {
+
+     eventBus.$emit('mapzoomend',this);
+    });
+
+
+
     this.geozonesLayer = new L.featureGroup();
     this.geozonesLayer.addTo(map);
 

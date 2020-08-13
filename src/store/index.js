@@ -7,7 +7,9 @@ import tracker from "./tracker";
 import profile from "./profile";
 import geozones from "./geozones";
 import setup from "./setup";
+import raport from "./raport";
 import mapModule from './modules/mapInstance'
+
 
 import draw from './draw'
 import playbackModule from './modules/playbackInstance'
@@ -31,6 +33,7 @@ Vue.use(Vuex)
    profile,
    draw,
    geozones,
+   raport,
    setup
   }
 })

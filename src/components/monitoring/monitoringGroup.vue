@@ -114,10 +114,6 @@
    ...mapGetters({
     objects: 'getObjects',
     objectsgroups: 'getObjectsGroups',
-
-
-
-
    })
   },
   methods: {

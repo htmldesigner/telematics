@@ -57,7 +57,7 @@
 <script>
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import moment from 'moment'
-
+ import {eventBus} from '../eventBus'
  export default {
 
   name: "Player",
@@ -66,7 +66,7 @@
    return {
     mapLayers: ['track', 'stop', 'overspeed', 'overspeed2'],
     mapTrackLayer: null,
-
+    currentId: null,
     list: [],
     play: false,
     layers: {},
@@ -81,10 +81,10 @@
      pauseButton: '/img/pause.svg',
      remove: '/img/remove.svg',
     },
+
     sliderMin: null,
     sliderMax: null,
     sliderValue: null,
-
     sliderSpeedValue: 1,
     step: 500,
    }
@@ -121,17 +121,15 @@
 
    ...mapActions(['removeTrackInPlayer']),
 
-   trackFilterforPayer(id) {
-    let trackPlayer = Object.filter(this.layers, obj => {
-     return obj.id === id
-    })
-    for (let layer of trackPlayer[id].layers) {
+   trackFilterforPayer(index) {
+    for (let layer of this.layers[index].layers) {
      switch (layer.type) {
       case "stop":
-       // this.addStop(layer.data);
+       this.$store.dispatch('setStopRaport', layer.data)
+       console.log(layer.data)
        break;
-      case "overspeed":
-       // this.addOverSpeed(layer.data);
+      case "overspeed2":
+       this.$store.dispatch('setOverSpeedRaport', layer.data)
        break;
       case "playback":
        this.clear();
@@ -159,19 +157,18 @@
     } else {
      elementOpen.classList.remove('d-flex')
     }
-    this.trackFilterforPayer(id)
+    this.trackFilterforPayer(index)
     this.showTrack(index)
    },
 
    clear() {
-    this.playbackTracks = null
     this.playbackInstance.clearData()
     this.sliderMin = 0
     this.sliderMax = 0
     this.sliderValue = 0
     this.comp_sliderSpeedValue = 1;
     this.play = false
-    this.result.coordinates = []
+    // this.result.coordinates = []
    },
 
    onPlayBackSliderChange(ms) {
@@ -240,9 +237,15 @@
     Vue.set(this.layers, layer.id, layer);
    },
 
-
    showTrack(index) {
-    this.mapTrackLayer.clearLayers()
+    let old = this.currentId;
+    this.currentId = index;
+    if (index === old) {
+     return;
+    }
+    if (old != null) {
+     this.hideTrack(old);
+    }
     this.layers[index].visible = true;
     // цикл по сервисрезалт
     for (let servicelayer of this.layers[index].layers) {
@@ -256,21 +259,16 @@
      }
     }
 
-    // this.$emit('onplay', index)
-    //
-    this.mapInstance.setZoom(7)
-    console.log(this.mapInstance.getZoom())
+    this.mapInstance.setZoom(10)
     this.OnMapZoomEnd(this.mapInstance);
-    //
     try {
      this.mapInstance.flyToBounds(this.mapTrackLayer.getBounds()) // полет к выделенному
     } catch (ex) {
      console.error(ex);
     }
-
    },
 
-   deleteTrack(index) {
+   hideTrack(index) {
     this.layers[index].visible = false;
     for (let servicelayer of this.layers[index].layers) {
      // цикл по внутренним слоям, например у трека
@@ -282,14 +280,30 @@
       }
      }
     }
-    Vue.delete(this.layers, index)
-    // this.playbackInstance.clearData();
-    this.clear()
    },
 
+   deleteTrack(index) {
+    if (index === this.currentId) {
+     this.currentId = null;
+     this.clear()
+    }
+
+    this.layers[index].visible = false;
+
+    for (let servicelayer of this.layers[index].layers) {
+     // цикл по внутренним слоям, например у трека
+     if (this.mapLayers.indexOf(servicelayer.type) >= 0) {
+      for (let layer of servicelayer.data) {
+       if (this.mapTrackLayer.hasLayer(layer.layer)) {
+        this.mapTrackLayer.removeLayer(layer.layer);
+       }
+      }
+     }
+    }
+    Vue.delete(this.layers, index)
+   },
 
    OnMapZoomEnd(map) {
-    //this.cLog("map zoomend");
     const z = map.getZoom()
     let keys = Object.keys(this.layers);
     for (let key of keys) { // every query
@@ -318,13 +332,13 @@
      }
     }
    },
-
-
   },
 
   async mounted() {
    this.mapTrackLayer = await new L.featureGroup();
    this.mapTrackLayer.addTo(this.mapInstance).bringToFront();
+   eventBus.$on('mapzoomend', this.OnMapZoomEnd);
+
   },
  }
 

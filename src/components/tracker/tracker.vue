@@ -7,7 +7,7 @@
      <div class="objectSelector d-flex align-items-center">
       <label for="objectSelector1">Объект:</label>
       <select v-model="selectedObjectId" class="form-control" id="objectSelector1">
-       <option v-for="object of objects" v-bind:value="object.id">
+       <option v-for="object of objectsArr" v-bind:value="object.id">
         {{ object.name }}
        </option>
       </select>
@@ -102,7 +102,6 @@
      iconSize: [8, 14],
      iconAnchor: [4, 7]
     }),
-
     parkingred: L.icon({
      iconUrl: '/img/parking_red.svg',
      iconSize: [32, 32],
@@ -129,8 +128,6 @@
      iconSize: [20, 20],
      iconAnchor: [10, 10],
     }),
-
-
    }
   },
   computed: {
@@ -146,6 +143,12 @@
     getOverSpeedMinduration: 'getOverSpeedMinduration',
 
    }),
+
+   objectsArr() {
+    this.refreshObjectsInput()
+    return this.objects
+   },
+
    datefrom: {
     set(val) {
      this.setTimeIntervalStart(val);
@@ -298,9 +301,6 @@
       }
      }
 
-     // console.log("queryLayers");
-     // console.log(queryLayers);
-
      if (queryLayers.length > 0) {
       Vue.set(this.layers, data.queryId, {
        layers: queryLayers,
@@ -408,10 +408,8 @@
         endspeed: speed
        }
       ); // догрузить остаток
-
      }
     }
-
 
     for (let track of speedList) {
 
@@ -670,10 +668,8 @@
      data: sResult.data,
      name: "point",
      visible: false,
-     minZoom: 14,
+     minZoom: 7,
     });
-
-    // console.log(sResult);
 
     return queryLayers;
    },
@@ -726,6 +722,7 @@
 
      queryLayers.push({
       layer: pointsLayer,
+      data: sResult.data,
       name: "point",
       visible: false,
       minZoom: 7,
@@ -770,14 +767,19 @@
     return this.getSpeedLimitsValue.length-1;
    },
 
+   refreshObjectsInput(){
+    if (Object.keys(this.objects).length > 0) {
+     let key = Object.keys(this.objects)[0];
+     this.selectedObjectId = this.objects[key].id;
+    }
+   }
+
   },
 
   mounted() {
    // Load value in select
-   if (Object.keys(this.objects).length > 0) {
-    let key = Object.keys(this.objects)[0];
-    this.selectedObjectId = this.objects[key].id;
-   }
+
+
   },
 
   created() {

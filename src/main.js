@@ -19,11 +19,14 @@ import Slider from 'primevue/slider';
 import TreeTable from 'primevue/treetable';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
+import ColumnGroup from 'primevue/columngroup';
 import Dropdown from 'primevue/dropdown';
 import Row from 'primevue/row';
-import ColumnGroup from 'primevue/columngroup';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
+
+import ToastService from 'primevue/toastservice';
+Vue.use(ToastService);
 
 
 import '../sass/main.sass'

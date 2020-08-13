@@ -51,10 +51,10 @@
         <llmap ref="llmap"></llmap>
        </pane>
 
-<!--       <pane v-if="currentLink === 'tracker'"-->
-<!--             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">-->
-<!--        <Playback ref="playback"/>-->
-<!--       </pane>-->
+       <pane v-if="currentLink === 'tracker'"
+             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
+        <trackerRaport ref="trackerRaport"/>
+       </pane>
 
        <pane v-if="currentLink === 'raports'"
              mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
@@ -81,19 +81,18 @@
  import geozone from "../components/geozone/geozone";
  import drawnew from "../components/drawnew/drawnew";
  import llmap from '../components/llmap';
- import Playback from "../components/Playback";
+ import trackerRaport from "../components/tracker/trackerRaport";
  import raportPanel from "../components/raport/raportPanel";
 
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
 
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
- import {eventBus} from '../eventBus'
 
  export default {
   components: {
    llmap,
-   Playback,
+   trackerRaport,
    monitoring,
    sittings,
    raports,
