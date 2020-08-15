@@ -5,6 +5,22 @@
 
    <div class="playback-control d-flex">
 
+    <div class="tracker-stop-selector mx-1" title="Маршрут">
+
+     <input v-model="allTrack"
+            class="form-check-input d-none"
+            type="button"
+            value=""
+            id="allTrack"
+            @click="currentComponent = 'allTrack'"
+     >
+     <label class="form-check-label" for="allTrack">
+      all
+<!--      <img  :src="icon.parking" alt="alt">-->
+      <!--      <img v-else :src="icon.stop_off" alt="alt">-->
+     </label>
+    </div>
+
     <div class="tracker-stop-selector mx-1" title="Остановки">
 
      <input v-model="boolStops"
@@ -15,7 +31,7 @@
             @click="currentComponent = 'stopRaport'"
      >
      <label class="form-check-label" for="boolStops">
-      <img :src="icon.stop" alt="alt">
+      <img  :src="icon.parking" alt="alt">
       <!--      <img v-else :src="icon.stop_off" alt="alt">-->
      </label>
     </div>
@@ -34,21 +50,21 @@
      </label>
     </div>
 
-    <div class="tracker-parking-selector mx-1" title="Парковки">
-     <input  class="form-check-input d-none" type="checkbox" value="" id="boolParking11">
-     <label class="form-check-label" for="boolParking11">
-      <img  :src="icon.parking" alt="alt">
-<!--      <img v-else :src="icon.parking_off" alt="alt">-->
-     </label>
-    </div>
+<!--    <div class="tracker-parking-selector mx-1" title="Парковки">-->
+<!--     <input  class="form-check-input d-none" type="checkbox" value="" id="boolParking11">-->
+<!--     <label class="form-check-label" for="boolParking11">-->
+<!--      <img  :src="icon.parking" alt="alt">-->
+<!--&lt;!&ndash;      <img v-else :src="icon.parking_off" alt="alt">&ndash;&gt;-->
+<!--     </label>-->
+<!--    </div>-->
 
-    <div class="tracker-fillings-selector mx-1" title="Заправки">
-     <input  class="form-check-input d-none" type="checkbox" value="" id="boolFilling11">
-     <label class="form-check-label" for="boolFilling11">
-      <img  :src="icon.filling" alt="alt">
-<!--      <img v-else :src="icon.filling_off" alt="alt">-->
-     </label>
-    </div>
+<!--    <div class="tracker-fillings-selector mx-1" title="Заправки">-->
+<!--     <input  class="form-check-input d-none" type="checkbox" value="" id="boolFilling11">-->
+<!--     <label class="form-check-label" for="boolFilling11">-->
+<!--      <img  :src="icon.filling" alt="alt">-->
+<!--&lt;!&ndash;      <img v-else :src="icon.filling_off" alt="alt">&ndash;&gt;-->
+<!--     </label>-->
+<!--    </div>-->
 
    </div>
 
@@ -71,7 +87,7 @@
     </div>
 
     <div class="clear mx-1">
-     <button type="button" class="btn-custom-outline px-2 py-0">
+     <button type="button" class="btn-custom-outline px-2 py-0" @click="clearRaport">
       <span>Очистить</span>
      </button>
     </div>
@@ -93,16 +109,18 @@
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import stopRaport from "./stopRaport";
  import overspeedRaport from "./overspeedRaport";
+ import allTrack from "./allTrack";
 
  export default {
   name: "trackerRaport",
   components: {
    stopRaport,
    overspeedRaport,
+   allTrack,
   },
   data() {
    return {
-    currentComponent: 'stopRaport',
+    currentComponent: 'allTrack',
     icon: {
      stop: '/img/stops.svg',
      stop_off: '/img/stops-off.svg',
@@ -121,13 +139,20 @@
     },
 
     boolOverspeed: true,
-    boolStops: false,
+    boolStops: true,
+    allTrack: true,
 
    }
   },
   computed: {},
 
-  methods: {},
+  methods: {
+   ...mapActions(['clearTrackRaport']),
+
+   clearRaport(){
+    this.clearTrackRaport()
+   }
+  },
   mounted() {
    // console.log('asa')
   },

@@ -44,23 +44,21 @@
        <component :is="currentComponent" @on-Action="onAction"></component>
       </keep-alive>
      </pane>
-     <pane min-size="60" :size="100 - paneSize" max-size="100">
-      <splitpanes horizontal>
 
-       <pane min-size="10">
+     <pane min-size="60" :size="100 - paneSize" max-size="100">
+
+      <splitpanes horizontal @resized="horizontSplitResize">
+       <pane>
         <llmap ref="llmap"></llmap>
        </pane>
-
        <pane v-if="currentLink === 'tracker'"
-             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
+             mix-size="90">
         <trackerRaport ref="trackerRaport"/>
        </pane>
-
        <pane v-if="currentLink === 'raports'"
              mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
         <raportPanel/>
        </pane>
-
       </splitpanes>
 
      </pane>
@@ -143,11 +141,16 @@
   methods: {
    ...mapMutations(['setPaneSize', 'setCurrentComponent']),
    ...mapState('mapModule', ['mapInstance']),
+
    //Responsive map interface belong with "Splitpanes" component
    paneSizeResize() {
     setTimeout(() => {
      this.mapInstance().invalidateSize()
     }, 400)
+   },
+
+   horizontSplitResize() {
+    this.paneSizeResize()
    },
 
    onAction(action) {

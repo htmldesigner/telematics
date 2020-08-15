@@ -322,6 +322,7 @@
     } catch (ex) {
      console.error(ex);
     }
+
    },
    track(sResult) {
     //
@@ -627,10 +628,7 @@
 
    },
    stops(sResult) {
-
     let self = this;
-    // console.log(sResult);
-
     let object = this.objects[sResult.objectId];
     let queryLayers = [];
 
@@ -653,13 +651,26 @@
       }
      }
 
-     L.marker([lt, ln], {icon: ico})
-      .addTo(stopsLayer)
-      .on('click', function (e) {
-       console.log(e);
-       console.log(stop);
-       self.playback.selectStop(stop);
-      });
+     L.marker([lt, ln], {icon: ico}).bindPopup('').on('click', function (e) {
+      let popup = e.target.getPopup();
+      popup.setContent(`<div style="width:240px">
+    <div class="row">
+        <div class="col">Скорость начальная: </div>
+    </div>
+    <div class="row">
+        <div class="col">Скорость конечная: </div>
+    </div>
+    <div class="row">
+        <div class="col">Длительность: </div>
+    </div>
+</div>
+`)
+     }).addTo(stopsLayer)
+      // .on('click', function (e) {
+      //  console.log(e);
+      //  console.log(stop);
+      //  // self.playback.selectStop(stop);
+      // });
      i++;
     }
 

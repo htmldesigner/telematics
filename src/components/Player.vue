@@ -91,9 +91,7 @@
 
   },
   computed: {
-   ...mapGetters({
-    tracks: 'getTracks'
-   }),
+
    ...mapState('mapModule', ['mapInstance']),
    ...mapState('playbackModule', ['playbackInstance']),
    comp_sliderSpeedValue: {
@@ -126,7 +124,6 @@
      switch (layer.type) {
       case "stop":
        this.$store.dispatch('setStopRaport', layer.data)
-       console.log(layer.data)
        break;
       case "overspeed2":
        this.$store.dispatch('setOverSpeedRaport', layer.data)
@@ -135,6 +132,7 @@
        this.clear();
        this.playbackInstance.clearData();
        this.playbackLoad(layer.data);
+       this.$store.dispatch('setAllTrackRaport', layer.data)
        break;
      }
     }
@@ -301,6 +299,7 @@
      }
     }
     Vue.delete(this.layers, index)
+    // this.$store.dispatch('clearTrackRaport')
    },
 
    OnMapZoomEnd(map) {

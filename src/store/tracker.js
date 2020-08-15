@@ -5,14 +5,7 @@ export default {
   tracks: [],
  },
  mutations: {
-  ADD_TRACK(state, payload) {
-   state.tracks.push(payload);
-   console.log(state.tracks)
-  },
-  REMOVE_TRACK_IN_PLAYER(state, id) {
-   state.tracks = state.tracks.filter(el => el.info.id !== id)
-   console.log(state.tracks)
-  }
+
  },
  actions: {
   async loadTracks({commit}, {query}) {
@@ -29,14 +22,7 @@ export default {
    }
   },
 
-  removeTrackInPlayer({commit}, id) {
-   commit('REMOVE_TRACK_IN_PLAYER', id)
-  }
-
  },
  getters: {
-  getTracks(state) {
-   return state.tracks
-  },
  }
 }

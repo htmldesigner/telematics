@@ -423,10 +423,11 @@
 
  .rel {
   position: relative;
+  height: 100%;
  }
 
  .l-map {
-  height: calc(100vh - 56px);
+  height: 100%;
   width: 100%;
  }
 </style>
