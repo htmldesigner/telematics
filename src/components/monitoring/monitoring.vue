@@ -1,15 +1,18 @@
 <template>
  <div class="mt-3 px-3">
-  <component :is="currentComponent" v-on:component-link="componentLink"></component>
+  <keep-alive>
+   <component :is="currentComponent" v-on:component-link="componentLink"></component>
+  </keep-alive>
  </div>
 </template>
 
 <script>
  import monitoringList from './monitoringList'
  import monitoringGroup from "./monitoringGroup";
+
  export default {
-  data(){
-   return{
+  data() {
+   return {
     search: '',
     currentComponent: 'monitoringList'
    }
@@ -19,7 +22,7 @@
    monitoringGroup
   },
   methods: {
-   componentLink(componentName){
+   componentLink(componentName) {
     this.currentComponent = componentName
    }
   }

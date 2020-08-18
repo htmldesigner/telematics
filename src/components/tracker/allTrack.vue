@@ -1,12 +1,15 @@
 <template>
  <div>
-  <div class="col" v-if="allTrack">
-   <DataTable
-    :scrollable="true" scrollHeight="500px"
-    class="p-datatable-sm"
-    :value="info"
-    selectionMode="single"
-    dataKey="id"
+  <div id="pdf"></div>
+  <div class="col pr-3 pl-2" v-if="allTrack">
+   <DataTable ref="testHtml"
+              id="my-table"
+              :scrollable="true"
+              scrollHeight="500px"
+              class="p-datatable-sm"
+              :value="info"
+              selectionMode="single"
+              dataKey="id"
 
    >
     <Column field="name" header="ТС">
@@ -41,7 +44,7 @@
     </Column>
     <Column field="mSpeed" header="Средняя скорость">
      <template #body="slotProps">
-      {{slotProps.data.mSpeed}}
+      {{slotProps.data.mSpeed + ' ' + 'км/ч'}}
      </template>
     </Column>
     <Column field="timeOnRoad" header="Время в пути">
@@ -57,6 +60,9 @@
 <script>
  import {mapGetters, mapState} from "vuex";
  import moment from 'moment'
+ import jsPDF from "jspdf";
+ import html2canvas from 'html2canvas'
+ import downloadPdfMixin from "../../mixin/downloadPdfMixin";
 
  export default {
   name: "allTrack",
@@ -69,6 +75,7 @@
     return this.run()
    }
   },
+  mixins: [downloadPdfMixin],
   data() {
    return {
     trackInfo: []
@@ -110,13 +117,15 @@
 
     let mSpeed = Number(this.average(middleSpeed).toFixed(1))
 
+    this.pdf = [name, reg_number, startPoint, finishPoint, startTime, finishTime, mSpeed, timeOnRoad]
+
     return [{name, reg_number, startPoint, finishPoint, startTime, finishTime, mSpeed, timeOnRoad}]
 
    },
 
    average(nums) {
     return nums.reduce((a, b) => (a + b)) / nums.length;
-   }
+   },
 
   }
  }

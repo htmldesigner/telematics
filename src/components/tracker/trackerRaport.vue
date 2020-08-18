@@ -15,9 +15,7 @@
             @click="currentComponent = 'allTrack'"
      >
      <label class="form-check-label" for="allTrack">
-      all
-<!--      <img  :src="icon.parking" alt="alt">-->
-      <!--      <img v-else :src="icon.stop_off" alt="alt">-->
+      <img :src="icon.road" alt="alt">
      </label>
     </div>
 
@@ -31,7 +29,7 @@
             @click="currentComponent = 'stopRaport'"
      >
      <label class="form-check-label" for="boolStops">
-      <img  :src="icon.parking" alt="alt">
+      <img :src="icon.parking" alt="alt">
       <!--      <img v-else :src="icon.stop_off" alt="alt">-->
      </label>
     </div>
@@ -50,22 +48,6 @@
      </label>
     </div>
 
-<!--    <div class="tracker-parking-selector mx-1" title="Парковки">-->
-<!--     <input  class="form-check-input d-none" type="checkbox" value="" id="boolParking11">-->
-<!--     <label class="form-check-label" for="boolParking11">-->
-<!--      <img  :src="icon.parking" alt="alt">-->
-<!--&lt;!&ndash;      <img v-else :src="icon.parking_off" alt="alt">&ndash;&gt;-->
-<!--     </label>-->
-<!--    </div>-->
-
-<!--    <div class="tracker-fillings-selector mx-1" title="Заправки">-->
-<!--     <input  class="form-check-input d-none" type="checkbox" value="" id="boolFilling11">-->
-<!--     <label class="form-check-label" for="boolFilling11">-->
-<!--      <img  :src="icon.filling" alt="alt">-->
-<!--&lt;!&ndash;      <img v-else :src="icon.filling_off" alt="alt">&ndash;&gt;-->
-<!--     </label>-->
-<!--    </div>-->
-
    </div>
 
 
@@ -73,7 +55,7 @@
 
     <div class="export-pdf mx-2">
      <label for="inputButtonPdf11" class="m-0"><img :src="icon.pdf" alt="Alt"></label>
-     <input type="button" id="inputButtonPdf11" class="d-none">
+     <input type="button" id="inputButtonPdf11" class="d-none" @click="downloadPdf">
     </div>
 
     <div class="export-exel mx-2">
@@ -97,7 +79,7 @@
   </div>
 
   <keep-alive>
-   <component :is="currentComponent"></component>
+   <component :is="currentComponent" ref="raportComponent"></component>
   </keep-alive>
 
  </div>
@@ -136,6 +118,7 @@
      pdf: '/img/pdf_icon.svg',
      exel: '/img/excel-file.svg',
      printer: '/img/printer.svg',
+     road: '/img/zig-zag2.svg',
     },
 
     boolOverspeed: true,
@@ -149,9 +132,14 @@
   methods: {
    ...mapActions(['clearTrackRaport']),
 
-   clearRaport(){
+   clearRaport() {
     this.clearTrackRaport()
+   },
+
+   downloadPdf() {
+    this.$refs.raportComponent.createPDF()
    }
+
   },
   mounted() {
    // console.log('asa')

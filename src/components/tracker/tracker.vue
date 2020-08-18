@@ -297,7 +297,7 @@
          break;
        }
       } else {
-       // eventBus.$emit('showmessage', serviceresult.errors, 'error');
+       this.$store.dispatch('setError', 'Нет данных')
       }
      }
 
@@ -787,14 +787,9 @@
 
   },
 
-  mounted() {
-   // Load value in select
+  mounted() {},
 
-
-  },
-
-  created() {
-  }
+  created() {}
 
  }
 </script>

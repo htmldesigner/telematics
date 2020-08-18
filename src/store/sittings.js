@@ -6,7 +6,7 @@ export default {
   //panel spliter
   paneSize: localStorage.getItem('paneSize') != null ? JSON.parse(localStorage.getItem('paneSize')) : 20,
   //Realtime watcher
-  bool_realTime: false,
+  bool_realTime: true,
   //Update interval
   int_timerInterval: 5,
  //Set tima for track loader

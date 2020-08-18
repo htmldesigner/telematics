@@ -120,20 +120,16 @@
      "google2": google2,
     }, {}, {position: 'topleft', collapsed: true}).addTo(map)
 
-
     L.control.zoom({
      position: 'topleft'
     }).addTo(map);
 
     L.control.scale().addTo(map);
 
-
     map.on('zoomend', function () {
 
      eventBus.$emit('mapzoomend',this);
     });
-
-
 
     this.geozonesLayer = new L.featureGroup();
     this.geozonesLayer.addTo(map);
@@ -292,7 +288,6 @@
       }
      }).bindPopup(geozone.name).addTo(this.geozonesLayer);
     }
-
     if (geozonesList.length > 0) {
      this.mapInstance.flyToBounds(this.geozonesLayer.getBounds()) // полет к выделенному
     }
@@ -322,6 +317,7 @@
       this.markers.push(marker)
 
       // Need optimization
+
       let geocodeService = ELG.geocodeService()
       geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude]).run(function (error, result) {
        if (error) {

@@ -28,7 +28,6 @@
    <hr>
   </div>
 
-
   <TreeTable
    :value="root"
    sortMode="single"
@@ -38,7 +37,8 @@
    filterMode="lenient"
    :selectionKeys.sync="selectedKeys"
    @node-select="onNodeSelect"
-   @node-unselect="onNodeUnselect">
+   @node-unselect="onNodeUnselect"
+  >
 
    <template>
     <InputText class="mb-3" v-model="filters['name']" placeholder="Поиск объектов" style="width: 100%; height: 35px"/>
@@ -119,7 +119,6 @@
      }
      this.root.push(createArray)
     }
-    console.log(this.root)
    },
 
    drawShow() {

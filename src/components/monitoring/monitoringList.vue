@@ -61,7 +61,7 @@
               class="d-none"
               :id="`iconWatch${index}`"
               :disabled="!object.selected"
-              @click="watchDevice(object ,object.id, object.monitor = !object.monitor)">
+              @click="watchDevice(object, object.id, object.monitor = !object.monitor)">
        <label :for="`iconWatch${index}`" class="m-0">
         <img v-if="object.monitor && object.selected" :src="icon.watch" alt="Alt">
         <img v-else :src="icon.notWatch" alt="Alt">
@@ -138,25 +138,17 @@
     this.$store.dispatch('selectAllObject', event.target.checked)
    },
 
-
-
    moveTo(object) {
     this.mapInstance().flyTo([object.geo.latitude, object.geo.longitude], 8, {animate: true})
-   },
-
-   removeObject(object) {
-    console.log(object)
    },
 
    watchDevice(object, id, value) {
     this.monitorObject({id, value})
    },
 
-   mounted() {
-   }
+   mounted() {}
 
   }
-
  }
 </script>
 

@@ -1,19 +1,15 @@
 <template>
  <div id="app">
   <Loader v-if="load"/>
-  <template v-if="error">
-   <div class="alert alert-danger text-center" role="alert">
-    {{this.error}}
-   </div>
-  </template>
+  <template v-if="error" />
+  <Toast />
   <router-view/>
  </div>
 </template>
 <script>
  import Loader from "./components/Loader";
  import {mapActions, mapGetters} from "vuex";
- import {eventBus} from "./eventBus";
-
+ import Toast from 'primevue/toast';
  export default {
   name: 'App',
   data() {
@@ -23,7 +19,8 @@
    }
   },
   components: {
-   Loader
+   Loader,
+   Toast,
   },
   computed: {
    ...mapGetters({
@@ -33,8 +30,9 @@
    loader() {
     return this.$store.getters.loading
    },
-   error() {
-    return this.$store.getters.error
+   error(val) {
+    let error = this.$store.getters.error
+    error ? this.showError(error) : error
    },
   },
   watch: {
@@ -60,7 +58,12 @@
      clearInterval(this.interval)
      return false
     }
-   }
+   },
+
+   showError(error) {
+    this.$toast.add({severity:'error', summary: 'Ошибка', detail: error, life: 3000});
+   },
+
   },
   async created() {
    await this.$store.dispatch('getUserInfo')

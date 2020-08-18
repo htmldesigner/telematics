@@ -39,9 +39,6 @@ require('moment/locale/ru')
 Vue.use(require('vue-moment'), {moment})
 Vue.use(require('vue-moment'))
 
-
-
-
 Vue.use(Vuelidate)
 Vue.use(RotatedMarker)
 

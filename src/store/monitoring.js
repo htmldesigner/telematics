@@ -30,12 +30,19 @@ export default {
    state.objects[payload.id].selected = payload.value;
   },
 
+  SELECT_OBJECT_GROUP(state, payload) {
+   let objId = state.objectsgroups[payload.id].objects
+   for (let i in objId) {
+    state.objects[objId[i]].selected = payload.value
+   }
+  },
+
   flyToObject(state, payload) {
    state.flyTo = payload
   },
 
-  selectAllObject(store, payload) {
-   let objects = store.objects
+  selectAllObject(state, payload) {
+   let objects = state.objects
    for (let obj in objects) {
     objects[obj].selected = payload
    }
@@ -133,6 +140,11 @@ export default {
   monitorObject({commit}, payload) {
    commit('monitorObject', payload)
   },
+
+  selectObjectGroup({commit}, payload) {
+   commit('SELECT_OBJECT_GROUP', payload)
+  }
+
  },
 
  getters: {

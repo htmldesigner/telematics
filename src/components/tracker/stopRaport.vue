@@ -1,10 +1,14 @@
 <template>
  <div>
+  <div id="pdf"></div>
   <div class="col" v-if="stopRaport">
    <DataTable
-    :scrollable="true" scrollHeight="500px"
+    :scrollable="true"
+    scrollHeight="500px"
     class="p-datatable-sm"
     :value="stopRaport[0]"
+    ref="testHtml"
+    id="my-table"
     selectionMode="single"
     dataKey="id"
     @row-select="moveToMarker"
@@ -38,10 +42,12 @@
 <script>
  import {mapGetters, mapState} from "vuex";
  import moment from 'moment'
+ import downloadPdfMixin from "../../mixin/downloadPdfMixin";
 
  export default {
   name: "stopRaport",
   components: {},
+  mixins: [downloadPdfMixin],
   computed: {
    ...mapState('mapModule', ['mapInstance']),
    ...mapGetters({
