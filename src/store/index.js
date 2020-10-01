@@ -34,7 +34,6 @@ Vue.use(Vuex)
    draw,
    geozones,
    raport,
-   setup
   }
 })
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import r from "./routes.js"
-// import {eventBus} from "../eventBus";
+import {eventBus} from "@/eventBus";
 
 export default {
     dataPost(route, data, token, withFile) {
@@ -62,10 +62,18 @@ export default {
         return axios(this.dataGet("/geozone/get/"+id));
     },
     getGeozones() {
-      return axios(this.dataGet("/geozone/getgrouped/"));
+        return axios(this.dataGet("/geozone/getgrouped/"));
     },
     getUserInfo() {
         return axios(this.dataGet("/user/getUserInfo/"));
+    },
+    saveUserInfo(userinfo){
+        return axios({
+            method: 'post',
+            url: r('/user/saveUserInfo'),
+            data: userinfo,
+            isIndicatorRequired: true
+        });
     },
     getUserPermission() {
         return axios(this.dataGet("/user/getUserPermission/"));
@@ -76,7 +84,7 @@ export default {
     getGeozonesTree(id) {
         return axios(this.dataGet("/geozone/getgroup/"+id));
     },
-    saveGeozoneGeometry(geozonegroupid, params) {
+    saveGeozoneGeometry(geozonegroupid,params) {
         //return axios.post('/geozone/savegeometry/', {data:JSON.stringify({groupid:geozonegroupid, geozones: params })})
         return axios(this.dataPost('/geozone/savegeometry', { data: JSON.stringify({groupid:geozonegroupid, geozones: params }), isIndicatorRequired:true}))
     },
@@ -101,12 +109,20 @@ export default {
     getStopsFor(params, dateFrom, dateTo) {
         return axios(this.dataPost('/stop/getstops', { id: params, dateFrom: dateFrom, dateTo: dateTo }))
     },
-    serviceQuery(params){
+    serviceQuery(params, isIndicatorRequired = true){
         return axios({
             method: 'post',
-                url: r('/service/getservice'),
+            url: r('/service/getservice'),
             data: params,
-            isIndicatorRequired: true
+            isIndicatorRequired: isIndicatorRequired
+        });
+    },
+    planReport(params, isIndicatorRequired = true){
+        return axios({
+            method: 'post',
+            url: r('/service/planreport'),
+            data: params,
+            isIndicatorRequired: isIndicatorRequired
         });
     },
     ///make linestring geojson
@@ -122,5 +138,22 @@ export default {
             l++;
         }
         return result;
+    },
+    generateTree(data){
+        //
+        /*
+        *
+        * генерируем дерево из списка. как?
+        *
+        *
+        * */
+    },
+    getKey(key, defaultValue) {
+        let value = localStorage.getItem(key) || JSON.stringify(defaultValue);
+        try {
+            return JSON.parse(value);
+        } catch (e) {
+            return defaultValue;
+        }
     }
 }

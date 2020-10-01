@@ -1,100 +1,83 @@
 <template>
  <div>
-  <div class="monitoring-container">
-   <input type="text" class="form-control mb-3" v-model="filter" aria-describedby="button-addon4" placeholder="Введите название, IMEI, регномер">
-  </div>
-  <div class="table-responsive">
-   <table class="table">
-    <thead>
-    <tr>
-     <th>
-      <input type="checkbox" @change="selectAllObject()">
-     </th>
-     <th>
-    <tbody>
-    <tr>
-     <td>
-      <div class="monitoring_panel">
-<!--       <div class="monitoring_sort">-->
-<!--        <img class="size_16" src="/img/sort-up.png" alt="Alt">-->
-<!--       </div>-->
-       <div class="monitoring_list" v-on:click="$emit('component-link', 'monitoringGroup')">
-        <img  :src="icon.list" alt="Alt">
-       </div>
-      </div>
-     </td>
-    </tr>
-    </tbody>
-    </th>
-    <th></th>
-    <th></th>
-    <th></th>
-    </tr>
-    </thead>
-    <tbody>
 
-    <tr v-for="(object, index) in filtered"
-        :key="index"
-    >
-     <td>
+  <TreeTable
+   :value="root"
+   sortMode="single"
+   selectionMode="checkbox"
+   :filters="filters"
+   :expandedKeys="expandedKeys"
+   filterMode="lenient"
+   :selectionKeys.sync="selectedKeys"
+   @node-select="onNodeSelect"
+   @node-unselect="onNodeUnselect"
+  >
+   <template>
+    <InputText class="mb-3" v-model="filters['name']" placeholder="Введите название, IMEI, регномер"
+               style="width: 100%; height: 35px"/>
+   </template>
 
-      <input type="checkbox" :checked="object.selected"
-             @change="objectSelect(object.id, object.selected = !object.selected)"
-      ></td>
+   <div class="monitoring_panel">
+    <div class="monitoring_list" v-on:click="$emit('component-link', 'monitoringGroup')">
+     <img :src="icon.list" alt="Alt">
+    </div>
+   </div>
 
-     <td>
-      <img class="size_16 monitoring_units_custom_icon_16917756" id="monitoring_units_custom_icon_0_16917756"
-           src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
-           style="cursor:pointer;">
-     </td>
+   <Column field="name" :expander="true" filterMatchMode="contains">
+    <template #body="slotProps">
+     <img v-if="!slotProps.node.data.parent" class="mr-1"
+          src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
+          alt="Alt">
+     {{ slotProps.name }}
+    </template>
+   </Column>
 
-     <td class="monitoring-unit-name"
-         @click="objectSelect(object.id, object.selected = true), moveTo(object)"
-     >
-      {{object.name}}
-     </td>
+   <Column headerStyle="display:none" bodyStyle="text-align: right; width: 80px">
+    <template #body="slotProps">
+     <div class="d-flex justify-content-end" v-if="!slotProps.node.data.parent">
 
-     <td>
-      <div class="icon-watch" title="Следить за объектом на карте">
-
+      <div class="icon-watch mx-1" title="Следить за объектом на карте">
        <input type="checkbox"
               class="d-none"
-              :id="`iconWatch${index}`"
-              :disabled="!object.selected"
-              @click="watchDevice(object, object.id, object.monitor = !object.monitor)">
-       <label :for="`iconWatch${index}`" class="m-0">
-        <img v-if="object.monitor && object.selected" :src="icon.watch" alt="Alt">
+              :disabled="!slotProps.node.data.selected"
+              :id="`${slotProps.node.key}`"
+              @click="watchDevice(slotProps.node.data.id, slotProps.node.data.monitor = !slotProps.node.data.monitor)"
+       >
+       <label :for="`${slotProps.node.key}`" class="m-0">
+        <img v-if="slotProps.node.data.monitor && slotProps.node.data.selected" :src="icon.watch" alt="Alt">
         <img v-else :src="icon.notWatch" alt="Alt">
        </label>
       </div>
-     </td>
 
-     <td class="text-center">
-      <div class="monitoring_units_state_move">
+      <div class="mx-1">
        <span class="icon-device">
-        <img v-if="object.geo && object.geo.speed" :src="icon.move" alt="Alt" class="" :title="'Скорость ' + object.geo.speed + 'km/ч'">
-        <img v-else :src="icon.stop" :title="'Скорость 0 km/ч'" alt="Alt" class="">
+        <img v-if="slotProps.node.data.geo && slotProps.node.data.geo.speed" :src="icon.move" alt="Alt" class="">
+        <img v-else :src="icon.stop" alt="Alt" class="">
        </span>
       </div>
-     </td>
+
+     </div>
+    </template>
+   </Column>
+  </TreeTable>
 
 
-    </tr>
-    </tbody>
-   </table>
-  </div>
  </div>
 </template>
 
 <script>
  import {mapActions, mapGetters, mapState} from "vuex";
+ import {eventBus} from "../../eventBus";
 
  export default {
   name: "monitoringList",
+
   data() {
    return {
-    map: null,
-    filter: '',
+    selectedKeys: null,
+    expandedKeys: {},
+    root: [],
+    filters: {},
     icon: {
      stop: '/img/stop-stroke.svg',
      move: '/img/start.svg',
@@ -105,23 +88,26 @@
     }
    }
   },
+
   computed: {
+   ...mapState('mapModule', ['mapInstance']),
    ...mapGetters({
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
     selectedImei: 'getSelectedObjectsImei',
     getMonitor: 'getMonitorObjects',
    }),
-   filtered() {
-    let grobjects = Object.filter(this.objects, obj => (this.objects[obj.id]));
-    let result = Object.filter(
-     grobjects, obj => obj.name.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
-      obj.imei.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
-      obj.reg_number.toLowerCase().indexOf(this.filter.toLowerCase()) != -1
-    );
-    return result
-   }
-  },
+   // filtered() {
+   //  let grobjects = Object.filter(this.objects, obj => (this.objects[obj.id]));
+   //  let result = Object.filter(
+   //   grobjects, obj => obj.name.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
+   //    obj.imei.toLowerCase().indexOf(this.filter.toLowerCase()) != -1 ||
+   //    obj.reg_number.toLowerCase().indexOf(this.filter.toLowerCase()) != -1
+   //  );
+   //  return result
+   // }
+  }
+  ,
   methods: {
    ...mapActions([
     'selectObject',
@@ -129,25 +115,78 @@
     'monitorObject'
    ]),
 
-   ...mapState('mapModule', ['mapInstance']),
-
-   objectSelect(id, value) {
-    this.selectObject({id, value})
+   onNodeSelect(element) {
+    let item = element.data
+    if (element.data.objects) {
+     this.selectObjectGroup({id: element.data.id, value: true})
+     this.flyToGroup(element)
+    } else {
+     if (item.geo) {
+      this.selectObject({id: item.id, value: true})
+      this.mapInstance.flyTo([item.geo.latitude, item.geo.longitude])
+     } else {
+      this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
+       this.$store.dispatch('clearError')
+      })
+     }
+    }
    },
-   selectAllObject() {
-    this.$store.dispatch('selectAllObject', event.target.checked)
+
+   onNodeUnselect(element) {
+    let item = element.data
+    if (element.data.objects) {
+     this.selectObjectGroup({id: element.data.id, value: false})
+    } else {
+     if (item.geo) {
+      this.selectObject({id: item.id, value: false})
+     } else {
+      this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
+       this.$store.dispatch('clearError')
+      })
+     }
+    }
    },
 
-   moveTo(object) {
-    this.mapInstance().flyTo([object.geo.latitude, object.geo.longitude], 8, {animate: true})
+   flyToGroup() {
+    for (let i in this.objects) {
+     if (this.objects[i].selected) {
+      if (this.objects[i].geo) {
+       this.mapInstance.flyTo([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
+      } else {
+       this.$store.dispatch('setError', 'У объекта ' + this.objects[i].name + ' отсутствуют координаты').then(() => {
+        this.$store.dispatch('clearError')
+       })
+      }
+     }
+    }
    },
 
    watchDevice(object, id, value) {
     this.monitorObject({id, value})
    },
 
-   mounted() {}
+   result(obj) {
+    let keyFirst = 1
+    let createArray = {
+     "key": '0-0',
+     "data": {parent: true},
+     "children": []
+    }
+    for (let i in obj) {
+     createArray.children.push({data: obj[i], key: 0 + '-' + keyFirst++})
+    }
+    this.root.push(createArray)
+   }
 
+  },
+  mounted() {
+   setTimeout(() => {
+    this.result(this.objects)
+    this.expandedKeys[this.root[0].key] = true;
+   }, 1000)
+   eventBus.$on('map-Clear', ()=>{
+    this.selectedKeys = null
+   });
   }
  }
 </script>
@@ -237,7 +276,6 @@
  /* height: 10px;*/
  /* background-color: red;*/
  /*}*/
-
 
 
 </style>

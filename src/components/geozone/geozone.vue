@@ -7,12 +7,11 @@
     <p>Название геозоны устанавливается кликом по рисунку.</p>
    </div>
 
-   <select class="form-control mr-1 mb-3">
-    <option v-for="(geozone, index) in root" :key="index" :value="geozone.data.id">
-     {{geozone.data.name, geozone.data.id}}
+   <select class="form-control mr-1 mb-3" v-model="currentGeozoneGroup">
+    <option v-for="(geozone, index) in root" :key="index"  :value="geozone.data.id">
+     {{geozone.data.name}}
     </option>
    </select>
-
    <div class="row mb-3">
     <div class="col d-flex justify-content-center">
 
@@ -53,7 +52,7 @@
    <Column v-if="userPermission" headerStyle="display:none" bodyStyle="text-align: right; width: 80px">
     <template #body="slotProps">
      <div v-if="!slotProps.node.data.objects" class="d-flex">
-      <button class="btn-custom-outline-small mx-1" title="Редактировать">
+      <button class="btn-custom-outline-small mx-1" title="Редактировать" @click.once="editGeozone(slotProps.node.data.id)">
        <img :src="icon.pencil" alt="Alt">
       </button>
       <button class="btn-custom-outline-small mx-1" title="Удалить">
@@ -71,19 +70,21 @@
 <script>
  import {mapGetters, mapActions, mapMutations, mapState} from 'vuex'
  import api from "@/app/api"
+ import {eventBus} from "../../eventBus";
 
  export default {
   name: "geozone",
   components: {},
   data() {
    return {
-    userPermission: null,
+    userPermission: true,
     filters: {},
     root: [],
     selectedKeys: null,
     expandedKeys: {},
-    checked: false,
     value: '',
+
+    currentGeozoneGroup: '',
 
     icon: {
      remove: '/img/remove.svg',
@@ -97,7 +98,6 @@
    ...mapGetters({
     geozones: 'getGeozones',
     geozonesgroups: 'getGeozonesGroups',
-    geotree: 'getGeotree',
    }),
   },
 
@@ -131,7 +131,11 @@
    //  this.$emit("on-Action", "clear");
    // },
    drawSave() {
-    this.$emit("on-Action", "save");
+    this.$emit("on-Action", "save", this.currentGeozoneGroup);
+   },
+
+   editGeozone(id){
+     this.$store.dispatch('getModifiableGeozone', id)
    },
 
    onNodeSelect(node) {
@@ -146,7 +150,7 @@
     if (node.data.objects) {
      this.$store.dispatch('unselectGeozone', node.data.objects)
     } else {
-     this.$store.dispatch('unselectGeozone', [node.data.id])
+     this.$store.dispatch('unselectGeozone', node.data.id)
     }
 
    },
@@ -165,10 +169,15 @@
 
   },
   async mounted() {
-   this.userPermission = await this.$store.getters.getUserPermission
+   this.userPermission = null // await this.$store.getters.getUserPermission
    this.detectPermission(this.userPermission)
    await this.$store.dispatch('loadGeozones')
    await this.result(this.geozonesgroups, this.geozones)
+
+   eventBus.$on('map-Clear', ()=>{
+    this.selectedKeys = null
+   });
+
   },
   created() {
 

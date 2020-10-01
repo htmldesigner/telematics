@@ -93,6 +93,9 @@
    run() {
     console.log('fdf')
    }
+  },
+  created() {
+   console.log('erer')
   }
  }
 </script>

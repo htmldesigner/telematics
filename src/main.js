@@ -24,6 +24,8 @@ import Dropdown from 'primevue/dropdown';
 import Row from 'primevue/row';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
+import MultiSelect from 'primevue/multiselect';
+import ColorPicker from 'primevue/colorpicker';
 
 import ToastService from 'primevue/toastservice';
 Vue.use(ToastService);
@@ -52,6 +54,7 @@ Vue.component('ColumnGroup', ColumnGroup);
 // Vue.component('Button', Button);
 Vue.component('InputText', InputText);
 Vue.component('Checkbox', Checkbox);
+Vue.component('ColorPicker',  ColorPicker);
 
 // Vue.prototype.$utils = utils
 Vue.config.productionTip = false

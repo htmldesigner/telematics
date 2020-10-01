@@ -71,6 +71,7 @@
 
 <script>
  import {mapActions, mapGetters, mapState} from "vuex";
+ import {eventBus} from "../../eventBus";
 
  export default {
   name: "monitoringGroup",
@@ -126,6 +127,7 @@
      }
      this.root.push(createArray)
     }
+    console.log(this.root)
    },
 
    expand() {
@@ -208,7 +210,9 @@
   },
   mounted() {
    this.result(this.objectsgroups)
-   this.expandedKeys[this.root[0].key] = true;
+   eventBus.$on('map-Clear', ()=>{
+    this.selectedKeys = null
+   });
   }
  }
 </script>

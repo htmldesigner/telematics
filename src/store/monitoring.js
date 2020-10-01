@@ -37,9 +37,9 @@ export default {
    }
   },
 
-  flyToObject(state, payload) {
-   state.flyTo = payload
-  },
+  // flyToObject(state, payload) {
+  //  state.flyTo = payload
+  // },
 
   selectAllObject(state, payload) {
    let objects = state.objects

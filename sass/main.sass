@@ -4,6 +4,7 @@
   img
     width: 40px
     height: 100%
+
   .brand-text
     font-weight: bold
     font-size: 20px
@@ -11,6 +12,7 @@
     color: #505050
     vertical-align: middle
     margin-left: 5px
+
 .custom-switch
   .custom-control-label
     &:before
@@ -24,6 +26,7 @@
 
 .custom-switch
   padding-left: 0
+
   .custom-control-label
     &:after
       left: auto
@@ -38,10 +41,13 @@
   border: none
   padding: 4px 15px
   border-radius: 3px
+
   &:hover
     background-color: lighten(#0066cc, 5%)
+
   &:focus
-    outline: none!important
+    outline: none !important
+
   &:active
     background-color: lighten(#0066cc, 1%)
 
@@ -51,11 +57,14 @@
   border: 1px solid #999
   padding: 4px 15px
   border-radius: 3px
+
   &:hover
     background-color: #f5f5f5
     border: 1px solid #0066cc
+
   &:focus
-    outline: none!important
+    outline: none !important
+
   &:active
     color: lighten(#0066cc, 5%)
 
@@ -66,13 +75,35 @@
   padding: 0px 2px
   border-radius: 3px
   width: 30px
+  min-height: 28px
   &:hover
     background-color: #f5f5f5
     border: 1px solid #0066cc
   &:focus
-    outline: none!important
+    outline: none !important
   &:active
     color: lighten(#0066cc, 5%)
+
+
+.btn-custom-outline-small-danger
+  color: #dc3545
+  background-color: transparent
+  border: 1px solid #dc3545
+  padding: 0px 2px
+  border-radius: 3px
+  width: 30px
+  min-height: 28px
+  &:hover
+    background-color: #dc3545
+    border: none
+    color: #fff
+  &:focus
+    outline: none !important
+  &:active
+    background-color: lighten(#dc3545, 5%)
+    color: #fff
+
+
 
 .bg-blue
   background-color: #527dec
@@ -111,3 +142,90 @@
   margin-right: 0.6rem
   position: relative
   top: -3px
+
+
+.vs__open-indicator
+  transform: scale(.7)
+
+#refreshButton
+  position: absolute
+  background-color: #fff
+  opacity: 0.9
+  top: 10px
+  right: 10px
+  padding: 6px 10px
+  color: #333
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65)
+  border-radius: 4px
+  z-index: 9999
+
+#refreshButton:hover
+  background-color: #f4f4f4
+
+::-webkit-scrollbar
+  width: 6px
+
+::-webkit-scrollbar-track
+  background: #d4d4d4
+
+::-webkit-scrollbar-thumb
+  background: #999
+  border-radius: 10px
+
+  //modal
+.modal-mask
+  position: fixed
+  z-index: 9998
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  background-color: rgba(0, 0, 0, 0.5)
+  display: table
+  transition: opacity 0.3s ease
+
+.modal-wrapper
+  display: table-cell
+  vertical-align: middle
+
+.modal-container
+  width: 600px
+  height: 720px
+  overflow-y: scroll
+  overflow-x: hidden
+  margin: 0 auto
+  padding: 15px
+  background-color: #fff
+  border-radius: 2px
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33)
+  transition: all 0.3s ease
+  font-family: Helvetica, Arial, sans-serif
+
+.modal-header
+  h3
+    margin-top: 0
+    color: #42b983
+    padding: 10px
+
+.modal-body
+  margin: 5px 0
+
+.modal-enter
+  opacity: 0
+
+.modal-leave-active
+  opacity: 0
+
+.close
+  &:focus
+    border: none
+    outline: none!important
+  &:hover
+    color: red!important
+
+.modal-enter .modal-container,
+.modal-leave-active .modal-container
+  -webkit-transform: scale(1.1)
+  transform: scale(1.1)
+
+

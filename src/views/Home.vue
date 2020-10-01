@@ -24,41 +24,56 @@
       </a>
       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
        <a class="dropdown-item" href="/profile/">Профиль</a>
-       <a class="dropdown-item" href="/option/">Настройки</a>
+       <a class="dropdown-item" href="#"
+          @click.prevent="showModal = true"
+       >
+        Настройки
+       </a>
+       <a class="dropdown-item" href="/account/logout">Выход</a>
       </div>
      </li>
-     <li class="nav-item">
-      <a href="/login" class="nav-link">Выход</a>
-     </li>
+     <!--     <li class="nav-item">-->
+     <!--      <a href="/login" class="nav-link">Выход</a>-->
+     <!--     </li>-->
     </ul>
 
    </div>
   </nav>
 
+
+  <sittings v-if="showModal" @close="showModal = false">
+   <template v-slot:header>
+   </template>
+   <template v-slot:body>
+   </template>
+   <template v-slot:footer>
+   </template>
+  </sittings>
+
+
   <div class="container-fluid">
    <div class="row">
     <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
                 style="height: calc(100vh - 56px)">
-     <pane min-size="15" max-size="50" :size="paneSize">
+     <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto; padding-top:20px;">
       <keep-alive>
        <component :is="currentComponent" @on-Action="onAction"></component>
       </keep-alive>
      </pane>
 
      <pane min-size="60" :size="100 - paneSize" max-size="100">
-
       <splitpanes horizontal @resized="horizontSplitResize">
        <pane>
         <llmap ref="llmap"></llmap>
        </pane>
-       <pane v-if="currentLink === 'tracker'"
-             mix-size="90">
-        <trackerRaport ref="trackerRaport"/>
-       </pane>
-       <pane v-if="currentLink === 'raports'"
-             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
-        <raportPanel/>
-       </pane>
+       <!--       <pane v-if="currentLink === 'tracker'"-->
+       <!--             mix-size="90">-->
+       <!--        <trackerRaport ref="trackerRaport"/>-->
+       <!--       </pane>-->
+       <!--       <pane v-if="currentLink === 'raports'"-->
+       <!--             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">-->
+       <!--        <raportPanel/>-->
+       <!--       </pane>-->
       </splitpanes>
 
      </pane>
@@ -74,7 +89,7 @@
  import $ from 'jquery'
  import monitoring from "../components/monitoring/monitoring";
  import tracker from "../components/tracker/tracker";
- import sittings from "../components/settings/sittings";
+ import sittings from "../components/settings/setup";
  import raports from "../components/raport/raports";
  import geozone from "../components/geozone/geozone";
  import drawnew from "../components/drawnew/drawnew";
@@ -130,6 +145,7 @@
   },
   data() {
    return {
+    showModal: false,
     links: [
      {title: 'Мониторинг', alias: 'monitoring', icon: 'mdi-earth'},
      {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
@@ -153,7 +169,7 @@
     this.paneSizeResize()
    },
 
-   onAction(action) {
+   onAction(action, idGroup) {
     switch (action) {
      case "hide":
       this.$refs.llmap.drawHide();
@@ -165,7 +181,7 @@
       this.$refs.llmap.drawClear();
       break;
      case "save":
-      this.$refs.llmap.saveList(this.$refs.llmap.drawGetGeozones());
+      this.$refs.llmap.saveList(this.$refs.llmap.drawGetGeozones(), idGroup);
       break;
     }
    },
@@ -178,10 +194,6 @@
    $('.dropdown-toggle').dropdown()
    this.$refs.llmap.zoomSliderShow()
   },
-
-  created() {
-  }
-
  }
 </script>
 

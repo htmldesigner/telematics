@@ -83,17 +83,10 @@
      pauseButton: '/img/pause.svg',
      remove: '/img/remove.svg'
     },
-
     loading: null,
-
     selectedObjectId: "",
-
-    boolOverspeed: true,
-    boolStops: true,
-
-    timeIntervalStart: '02.02.2020 18:00',
-    timeIntervalEnd: '03.02.2020 18:02',
-
+    boolOverspeed: false,
+    boolStops: false,
     data: {},
     layers: {},
 
@@ -122,12 +115,12 @@
      iconSize: [32, 32],
      iconAnchor: [16, 32]
     }),
-
     overspeedIcon:L.icon({
      iconUrl: '/img/overspeed.png',
      iconSize: [20, 20],
      iconAnchor: [10, 10],
     }),
+
    }
   },
   computed: {
@@ -175,23 +168,23 @@
     this.loading = true
     const id = this.selectedObjectId;
     let query = [];
-    let startTime = this.timeIntervalStart; // moment(this.timeIntervalStart).format('DD.MM.yyyy, HH:mm');
-    let endTime = this.timeIntervalEnd; // moment(this.timeIntervalEnd).format('DD.MM.yyyy, HH:mm');
+    // let startTime = this.timeIntervalStart; // moment(this.timeIntervalStart).format('DD.MM.yyyy, HH:mm');
+    // let endTime = this.timeIntervalEnd; // moment(this.timeIntervalEnd).format('DD.MM.yyyy, HH:mm');
 
     query.push(
      {
       type: "track",
       objectId: id,
-      dateFrom: startTime,
-      dateTo: endTime
+      dateFrom: this.datefrom,
+      dateTo: this.dateto,
      });
     if (this.boolStops)
      query.push(
       {
        type: "stop",
        objectId: id,
-       dateFrom: startTime,
-       dateTo: endTime,
+       dateFrom: this.datefrom,
+       dateTo: this.dateto,
        stopMinduration: this.getStopminduration,
       });
     if (this.boolOverspeed)
@@ -199,8 +192,8 @@
       {
        type: "overspeed2",
        objectId: id,
-       dateFrom: startTime,
-       dateTo: endTime,
+       dateFrom: this.datefrom,
+       dateTo: this.dateto,
        speedLimits: this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1],
        overSpeedMinduration: this.getOverSpeedMinduration,
       });
@@ -210,6 +203,7 @@
       query: query,
      }).then(response => {
      this.parseServiceResult(response.data, this.objects[id].name);
+     console.log(response.data)
      this.loading = false
     }).catch(() => {
      this.loading = false

@@ -31,6 +31,7 @@ export default {
   async loadState({commit, state}) {
    const response = await api.loadState()
    let data = await JSON.parse(response.data.data);
+   console.log(data)
    commit('setSpeedLimits', data)
   },
   clearObjects({commit}) {

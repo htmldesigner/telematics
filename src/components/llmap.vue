@@ -1,5 +1,6 @@
 <template>
  <div class="rel">
+  <a href="#" @click.prevent="mapReset" id="refreshButton"><i class="fa fa-eraser"></i></a>
   <div ref="mapContainer" id="mapContainer" class="l-map"></div>
  </div>
 </template>
@@ -12,6 +13,7 @@
  import Draw from 'leaflet-draw'
  import Zoomslider from 'leaflet.zoomslider'
  import {eventBus} from '../eventBus'
+ import mapInstance from "../store/modules/mapInstance";
 
  export default {
   name: "llmap",
@@ -49,7 +51,8 @@
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
-    selectedGeozone: 'selectedGeozone'
+    selectedGeozone: 'selectedGeozone',
+    modifyGeozone: 'getModifiableGeozone',
    }),
   },
   watch: {
@@ -69,6 +72,11 @@
     handler(zone) {
      this.geozonesDraw(zone)
     }
+   },
+   modifyGeozone: {
+    handler(zone) {
+     this.drawModifyGeozone(zone)
+    }
    }
   },
   methods: {
@@ -79,7 +87,11 @@
 
 // Global map instance
    createMapInstance() {
-    const map = L.map(this.$refs.mapContainer, {zoomControl: false}).setView(this.defaultCenter, this.defaultZoom)
+    const map = L.map(
+     this.$refs.mapContainer, {zoomControl: false}).setView(
+     this.defaultCenter,
+     this.defaultZoom
+    )
     const mapLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
      maxZoom: 18,
      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -120,25 +132,40 @@
      "google2": google2,
     }, {}, {position: 'topleft', collapsed: true}).addTo(map)
 
-    L.control.zoom({
-     position: 'topleft'
-    }).addTo(map);
+    // L.control.zoom({
+    //  position: 'topleft'
+    // }).addTo(map);
 
     L.control.scale().addTo(map);
 
     map.on('zoomend', function () {
-
-     eventBus.$emit('mapzoomend',this);
+     eventBus.$emit('mapzoomend', this);
     });
 
     this.geozonesLayer = new L.featureGroup();
     this.geozonesLayer.addTo(map);
+
+    // this.positionTrackLayer = new L.featureGroup();
+    // this.positionTrackLayer.addTo(map);
+
+    this.editGeozonesLayer = new L.featureGroup();
+    this.editGeozonesLayer.addTo(map);
 
     this.zoomZoomslider = new L.Control.Zoomslider({position: 'topleft'})
 
     return map
    },
 
+   mapReset() {
+    this.geozonesLayer.clearLayers();
+    for (let i in this.markers) {
+     this.mapInstance.removeLayer(this.markers[i])
+    }
+    this.$store.dispatch('loadObjects')
+    this.$store.dispatch('loadGeozones')
+    eventBus.$emit('map-Clear', 'mapClear');
+    this.mapInstance.setView(this.defaultCenter, this.defaultZoom);
+   },
 
    createPlaybackInstance() {
     this.map = this.mapInstance;
@@ -174,13 +201,13 @@
        zIndexOffset: 10100
       }
      },
-     moveCallback (e) {
-       self.map.panTo([e.latlng.lat, e.latlng.lng]);
+     moveCallback(e) {
+      self.map.panTo([e.latlng.lat, e.latlng.lng]);
      },
 
     };
 
-    return  new L.Playback(this.map, [], null, playbackOptions);
+    return new L.Playback(this.map, [], null, playbackOptions);
    },
 
 
@@ -229,22 +256,71 @@
     this.mapInstance.on('draw:created', function (e) {
      let type = e.layerType,
       layer = e.layer;
+
      let feature = layer.feature = layer.feature || {}; // Initialize feature
      feature.type = feature.type || "Feature"; // Initialize feature.type
+
      let props = feature.properties = feature.properties || {}; // Initialize feature.properties
      props.title = props.title = props.title || "Пустое название";
+
      self.editableLayers.addLayer(layer);
 
-     layer.on("click", function (e) {
-      let props = e.sourceTarget.feature.properties; // Initialize feature.properties
-      let title = prompt("Укажите название объекта", props.title);
-      if (title != null) {
-       props.title = title;
-      } else {
-       props.title = "";
+     let template = `
+     <form id="popup-form">
+        <label for="input-name">Наименование :</label>
+        <input id="input-name" class="popup-input" type="text" />
+        <input id="input-color" class="popup-input" type="color" />
+        <button id="button-submit" type="button">Сохранить</button>
+     </form>
+     `;
+
+     function layerClickHandler(e) {
+
+      var marker = e.target,
+       properties = e.target.feature.properties;
+
+      if (marker.hasOwnProperty('_popup')) {
+       marker.unbindPopup();
       }
-     });
+
+      marker.bindPopup(template);
+      marker.openPopup();
+
+      let inputName = L.DomUtil.get('input-name');
+      let inputColor = L.DomUtil.get('input-color');
+
+      inputName.value = properties.title;
+      inputColor.value = properties.color;
+
+      L.DomEvent.addListener(inputName, 'change', function (e) {
+       properties.title = e.target.value;
+      });
+
+      L.DomEvent.addListener(inputColor, 'change', function (e) {
+       properties.color = e.target.value;
+      });
+
+      var buttonSubmit = L.DomUtil.get('button-submit');
+      L.DomEvent.addListener(buttonSubmit, 'click', function (e) {
+       marker.closePopup();
+      });
+
+     }
+
+
+     layer.on('click', layerClickHandler);
+     // layer.on("click", function (e) {
+     //  let props = e.sourceTarget.feature.properties; // Initialize feature.properties
+     //  let title = prompt("Укажите название объекта", props.title);
+     //  if (title != null) {
+     //   props.title = title;
+     //  } else {
+     //   props.title = "";
+     //  }
+     // });
     });
+
+
    },
 
    drawShow() {
@@ -258,21 +334,60 @@
     return this.editableLayers.getLayers()
    },
 
-   saveList(layers) {
+   drawModifyGeozone(geozone) {
+    let self = this;
+
+    this.editGeozonesLayer.clearLayers();
+
+    this.mapInstance.removeControl(this.drawControl)
+
+    let geom = JSON.parse('{"type": "Feature", "geometry": ' + geozone.geom + ', "properties": {"color":"red"}}');
+    L.geoJSON(geom, {
+     style: function (feature) {
+      return {color: geozone.color};
+     },
+     onEachFeature: function (feature, layer) {
+      self.editGeozonesLayer.addLayer(layer);
+     }
+    });
+
+    this.map.fitBounds(this.editGeozonesLayer.getBounds()) // полет к выделенному
+
+    let drawPluginOptions = {
+     position: 'topleft',
+     draw: false,
+     edit: {
+      featureGroup: this.editGeozonesLayer,
+      remove: true,
+      edit: true
+     }
+    };
+
+    // Initialise the draw control and pass it the FeatureGroup of editable layers
+    this.drawControl = new L.Control.Draw(drawPluginOptions);
+
+    this.mapInstance.addControl(this.drawControl)
+    this.mapInstance.on('draw:edited', function (e) {
+     var layers = e.layers;
+     layers.eachLayer(function (layer) {
+      console.log(layer)
+     });
+    });
+
+   },
+
+
+   saveList(layers, idGroup) {
     let layersData = [];
-    this.currentGroup = 1
-    // if (this.currentGroup === 0){
-    //  alert("Необходимо выбрать группу, куда будут сохранены геозоны");
-    //  return;
-    // }
     for (let layer of layers) {
      let geom = layer.toGeoJSON();
-     layersData.push({title: geom.properties.title, geometry: JSON.stringify(geom.geometry)});
-     //here send to server
+     layersData.push({
+      name: geom.properties.title,
+      color: geom.properties.color,
+      geometry: JSON.stringify(geom.geometry)
+     });
     }
-    this.saveGeozones({id: this.currentGroup, layersData})
-    // here saveList...
-    // нужно сделать запрос названия для каждого элемента...
+    this.saveGeozones({id: idGroup, layersData})
    },
 
 
@@ -281,15 +396,16 @@
     this.geozonesClear();
     for (let i in geozonesList) {
      let geozone = geozonesList[i];
+
      let geom = JSON.parse('{"type": "Feature", "geometry": ' + geozone.geom + ', "properties": {"id": 1, "name": "one", "color":"red"}}');
      let geolayer = L.geoJSON(geom, {
       style: function (feature) {
-       return {color: feature.properties.color};
-      }
+       return {color: geozone.color};
+      },
      }).bindPopup(geozone.name).addTo(this.geozonesLayer);
     }
     if (geozonesList.length > 0) {
-     this.mapInstance.flyToBounds(this.geozonesLayer.getBounds()) // полет к выделенному
+     this.mapInstance.flyToBounds(this.geozonesLayer.getBounds())
     }
    },
 
