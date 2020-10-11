@@ -15,7 +15,7 @@
         @click="$emit('close')"
         title="Закрыть"
        >
-        <span aria-hidden="true">X</span>
+        <span style="font-size: 14px; color: red" aria-hidden="true">x</span>
        </button>
       </slot>
      </div>
@@ -23,24 +23,24 @@
      <div class="modal-body">
       <slot name="body">
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label
          for="exampleFormControlSelect1"
          class="col col-form-label">Следить в реальном времени:</label>
         <div class="col-md-3">
-         <select class="custom-select" id="exampleFormControlSelect1" v-model="isRealTime">
+         <select class="custom-select form-control-custom" id="exampleFormControlSelect1" v-model="isRealTime">
           <option :value="true">Да</option>
           <option :value="false">Нет</option>
          </select>
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="isRealTimeUpdate"
                class="col col-form-label">Период обновления, сек:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1" max="100"
                 id="isRealTimeUpdate"
                 v-model="timerInterval"
@@ -48,12 +48,12 @@
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="stopMinradius"
                class="col col-form-label">Минимальный радиус остановки, м:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1" max="1000"
                 id="stopMinradius"
                 v-model="stopMinRadius"
@@ -61,12 +61,12 @@
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="stopMinduration"
                class="col col-form-label">Минимальная длительность остановки, сек:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1"
                 id="stopMinduration"
                 v-model="stopMinDuration"
@@ -74,12 +74,12 @@
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="trackMinduration"
                class="col col-form-label">Минимальная длительность поездки, сек:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1"
                 id="trackMinduration"
                 v-model="trackMinDuration"
@@ -87,12 +87,12 @@
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="overSpeedMinduration"
                class="col col-form-label">Минимальная длительность превышения, сек:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1"
                 id="overSpeedMinduration"
                 v-model="overSpeedMinDuration"
@@ -100,12 +100,12 @@
         </div>
        </div>
 
-       <div class="form-group row">
+       <div class="form-group row mb-1">
         <label for="geozoneVisitMinduration"
                class="col col-form-label">Минимальная длительность посещения геозоны, сек:</label>
         <div class="col-md-3">
          <input type="number"
-                class="form-control"
+                class="form-control form-control-custom"
                 min="1"
                 id="geozoneVisitMinduration"
                 v-model="geoZoneVisitMinDuration"
@@ -142,7 +142,7 @@
           </div>
 
           <div class="col-md-2 d-flex justify-content-center align-items-center">
-           <ColorPicker v-model="item.color"/>
+           <input type="color" class="color-selecteor" v-model="item.color"/>
           </div>
 
           <div class="col-md-2 d-flex justify-content-center align-items-center">
@@ -154,23 +154,19 @@
         </div>
        </div>
       </slot>
-
      </div>
 
      <div class="modal-footer">
-
       <slot name="footer">
-
        <button class="btn-custom" @click="$emit('close')">
         Закрыть
        </button>
        <button class="btn-custom" @click="save()">
         Сохранить
        </button>
-
       </slot>
-
      </div>
+
     </div>
    </div>
   </div>
@@ -178,17 +174,10 @@
 </template>
 
 <script>
-
-
  import {mapGetters, mapActions, mapMutations} from 'vuex'
-
- import ColorPicker from 'primevue/colorpicker';
 
  export default {
   name: "setup",
-  components: {
-   ColorPicker
-  },
   data() {
    return {
     object: [],
@@ -208,7 +197,7 @@
 
    isRealTime: {
     set(val) {
-     this.setRealTime(val);
+     this.SETREALTIME(val);
     },
     get() {
      return this.realtime;
@@ -217,7 +206,7 @@
 
    timerInterval: {
     set(val) {
-     this.setTimerInterval(val);
+     this.SETTIMERINTERVAL(val);
     },
     get() {
      return this.getTimerInterval;
@@ -226,7 +215,7 @@
 
    stopMinRadius: {
     set(val) {
-     this.setStopMinRadius(val);
+     this.SETSTOPMINRADIUS(val);
     },
     get() {
      return this.getStopMinRadius;
@@ -235,7 +224,7 @@
 
    trackMinDuration: {
     set(val) {
-     this.setTrackMinDuration(val);
+     this.SETTRACKMINDURATION(val);
     },
     get() {
      return this.getTrackMinDuration;
@@ -244,7 +233,7 @@
 
    stopMinDuration: {
     set(val) {
-     this.setStopMinDuration(val);
+     this.SETSTOPMINDURATION(val);
     },
     get() {
      return this.getStopMinDuration;
@@ -253,7 +242,7 @@
 
    overSpeedMinDuration: {
     set(val) {
-     this.setOverSpeedMinDuration(val);
+     this.SETOVERSPEEDMINDURATION(val);
     },
     get() {
      return this.getOverSpeedMinDuration;
@@ -262,7 +251,7 @@
 
    geoZoneVisitMinDuration: {
     set(val) {
-     this.setGeoZoneVisitMinDuration(val);
+     this.SETGEOZONEVISITMINDURATION(val);
     },
     get() {
      return this.getGeoZoneVisitMinDuration;
@@ -272,14 +261,14 @@
   },
   methods: {
    ...mapMutations([
-    'setRealTime',
-    'setTimerInterval',
-    'setStopMinRadius',
-    'setStopMinDuration',
-    'setTrackMinDuration',
-    'setSpeedLimits',
-    'setOverSpeedMinDuration',
-    'setGeoZoneVisitMinDuration']),
+    'SETREALTIME',
+    'SETTIMERINTERVAL',
+    'SETSTOPMINRADIUS',
+    'SETSTOPMINDURATION',
+    'SETTRACKMINDURATION',
+    'SETSPEEDLIMITS',
+    'SETOVERSPEEDMINDURATION',
+    'SETGEOZONEVISITMINDURATION']),
 
    ...mapActions(['saveState']),
 

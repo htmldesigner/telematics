@@ -1,5 +1,5 @@
 <template>
- <div class="geozone-container mt-3 px-3">
+ <div class="geozone-container mt-3 px-2">
 
   <div class="drow" v-if="userPermission">
    <div class="notice-block border mb-3 p-3">
@@ -45,7 +45,7 @@
 
    <Column field="name" :expander="true" filterMatchMode="contains">
     <template #body="slotProps">
-     {{slotProps.name}}
+     {{slotProps.node.data.name}}
     </template>
    </Column>
 
@@ -165,14 +165,19 @@
       }
      })
     }
+   },
+
+   onLoad(){
+    this.result(this.geozonesgroups, this.geozones)
    }
 
   },
   async mounted() {
    this.userPermission = null // await this.$store.getters.getUserPermission
    this.detectPermission(this.userPermission)
-   await this.$store.dispatch('loadGeozones')
-   await this.result(this.geozonesgroups, this.geozones)
+   // await this.$store.dispatch('loadGeozones')
+
+
 
    eventBus.$on('map-Clear', ()=>{
     this.selectedKeys = null

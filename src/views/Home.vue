@@ -1,8 +1,8 @@
 <template>
- <div>
+ <div v-if="isUserLoggedIn">
   <nav class="navbar navbar-expand-xl navbar-dark bg-blue">
    <a class="navbar-brand mr-3" href="/">
-    <img src="/img/logo.svg" alt="Alt">
+    <img src="@/assets/logo.svg" alt="Alt">
    </a>
    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
@@ -11,8 +11,12 @@
    <div class="collapse navbar-collapse" id="navbarText">
 
     <ul class="navbar-nav mr-auto">
-     <li v-for="(link, index) in links" :key="index" class="nav-item">
-      <a href="" class="nav-link text-light" @click.prevent="currentLink = link.alias">{{link.title}}</a>
+     <li v-for="(link, index) in links"
+         :key="index" class="nav-item"
+         v-bind:class="{active: currentComponent ===  link.alias}">
+      <span class="nav-link text-light"
+            @click.prevent="currentLink = link.alias">{{link.title}}
+      </span>
      </li>
     </ul>
 
@@ -20,26 +24,22 @@
      <li class="nav-item dropdown">
       <a class="nav-link dropdown-toggle" ref="dropdownList" href="#" id="navbarDropdownMenuLink" role="button"
          data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-       {{UserInfo.username}}
+       {{UserInfo.first_name + ' ' + UserInfo.last_name}}
       </a>
       <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
-       <a class="dropdown-item" href="/profile/">Профиль</a>
-       <a class="dropdown-item" href="#"
+       <a class="dropdown-item" href="/profile">Профиль</a>
+       <a class="dropdown-item" href=""
           @click.prevent="showModal = true"
        >
         Настройки
        </a>
-       <a class="dropdown-item" href="/account/logout">Выход</a>
+       <a v-if="isUserLoggedIn" class="dropdown-item" href="" @click.prevent="logout">Выход</a>
       </div>
      </li>
-     <!--     <li class="nav-item">-->
-     <!--      <a href="/login" class="nav-link">Выход</a>-->
-     <!--     </li>-->
     </ul>
 
    </div>
   </nav>
-
 
   <sittings v-if="showModal" @close="showModal = false">
    <template v-slot:header>
@@ -51,20 +51,27 @@
   </sittings>
 
 
+
   <div class="container-fluid">
    <div class="row">
     <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
-                style="height: calc(100vh - 56px)">
-     <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto; padding-top:20px;">
-      <keep-alive>
-       <component :is="currentComponent" @on-Action="onAction"></component>
-      </keep-alive>
+                style="height: calc(100vh - 40px)">
+     <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto;">
+
+      <monitoring ref="monitoring" @modalObjectList="modalObjectListRun" v-show="currentComponent === 'monitoring'"/>
+      <tracker ref="tracker" v-show="currentComponent === 'tracker'"/>
+      <raports ref="raports" v-show="currentComponent === 'raports'"/>
+      <geozone ref="geozone" v-show="currentComponent === 'geozone'"/>
+      <!--      <keep-alive>-->
+      <!--       <component :is="currentComponent" @on-Action="onAction"></component>-->
+      <!--      </keep-alive>-->
      </pane>
 
      <pane min-size="60" :size="100 - paneSize" max-size="100">
       <splitpanes horizontal @resized="horizontSplitResize">
        <pane>
         <llmap ref="llmap"></llmap>
+        <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
        </pane>
        <!--       <pane v-if="currentLink === 'tracker'"-->
        <!--             mix-size="90">-->
@@ -89,13 +96,14 @@
  import $ from 'jquery'
  import monitoring from "../components/monitoring/monitoring";
  import tracker from "../components/tracker/tracker";
- import sittings from "../components/settings/setup";
+ import sittings from "../components/settings/settings";
  import raports from "../components/raport/raports";
  import geozone from "../components/geozone/geozone";
  import drawnew from "../components/drawnew/drawnew";
  import llmap from '../components/llmap';
  import trackerRaport from "../components/tracker/trackerRaport";
  import raportPanel from "../components/raport/raportPanel";
+ import modalOL from "../components/monitoring/modalObjectLoader";
 
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
@@ -114,7 +122,8 @@
    drawnew,
    tracker,
    Splitpanes,
-   Pane
+   Pane,
+   modalOL
   },
   computed: {
    ...mapGetters({
@@ -125,7 +134,7 @@
    }),
    currentLink: {
     set(val) {
-     this.setCurrentComponent(val)
+     this.SETCURRENTCOMPONENT(val)
     },
     get() {
      return this.getCurrentComponent
@@ -133,7 +142,7 @@
    },
    paneSize: {
     set(val) {
-     this.setPaneSize(val)
+     this.SETPANESIZE(val)
     },
     get() {
      return this.getPaneSize
@@ -142,23 +151,37 @@
    currentComponent: function () {
     return this.currentLink;
    },
+
+   isUserLoggedIn() {
+    return this.$store.getters.isUserLoggedIn
+   },
+
+   links() {
+    if (this.isUserLoggedIn) {
+     return [
+      {title: 'Мониторинг', alias: 'monitoring', icon: 'mdi-earth'},
+      {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
+      {title: 'Отчеты', alias: 'raports', icon: 'mdi-playlist-check'},
+      {title: 'Геозоны', alias: 'geozone', icon: 'mdi-shape-polygon-plus'},
+     ]
+    }
+   }
+
   },
   data() {
    return {
     showModal: false,
-    links: [
-     {title: 'Мониторинг', alias: 'monitoring', icon: 'mdi-earth'},
-     {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
-     {title: 'Отчеты', alias: 'raports', icon: 'mdi-playlist-check'},
-     {title: 'Геозоны', alias: 'geozone', icon: 'mdi-shape-polygon-plus'},
-    ]
+    modalObjectLoader: false,
+
    }
   },
   methods: {
-   ...mapMutations(['setPaneSize', 'setCurrentComponent']),
+   ...mapMutations(['SETPANESIZE', 'SETCURRENTCOMPONENT']),
    ...mapState('mapModule', ['mapInstance']),
 
-   //Responsive map interface belong with "Splitpanes" component
+   /**
+    * Responsive map interface belong with "Splitpanes" component
+    */
    paneSizeResize() {
     setTimeout(() => {
      this.mapInstance().invalidateSize()
@@ -185,14 +208,40 @@
       break;
     }
    },
+
+   modalObjectListRun() {
+    this.modalObjectLoader = !this.modalObjectLoader
+    console.log('modalObjectListRun')
+   },
+
+   onLoad() {
+    this.$refs.monitoring.onLoad()
+    this.$refs.geozone.onLoad()
+    this.$refs.raports.onLoad()
+   },
+
+   logout() {
+    this.$store.dispatch('logout').then(() => {
+     this.$router.push('/')
+    })
+   },
+
   },
 
-  mounted() {
+
+  async mounted() {
+
+   await this.$store.dispatch('loadObjects')
+   await this.$store.dispatch('loadGeozones')
+   // await this.$store.dispatch('getUserInfo')
+   // await this.$store.dispatch('loadState')
+
+
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)
    $('.dropdown-toggle').dropdown()
-   this.$refs.llmap.zoomSliderShow()
+   this.onLoad()
   },
  }
 </script>

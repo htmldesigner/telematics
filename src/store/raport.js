@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import api from "@/app/api"
 export default {
  state: {
   stopRaport: null,
@@ -57,7 +58,23 @@ export default {
   },
   clearTrackRaport({commit}, payload) {
    commit('CLEAR_TRACK_ALL_RAPORT')
-  }
+  },
+
+  async loadRaport({commit}, query) {
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    let response =  await api.serviceQuery(query)
+    commit('clearError')
+    commit('setLoading', false)
+    console.log(response)
+    return response
+   } catch (e) {
+    commit('setLoading', false)
+    commit('setError', 'Ошибка загрузкм трека')
+   }
+  },
+
 
  },
  getters: {

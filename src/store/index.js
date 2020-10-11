@@ -6,9 +6,9 @@ import common from "./common";
 import tracker from "./tracker";
 import profile from "./profile";
 import geozones from "./geozones";
-import setup from "./setup";
 import raport from "./raport";
 import mapModule from './modules/mapInstance'
+import auth from "./auth";
 
 
 import draw from './draw'
@@ -26,6 +26,7 @@ Vue.use(Vuex)
   actions: {
   },
   modules: {
+   auth,
    sittings,
    common,
    monitoring,

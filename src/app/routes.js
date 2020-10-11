@@ -1,4 +1,4 @@
 export default function (route) {
-    const apiUrl = "/api";
+    const apiUrl = "http://telematics.checkedout.kz/api";
     return apiUrl + route;
 }

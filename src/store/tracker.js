@@ -16,9 +16,10 @@ export default {
     commit('clearError')
     commit('setLoading', false)
     return response
-   } catch (e) {
+   } catch (error) {
     commit('setLoading', false)
-    commit('setError', 'Ошибка загрузкм трека')
+    commit('setError', error)
+    throw error
    }
   },
 

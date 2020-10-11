@@ -33,7 +33,7 @@
      <img v-if="!slotProps.node.data.objects" class="mr-1"
           src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
           alt="Alt">
-     {{ slotProps.name }}
+     {{ slotProps.node.data.name }}
     </template>
    </Column>
 
@@ -127,7 +127,6 @@
      }
      this.root.push(createArray)
     }
-    console.log(this.root)
    },
 
    expand() {

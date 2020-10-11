@@ -1,15 +1,22 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from "../views/Home";
-
+import Login from "../components/Login";
+import AuthGuard from './Auth-guard'
 
 Vue.use(VueRouter)
 
   const routes = [
     {
-      path: '/map/',
+      path: '/map',
       name: 'home',
       component: Home,
+      beforeEnter: AuthGuard
+    },
+    {
+      path: '/',
+      name: 'Login',
+      component: Login,
     },
 ]
 

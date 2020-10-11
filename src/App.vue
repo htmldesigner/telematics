@@ -10,6 +10,7 @@
  import Loader from "./components/Loader";
  import {mapActions, mapGetters} from "vuex";
  import Toast from 'primevue/toast';
+ import store from "./store";
  export default {
   name: 'App',
   data() {
@@ -65,15 +66,12 @@
    },
 
   },
-  async created() {
-   await this.$store.dispatch('loadObjects')
-   await this.$store.dispatch('getUserInfo')
-   await this.$store.dispatch('loadState')
-   await setTimeout(() => {
-    this.load = false
-   }, 300)
-  },
+
   mounted() {
+   setTimeout(() => {
+    this.load = false
+   }, 400)
+
    this.watcher()
   },
 

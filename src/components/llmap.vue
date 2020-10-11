@@ -22,7 +22,6 @@
    return {
     defaultZoom: 10,
     defaultCenter: [51.7971, 55.1137],
-    OSMUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 
     arrowicon: L.icon({
      iconUrl: '/img/navigator64.png',
@@ -53,7 +52,28 @@
     getMonitor: 'getMonitorObjects',
     selectedGeozone: 'selectedGeozone',
     modifyGeozone: 'getModifiableGeozone',
+    getMapZoom: 'getMapZoom',
+    getMapCenter: 'getMapCenter',
    }),
+
+   zoom: {
+    set(val) {
+     this.SETMAPZOOM(val);
+    },
+    get() {
+     return this.getMapZoom || this.defaultZoom;
+    }
+   },
+
+   center: {
+    set(val) {
+     this.SETMAPCENTER(val);
+    },
+    get() {
+     return this.getMapCenter !== null ? this.getMapCenter : this.defaultCenter;
+    }
+   },
+
   },
   watch: {
    objects: {
@@ -82,24 +102,21 @@
   methods: {
    ...mapMutations('mapModule', ['SET_MAP_INSTANCE']),
    ...mapMutations('playbackModule', ['SET_PLAYBACK_INSTANCE']),
+   ...mapMutations(['SETMAPZOOM', 'SETMAPCENTER']),
+
    ...mapActions(['updateSelectedObjectsPositionByImei', 'saveGeozones']),
 
 
 // Global map instance
    createMapInstance() {
+    let self = this
     const map = L.map(
      this.$refs.mapContainer, {zoomControl: false}).setView(
-     this.defaultCenter,
-     this.defaultZoom
+     this.center,
+     this.zoom
     )
-    const mapLayer = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
-     maxZoom: 18,
-     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    })
 
-    let osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-    let osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: ''});
+    let osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: ''});
 
     let google1 = L.tileLayer('//{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
      maxZoom: 20,
@@ -126,20 +143,24 @@
     this.myRenderer = L.canvas({padding: 0.5});
 
     L.control.layers({
-     'OSM': osm,
-     'custom': custom,
-     "google": google1.addTo(map),
+     'OSM': osm.addTo(map),
+     "google": google1,
      "google2": google2,
     }, {}, {position: 'topleft', collapsed: true}).addTo(map)
 
-    // L.control.zoom({
-    //  position: 'topleft'
-    // }).addTo(map);
+    L.control.zoom({
+     position: 'topleft'
+    }).addTo(map);
 
     L.control.scale().addTo(map);
 
     map.on('zoomend', function () {
      eventBus.$emit('mapzoomend', this);
+    });
+
+    map.on('moveend', function () {
+     self.center = map.getCenter()
+     self.zoom = map.getZoom()
     });
 
     this.geozonesLayer = new L.featureGroup();
@@ -152,6 +173,7 @@
     this.editGeozonesLayer.addTo(map);
 
     this.zoomZoomslider = new L.Control.Zoomslider({position: 'topleft'})
+
 
     return map
    },
@@ -474,7 +496,7 @@
         </div>
         <div class="text-center">
         <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">IMEI</p>
-        <span>${newValue[i].imei}</span>
+        <span>${newValue[i].device_id}</span>
         </div>
         <div class="text-center">
         <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Координаты</p>
@@ -497,6 +519,8 @@
       this.mapInstance.addLayer(marker.bindPopup('доп функции', {className: "custom-popup"}))
       marker.on('mouseover', customTip);
       marker.on('click', customPop)
+     } else {
+      console.log()
      }
     }
    },
@@ -513,7 +537,7 @@
      this.interval = setInterval(() => {
       for (let i in object) {
        if (object[i].monitor && object[i].selected) {
-        this.updateSelectedObjectsPositionByImei(object[i].imei)
+        this.updateSelectedObjectsPositionByImei(object[i].device_id)
        }
       }
      }, 1000 * 5);
@@ -526,6 +550,7 @@
   async mounted() {
    await this.renderMap()
    await this.drawInit()
+   this.zoomSliderShow()
   }
  }
 </script>

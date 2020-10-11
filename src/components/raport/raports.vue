@@ -1,6 +1,6 @@
 <template>
- <div class="raport-container  mt-3">
-  <div class="container">
+ <div class="raport-container  mt-3 px-2">
+
 
    <div class="row mb-3">
     <div class="col">
@@ -22,7 +22,7 @@
 
    <hr>
 
-   <div class="row mb-3" v-if="['group_overspeed'].includes(reporttype)">
+   <div class="row" v-if="['group_overspeed'].includes(reporttype)">
     <div class="col">
      <div class="custom-control custom-switch">
       Ручное ограничение:
@@ -33,21 +33,21 @@
     </div>
    </div>
 
-   <div class="row mt-3 mb-3" v-if="['group_overspeed'].includes(reporttype) && customLimit">
+   <div class="row mt-2 mb-0" v-if="['group_overspeed'].includes(reporttype) && customLimit">
     <div class="col">
      <label class="mt-1 mb-0" for="speedLimit">Лимит скорости, км/ч:</label>
-     <input type="text" class="form-control" id="speedLimit" v-model="speedLimit"/>
+     <input type="text" class="form-control form-control-custom" id="speedLimit" v-model="speedLimit"/>
      <label class="mt-1 mb-0" for="speedError">Погрешность, км/ч:</label>
-     <input type="text" class="form-control" id="speedError" v-model="overSpeedSens"/>
+     <input type="text" class="form-control form-control-custom" id="speedError" v-model="overSpeedSens"/>
      <label class="mt-1 mb-0" for="minimumDuration">Минимальная длительность превышения, сек:</label>
-     <input type="text" class="form-control" id="minimumDuration" v-model="minOverSpeedDuration"/>
+     <input type="text" class="form-control form-control-custom" id="minimumDuration" v-model="minOverSpeedDuration"/>
     </div>
    </div>
 
    <div v-if="['group_geozone','group_overspeed', 'track'].includes(reporttype)">
     <div class="row">
      <div class="col">
-      <h6 class="mb-3 font-weight-bold text-secondary">Выбрать транспортное средство:</h6>
+      <span class="title-custom">Выбрать транспортное средство:</span>
       <div class="multi-selector d-flex align-items-center justify-content-between">
        <TreeTable
         :value="root"
@@ -67,7 +67,7 @@
 
         <Column field="name" :expander="true" filterMatchMode="contains">
          <template #body="slotProps">
-          {{ slotProps.name }}
+          {{ slotProps.node.data.name }}
          </template>
         </Column>
        </TreeTable>
@@ -80,7 +80,7 @@
    <div v-if="['group_geozone', 'geozone','geozoneoverspeed','group_overspeed'].includes(reporttype)">
     <div class="row">
      <div class="col">
-      <h6 class="mb-3 font-weight-bold text-secondary">Выбрать геозону:</h6>
+      <span class="title-custom">Выбрать геозону:</span>
       <div class="multi-selector d-flex align-items-center justify-content-between">
 
        <TreeTable
@@ -101,7 +101,7 @@
 
         <Column field="name" :expander="true" filterMatchMode="contains">
          <template #body="slotProps">
-          {{ slotProps.name }}
+          {{ slotProps.node.data.name }}
          </template>
         </Column>
        </TreeTable>
@@ -125,6 +125,7 @@
         :clearable="false"
        >
        </v-select>
+
       </div>
      </div>
     </div>
@@ -133,25 +134,24 @@
 
    <div class="row">
     <div class="col">
-     <h6 class="mb-3 mt-3 font-weight-bold text-secondary">Отчет за периуд:</h6>
+     <span class="title-custom">Отчет за периуд:</span>
 
      <div class="form-group row">
       <label for="example-datetime-local-input1" class="col-2 col-form-label">От:</label>
       <div class="col-10">
-       <input class="form-control" type="datetime-local" v-model="datefrom" id="example-datetime-local-input1">
+       <input class="form-control form-control-custom" type="datetime-local" v-model="datefrom" id="example-datetime-local-input1">
       </div>
      </div>
 
      <div class="form-group row">
       <label for="example-datetime-local-input2" class="col-2 col-form-label">До:</label>
       <div class="col-10">
-       <input class="form-control" type="datetime-local" v-model="dateto" id="example-datetime-local-input2">
+       <input class="form-control form-control-custom" type="datetime-local" v-model="dateto" id="example-datetime-local-input2">
       </div>
      </div>
 
     </div>
    </div>
-
    <div class="row">
     <div class="col d-flex justify-content-end">
      <button type="button" class="btn-custom-outline mr-3 mt-2">
@@ -167,7 +167,6 @@
     </div>
    </div>
 
-  </div>
  </div>
 </template>
 
@@ -192,6 +191,11 @@
     objectsgroups: 'getObjectsGroups',
     geozones: 'getGeozones',
     geozonesgroups: 'getGeozonesGroups',
+
+    getGeoZoneVisitMinDuration: 'getGeoZoneVisitMinDuration',
+    getSpeedLimitsValue: 'getSpeedLimitsValue',
+    getStopMinDuration: 'getStopMinDuration',
+    getOverSpeedMinDuration: 'getOverSpeedMinDuration'
    }),
   },
   data() {
@@ -230,6 +234,7 @@
     selectedObjectId: '',
     trackId: [],
     geoZoneId: [],
+
     datefrom: moment().subtract(1, 'd').format("YYYY-MM-DDTHH:mm"),
     dateto: moment().format("YYYY-MM-DDTHH:mm"),
 
@@ -349,34 +354,39 @@
     const id = this.selectedObjectId;
     let reportParam = {
      type: "report",
-     report: this.reporttype,
-     objectId: id,
-     dateFrom: this.datefrom,
-     dateTo: this.dateto,
+     report: "track_group",
+     objectId: 1,
+     dateFrom:'01.07.2020',
+     dateTo: '02.07.2020',
 
-     speedMinduration: this.getOverSpeedMinduration,
      speedLimits: this.getSpeedLimitsValue.join(','),
-     geozonevisitMinDuration: this.getGeozoneVisitMinduration,
-     stopMinduration: this.getStopminduration,
+
+     geozonevisitMinDuration: this.getGeoZoneVisitMinDuration,
+
+     stopMinduration: this.getStopMinDuration,
+     speedMinduration: this.getOverSpeedMinDuration,
 
      parameters: {
       geozones: this.geoZoneId,
       objects: this.trackId,
       customLimit: this.customLimit,
-      speedLimit: this.speedLimit,
+      speedLimit: 90,
       overSpeedSens: this.overSpeedSens,
       minOverSpeedDuration: this.minOverSpeedDuration,
      }
     };
-    switch (this.reporttype) {
+    switch(this.reporttype){
      case "geozone":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
       break;
      case "track":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
+      break;
+     case "track_group":
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
       break;
      case "overspeed":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
       break;
      case "overspeedgrad":
       break;
@@ -384,16 +394,24 @@
       reportParam.speedLimits = "";
       break;
     }
+
     return reportParam;
    },
-   loadData(){
-    console.log(this.getParam())
+
+   loadData() {
+    let query = [];
+    let reportParam = this.getParam();
+    query.push(reportParam);
+    this.$store.dispatch('loadRaport', query)
+   },
+
+   onLoad(){
+    this.result(this.objectsgroups)
+    this.geoZoneArr(this.geozonesgroups, this.geozones)
    }
 
   },
   async mounted() {
-   await this.$store.dispatch('loadObjects')
-   this.result(this.objectsgroups)
 
    if (this.objects) {
     this.options = Object.values(this.objects)
@@ -404,8 +422,8 @@
     this.selectedObjectId = this.objects[key].id;
    }
 
-   await this.$store.dispatch('loadGeozones')
-   this.geoZoneArr(this.geozonesgroups, this.geozones)
+   // await this.$store.dispatch('loadGeozones')
+
   },
 
  }

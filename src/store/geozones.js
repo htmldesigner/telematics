@@ -1,5 +1,4 @@
 import api from "@/app/api"
-import axios from "axios";
 
 export default {
  state: {
@@ -10,20 +9,42 @@ export default {
  },
 
  mutations: {
-  setGeozonesGroups(state, payload) {
-   //Vue.set(state,'geozonesgroups',payload);
+  /**
+   * Set group geo zone
+   *
+   * @param state
+   * @param payload
+   */
+  SETGEOZONESGROUPS(state, payload) {
    state.geozonesgroups = payload;
   },
 
-  setGeozones(state, payload) {
-   //Vue.set(state,'geozones',payload);
+  /**
+   * Set geo zone object
+   *
+   * @param state
+   * @param payload
+   */
+  SETGEOZONES(state, payload) {
    state.geozones = payload;
   },
 
+  /**
+   * Set midifiable geo zone oblect
+   *
+   * @param state
+   * @param payload
+   */
   MODIFIABLE_GEOZONE(state, payload) {
    state.modifiablegeozone = payload
   },
 
+  /**
+   * Select goe zone one or all
+   *
+   * @param state
+   * @param payload
+   */
   SELECTED_GEOZONE(state, payload) {
    if (Array.isArray(payload)) {
     payload.forEach(el => {
@@ -36,6 +57,12 @@ export default {
    }
   },
 
+  /**
+   * Unselect goe zone one or all
+   *
+   * @param state
+   * @param payload
+   */
   UNSELECT_GEOZONE(state, payload) {
    if (Array.isArray(payload)) {
     payload.forEach(id => {
@@ -55,12 +82,12 @@ export default {
     const response = await api.getGeozones()
     const items = response.data.data
     state.selectedGeozone = []
-    commit('setGeozonesGroups', items.geozonesgroups)
-    commit('setGeozones', items.geozones)
+    commit('SETGEOZONESGROUPS', items.geozonesgroups)
+    commit('SETGEOZONES', items.geozones)
     commit('setLoading', false)
    } catch (error) {
     commit('setLoading', false)
-    commit('setError', 'error conection')
+    commit('setError', `Нет объектов ${error}`)
     throw error
    }
   },
@@ -77,6 +104,12 @@ export default {
    }));
   },
 
+  /**
+   * Load selected goe zone
+   * @param commit
+   * @param id
+   * @return {Promise<void>}
+   */
   async getSelectedGeozone({commit}, id) {
    commit('clearError')
    try {
@@ -85,8 +118,7 @@ export default {
     commit('SELECTED_GEOZONE', items)
    } catch (error) {
     commit('setLoading', false)
-    commit('setError', error)
-    throw error
+    commit('setError', 'Нет данных')
    }
   },
 
@@ -103,7 +135,13 @@ export default {
    }
   },
 
-
+  /**
+   * Load selected geo zone group
+   *
+   * @param commit
+   * @param id
+   * @return {Promise<void>}
+   */
   async getSelectedGeozoneGroup({commit}, id) {
    commit('clearError')
    try {
@@ -113,7 +151,7 @@ export default {
    } catch (error) {
     console.log(error)
     commit('setLoading', false)
-    commit('setError', error)
+    commit('setError', 'Не содержит объекты')
     throw error
    }
   },

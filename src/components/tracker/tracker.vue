@@ -1,12 +1,11 @@
 <template>
- <div class="tracker-container mt-3">
-  <div class="container">
+ <div class="tracker-container mt-3 px-2">
 
-   <div class="row mb-3">
+   <div class="row">
     <div class="col">
      <div class="objectSelector d-flex align-items-center">
       <label for="objectSelector1">Объект:</label>
-      <select v-model="selectedObjectId" class="form-control" id="objectSelector1">
+      <select v-model="selectedObjectId" class="form-control form-control-custom" id="objectSelector1">
        <option v-for="object of objectsArr" v-bind:value="object.id">
         {{ object.name }}
        </option>
@@ -18,19 +17,19 @@
    <div class="row">
     <div class="col">
 
-     <h6 class="mb-3 mt-3 font-weight-bold text-secondary">Загрузить трек за периуд:</h6>
+     <span class="title-custom">Загрузить трек за периуд:</span>
 
      <div class="form-group row">
       <label for="example-datetime-local-input1" class="col-2 col-form-label">От:</label>
       <div class="col-10">
-       <input class="form-control" type="datetime-local" v-model="datefrom" id="example-datetime-local-input1">
+       <input class="form-control form-control-custom" type="datetime-local" v-model="datefrom" id="example-datetime-local-input1">
       </div>
      </div>
 
      <div class="form-group row">
       <label for="example-datetime-local-input2" class="col-2 col-form-label">До:</label>
       <div class="col-10">
-       <input class="form-control" type="datetime-local" v-model="dateto" id="example-datetime-local-input2">
+       <input class="form-control form-control-custom" type="datetime-local" v-model="dateto" id="example-datetime-local-input2">
       </div>
      </div>
 
@@ -52,8 +51,6 @@
     </div>
    </div>
 
-
-  </div>
  </div>
 </template>
 
@@ -144,7 +141,7 @@
 
    datefrom: {
     set(val) {
-     this.setTimeIntervalStart(val);
+     this.SETTIMEINTERVALSTART(val);
     },
     get() {
      return this.timeIntervalStartDate
@@ -152,7 +149,7 @@
    },
    dateto: {
     set(val) {
-     this.setTimeIntervalEnd(val);
+     this.SETTIMEINTERVALEND(val);
     },
     get() {
      return this.timeIntervalEndDate
@@ -160,7 +157,7 @@
    },
   },
   methods: {
-   ...mapMutations(['setTimeIntervalStart', 'setTimeIntervalEnd']),
+   ...mapMutations(['SETTIMEINTERVALSTART', 'SETTIMEINTERVALEND']),
 
 
    loadTracks() {
@@ -339,6 +336,7 @@
     let startspeed = 0;
     let totalGeozones = [];
     let previousGeozones = [];
+
     while (length > forindex) {
      let [lt, ln, speed, fix_date, course, distance, geozones_id] = sResult.data[forindex];
 
@@ -780,11 +778,6 @@
    }
 
   },
-
-  mounted() {},
-
-  created() {}
-
  }
 </script>
 

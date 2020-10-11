@@ -57,8 +57,33 @@ export default {
    */
   int_trackMinDuration: null,
 
+  mapZoom: localStorage.getItem('map_Zoom'),
+  mapCenter: localStorage.getItem('map_Center'),
+
  },
  mutations: {
+  /**
+   * Set map zoom
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SETMAPZOOM(state, payload){
+   localStorage.setItem('map_Zoom', JSON.stringify(payload))
+  },
+
+  /**
+   * Set map center
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SETMAPCENTER(state, payload){
+   localStorage.setItem('map_Center', JSON.stringify(payload))
+  },
+
 
   /**
    * Set speed limits also speed color
@@ -66,7 +91,7 @@ export default {
    * @param state
    * @param payload
    */
-  setSpeedLimits(state, payload) {
+  SETSPEEDLIMITS(state, payload) {
    state.speedLimits = payload
   },
 
@@ -76,12 +101,12 @@ export default {
    * @param state
    * @param payload
    */
-  setTimeIntervalStart(state, payload) {
+  SETTIMEINTERVALSTART(state, payload) {
    state.long_timeIntervalStart = payload
    localStorage.setItem('long_timeIntervalStart', JSON.stringify(payload))
   },
 
-  setTimeIntervalEnd(state, payload) {
+  SETTIMEINTERVALEND(state, payload) {
    state.long_timeIntervalEnd = payload
    localStorage.setItem('long_timeIntervalEnd', JSON.stringify(payload))
   },
@@ -93,7 +118,7 @@ export default {
    * @param payload
    * @return boolean
    */
-  setRealTime(state, payload) {
+  SETREALTIME(state, payload) {
    state.bool_realTime = Boolean(payload)
   },
 
@@ -104,36 +129,36 @@ export default {
    * @param payload
    *
    */
-  setTimerInterval(state, payload) {
+  SETTIMERINTERVAL(state, payload) {
    state.int_timerInterval = Number(payload)
   },
 
   /**
    * Set value minimal over speed in seconds
    */
-  setOverSpeedMinDuration(state, payload) {
+  SETOVERSPEEDMINDURATION(state, payload) {
    state.int_overSpeedMinDuration = Number(payload)
   },
 
   /**
    * Set value minimal over speed in seconds
    */
-  setStopMinDuration(state, payload) {
+  SETSTOPMINDURATION(state, payload) {
    state.int_stopMinDuration = Number(payload)
   },
 
   /**
    * Set value minimal over speed in seconds
    */
-  setStopMinRadius(state, payload) {
+  SETSTOPMINRADIUS(state, payload) {
    state.int_stopMinRadius = Number(payload)
   },
 
-  setTrackMinDuration(state, payload) {
+  SETTRACKMINDURATION(state, payload) {
    state.int_trackMinDuration = Number(payload)
   },
 
-  setGeoZoneVisitMinDuration(state, payload) {
+  SETGEOZONEVISITMINDURATION(state, payload) {
    state.int_geoZoneVisitMinDuration = Number(payload)
   },
 
@@ -143,7 +168,7 @@ export default {
    * @param state
    * @param payload
    */
-  setPaneSize(state, payload) {
+  SETPANESIZE(state, payload) {
    state.paneSize = payload;
    localStorage.setItem('paneSize', JSON.stringify(payload))
   },
@@ -154,7 +179,7 @@ export default {
    * @param state
    * @param payload
    */
-  setCurrentComponent(state, payload) {
+  SETCURRENTCOMPONENT(state, payload) {
    state.currentComponent = payload
    localStorage.setItem('str_current', JSON.stringify(payload))
   },
@@ -169,14 +194,14 @@ export default {
   async loadState({commit}) {
    const response = await api.loadState()
    let data = await JSON.parse(response.data.data)
-   commit('setSpeedLimits', data.speedindex)
-   commit('setRealTime', data.isRealTime)
-   commit('setTimerInterval', data.timerInterval)
-   commit('setOverSpeedMinDuration', data.overSpeedMinduration)
-   commit('setStopMinRadius', data.stopMinradius)
-   commit('setStopMinDuration', data.stopMinduration)
-   commit('setTrackMinDuration', data.trackMinduration)
-   commit('setGeoZoneVisitMinDuration', data.geozoneVisitMinduration)
+   commit('SETSPEEDLIMITS', data.speedindex)
+   commit('SETREALTIME', data.isRealTime)
+   commit('SETTIMERINTERVAL', data.timerInterval)
+   commit('SETOVERSPEEDMINDURATION', data.overSpeedMinduration)
+   commit('SETSTOPMINRADIUS', data.stopMinradius)
+   commit('SETSTOPMINDURATION', data.stopMinduration)
+   commit('SETTRACKMINDURATION', data.trackMinduration)
+   commit('SETGEOZONEVISITMINDURATION', data.geozoneVisitMinduration)
   },
 
  },
@@ -225,6 +250,18 @@ export default {
   getCurrentComponent(state) {
    return state.currentComponent
   },
+
+  getSpeedLimitsColor: state => state.speedLimits.map(sp => sp.color),
+
+  getSpeedLimitsValue: state => state.speedLimits.map(sp => sp.speed-0),
+
+  getMapZoom: state => {
+   return state.mapZoom
+  },
+
+  getMapCenter: state => {
+   return JSON.parse(state.mapCenter)
+  }
 
  }
 }

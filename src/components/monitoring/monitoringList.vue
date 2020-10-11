@@ -28,7 +28,7 @@
      <img v-if="!slotProps.node.data.parent" class="mr-1"
           src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
           alt="Alt">
-     {{ slotProps.name }}
+     {{ slotProps.node.data.name }}
     </template>
    </Column>
 
@@ -117,8 +117,8 @@
 
    onNodeSelect(element) {
     let item = element.data
-    if (element.data.objects) {
-     this.selectObjectGroup({id: element.data.id, value: true})
+    if (element.data.parent) {
+     this.selectAllObject(true)
      this.flyToGroup(element)
     } else {
      if (item.geo) {
@@ -133,17 +133,17 @@
    },
 
    onNodeUnselect(element) {
-    let item = element.data
-    if (element.data.objects) {
-     this.selectObjectGroup({id: element.data.id, value: false})
+    if (element.data.parent) {
+     this.selectAllObject(false)
     } else {
-     if (item.geo) {
-      this.selectObject({id: item.id, value: false})
-     } else {
-      this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
-       this.$store.dispatch('clearError')
-      })
-     }
+     this.selectObject({id: element.data.id, value: false})
+     // if (item.geo) {
+     //  this.selectObject({id: item.id, value: false})
+     // } else {
+     //  this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
+     //   this.$store.dispatch('clearError')
+     //  })
+     // }
     }
    },
 
@@ -183,8 +183,8 @@
    setTimeout(() => {
     this.result(this.objects)
     this.expandedKeys[this.root[0].key] = true;
-   }, 1000)
-   eventBus.$on('map-Clear', ()=>{
+   }, 400)
+   eventBus.$on('map-Clear', () => {
     this.selectedKeys = null
    });
   }

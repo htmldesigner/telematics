@@ -7,13 +7,18 @@ import router from './router/router'
 import store from './store'
 import Vuelidate from 'vuelidate'
 
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
 import './utils/LeafletPlayback'
 import RotatedMarker from 'leaflet-rotatedmarker'
 
+import 'leaflet.zoomslider/src/L.Control.Zoomslider.css'
 
 import 'primevue/resources/themes/nova/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
+
 import InputText from 'primevue/inputtext';
 import Slider from 'primevue/slider';
 import TreeTable from 'primevue/treetable';
@@ -59,7 +64,16 @@ Vue.component('ColorPicker',  ColorPicker);
 // Vue.prototype.$utils = utils
 Vue.config.productionTip = false
 
+import axios from "axios";
+
+Vue.prototype.$http = axios;
+const token = localStorage.getItem('token')
+if (token) {
+  Vue.prototype.$http.defaults.headers.common['Authorization'] = token
+}
+
 new Vue({
+  L,
   router,
   store,
   render: h => h(App)
