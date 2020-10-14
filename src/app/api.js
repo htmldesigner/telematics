@@ -4,10 +4,6 @@ import { eventBus } from '@/eventBus';
 
 export default {
 	dataPost(route, data, token, withFile) {
-		let headers = {};
-		if (token !== undefined) {
-			headers['App-Token'] = token;
-		}
 		if (!data.hasOwnProperty('isIndicatorRequired')) {
 			data.isIndicatorRequired = true;
 		}
@@ -16,7 +12,6 @@ export default {
 			url: r(route),
 			data: data,
 			isIndicatorRequired: data.isIndicatorRequired,
-			headers: headers,
 			transformRequest: [
 				data => {
 					let fData = new FormData();
@@ -49,103 +44,114 @@ export default {
 			method: 'get',
 			//isIndicatorRequired: params.isIndicatorRequired,
 			url: r(route) + addUrl,
-			// headers: token === undefined ? null : {'App-Token': token,},
 		};
 	},
 
-	getObjects() {
-		return axios(this.dataGet('/object/getgrouped'));
+	getObjectsWorkSet() {
+		return axios(this.dataGet("/object/getgrouped"));
+	},
+	addToWorkset(params) {
+		return axios(this.dataPost('/object/addToWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	removeFromWorkset(params) {
+		return axios(this.dataPost('/object/removeFromWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	listObjects(params) {
+		params.isIndicatorRequired = false;
+		return axios(this.dataPost('/object/listobjects', params))
+	},
+	addGroupToWorkset(params) {
+		return axios(this.dataPost('/object/addGroupToWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	removeGroupFromWorkset(params) {
+		return axios(this.dataPost('/object/removeGroupFromWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	listGroups(params) {
+		params.isIndicatorRequired =false;
+		return axios(this.dataPost('/object/listGroups',params))
 	},
 	getGeozone(id) {
-		return axios(this.dataGet('/geozone/get/' + id));
+		return axios(this.dataGet("/geozone/get/"+id));
 	},
 	getGeozones() {
-		return axios(this.dataGet('/geozone/getgrouped/'));
+		return axios(this.dataGet("/geozone/getgrouped/"));
 	},
 	getUserInfo() {
-		return axios(this.dataGet('/user/getUserInfo/'));
+		return axios(this.dataGet("/user/getUserInfo/"));
 	},
-	saveUserInfo(userinfo) {
+	saveUserInfo(userinfo){
 		return axios({
 			method: 'post',
 			url: r('/user/saveUserInfo'),
 			data: userinfo,
-			isIndicatorRequired: true,
+			isIndicatorRequired: true
 		});
 	},
 	getUserPermission() {
-		return axios(this.dataGet('/user/getUserPermission/'));
+		return axios(this.dataGet("/user/getUserPermission/"));
 	},
 	setGeozone(layer) {
-		return axios(this.dataPost('/geozone/creategeozone/', { layer: layer }));
+		return axios(this.dataPost("/geozone/creategeozone/",{layer:layer}));
 	},
 	getGeozonesTree(id) {
-		return axios(this.dataGet('/geozone/getgroup/' + id));
+		return axios(this.dataGet("/geozone/getgroup/"+id));
 	},
-	saveGeozoneGeometry(geozonegroupid, params) {
+	saveGeozoneGeometry(geozonegroupid,params) {
 		//return axios.post('/geozone/savegeometry/', {data:JSON.stringify({groupid:geozonegroupid, geozones: params })})
-		return axios(this.dataPost('/geozone/savegeometry', { data: JSON.stringify({ groupid: geozonegroupid, geozones: params }), isIndicatorRequired: true }));
+		return axios(this.dataPost('/geozone/savegeometry', { data: JSON.stringify({groupid:geozonegroupid, geozones: params }), isIndicatorRequired:true}))
 	},
-	saveState(statesaved) {
-		return axios(this.dataPost('/user/savestate', { state: JSON.stringify(statesaved) }));
+	saveState(statesaved){
+		return axios(this.dataPost('/user/savestate', { state: JSON.stringify(statesaved)}));
 	},
-	loadState(statesaved) {
+	loadState(statesaved){
 		return axios(this.dataGet('/user/getstate'));
 	},
 	getObjectsPosition(params) {
-		return axios(this.dataPost('/object/getobjectsLastPosition', { ids: params, isIndicatorRequired: false }));
+		return axios(this.dataPost('/object/getobjectsLastPosition', { ids: params, isIndicatorRequired:false }))
 	},
 	getObjectsPositionByDeviceId(params) {
-		return axios(this.dataPost('/object/getobjectsLastPositionByDeviceId', { device_ids: params, isIndicatorRequired: false }));
+		return axios(this.dataPost('/object/getobjectsLastPositionByDeviceId', { device_ids: params, isIndicatorRequired:false }))
 	},
 	getTracksFor(params, dateFrom, dateTo) {
-		return axios(this.dataPost('/object/getobjectstrack', { ids: params, dateFrom: dateFrom, dateTo: dateTo }));
+		return axios(this.dataPost('/object/getobjectstrack', { ids: params, dateFrom: dateFrom, dateTo: dateTo }))
 	},
-	getTracksForv2(params, dateFrom, dateTo, speedLimit, stops, overspeed) {
-		return axios(this.dataPost('/object/getobjectstrackv2', { ids: params, dateFrom: dateFrom, dateTo: dateTo, speedLimit: speedLimit, stops: stops, overspeed: overspeed }));
+	getTracksForv2(params, dateFrom, dateTo, speedLimit,stops, overspeed) {
+		return axios(this.dataPost('/object/getobjectstrackv2', { ids: params, dateFrom: dateFrom, dateTo: dateTo,speedLimit: speedLimit, stops:stops, overspeed:overspeed }))
 	},
 	getStopsFor(params, dateFrom, dateTo) {
-		return axios(this.dataPost('/stop/getstops', { id: params, dateFrom: dateFrom, dateTo: dateTo }));
+		return axios(this.dataPost('/stop/getstops', { id: params, dateFrom: dateFrom, dateTo: dateTo }))
 	},
-	serviceQuery(params, isIndicatorRequired = true) {
+	serviceQuery(params, isIndicatorRequired = true){
 		return axios({
 			method: 'post',
 			url: r('/service/getservice'),
 			data: params,
-			isIndicatorRequired: isIndicatorRequired,
+			isIndicatorRequired: isIndicatorRequired
 		});
 	},
-	planReport(params, isIndicatorRequired = true) {
+	planReport(params, isIndicatorRequired = true){
 		return axios({
 			method: 'post',
 			url: r('/service/planreport'),
 			data: params,
-			isIndicatorRequired: isIndicatorRequired,
+			isIndicatorRequired: isIndicatorRequired
 		});
 	},
 	///make linestring geojson
-	makeGeoJson(points) {
-		let result = {
-			type: 'LineString',
-			coordinates: [],
+	makeGeoJson(points){
+		let result ={
+			type:"LineString",
+			coordinates:[]
 		};
 		let l = 0;
 		while (points.length > l) {
 			let [lt, ln, speed, fix_date, course] = points[l];
-			result.coordinates.push([lt, ln]);
+			result.coordinates.push([lt,ln]);
 			l++;
 		}
 		return result;
 	},
-	generateTree(data) {
-		//
-		/*
-		 *
-		 * генерируем дерево из списка. как?
-		 *
-		 *
-		 * */
-	},
+
 	getKey(key, defaultValue) {
 		let value = localStorage.getItem(key) || JSON.stringify(defaultValue);
 		try {
@@ -153,5 +159,6 @@ export default {
 		} catch (e) {
 			return defaultValue;
 		}
-	},
+	}
+
 };

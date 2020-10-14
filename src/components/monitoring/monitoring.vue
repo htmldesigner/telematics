@@ -2,6 +2,7 @@
  <div class="monitoring-container mt-3 px-2">
 
   <TreeTable
+   class="treetable-custom-control"
    :value="root"
    sortMode="single"
    selectionMode="checkbox"
@@ -59,7 +60,15 @@
        </span>
       </div>
 
+      <div>
+       <span style="cursor: pointer; z-index: 9999;" @click="removeFromWorkSet([slotProps.node.data.id])"><img :src="icon.remove" alt=""></span>
+      </div>
      </div>
+
+     <div v-else>
+      <span style="cursor: pointer; z-index: 9999;" @click="removeGroupFromWorkSet([slotProps.node.data.id])"><img :src="icon.remove" alt=""></span>
+     </div>
+
     </template>
    </Column>
 
@@ -83,7 +92,8 @@
      watch: require('@/assets/watch-green.svg'),
      notWatch: require('@/assets/watch-grey.svg'),
      list: require('@/assets/list.svg'),
-     group: require('@/assets/group.svg')
+     group: require('@/assets/group.svg'),
+     remove: require('@/assets/remove.svg'),
     },
 
     filters: {},
@@ -100,8 +110,14 @@
     objectsgroups: 'getObjectsGroups',
    })
   },
+  watch:{
+   objects: {
+    handler() {
+     this.onLoad()
+    },
+   },
+  },
   methods: {
-
    ...mapActions([
     'selectObject',
     'selectAllObject',
@@ -110,22 +126,24 @@
    ]),
 
    result(group) {
-    let keyFirst = 0
-    let keySecond = 0
+    let createArray = []
     for (let i in group) {
-     let grobjects = Object.filter(this.objects, obj => (group[i].objects.includes(obj.id)));
-     let createArray = {
-      "key": 0 + '-' + keyFirst++,
+     let keyFirst = group[i].id
+     let grobjects = Object.values(this.objects).filter(el => {return group[i].objects.includes(el.id)})
+     let prepareArray = {
+      "key": 0 + '-' + keyFirst,
       "data": group[i],
       "children": []
      }
      if (grobjects) {
       for (let i in grobjects) {
-       createArray.children.push({data: grobjects[i], key: keySecond++ + '-' + keyFirst++})
+       let keySecond = grobjects[i].id
+       prepareArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
       }
      }
-     this.root.push(createArray)
+     createArray.push(prepareArray)
     }
+    this.root = Array.from(new Set(createArray))
    },
 
    expand() {
@@ -160,6 +178,7 @@
     let item = element.data
     if (element.data.objects) {
      this.selectObjectGroup({id:element.data.id, value: true})
+     console.log(this.objects)
      this.flyToGroup(element)
     } else {
      if (item.geo) {
@@ -172,6 +191,7 @@
      }
     }
    },
+
    onNodeUnselect(element) {
     let item = element.data
     if (element.data.objects) {
@@ -207,14 +227,26 @@
 
    onLoad(){
     this.result(this.objectsgroups)
+   },
+
+  async removeFromWorkSet(id){
+    await this.$store.dispatch('removeFromWorkSet', id)
+    await this.$store.dispatch('loadObjects')
+   },
+
+   async removeGroupFromWorkSet(id){
+    await this.$store.dispatch('removeGroupFromWorkSet', id)
+    await this.$store.dispatch('loadObjects')
    }
 
   },
+
   mounted() {
    eventBus.$on('map-Clear', ()=>{
     this.selectedKeys = null
    });
   }
+
  }
 </script>
 

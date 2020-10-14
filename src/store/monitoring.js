@@ -27,7 +27,7 @@ export default {
   },
 
   SELECTOBJECT(state, payload) {
-   state.objects[payload.id].selected = payload.value;
+   state.objects[payload.id].selected = payload.value
   },
 
   SELECT_OBJECT_GROUP(state, payload) {
@@ -56,21 +56,20 @@ export default {
   loadObjects({commit}) {
    commit('clearError')
    commit('setLoading', true)
-   api.getObjects()
+   api.getObjectsWorkSet()
     .then(
-    response => response.data.data
-   ).then(item => {
+     response => response.data.data,
+    ).then(item => {
     commit('SETOBJECTS', item.objects)
     commit('SETOBJECTSGROUPS', item.objectsgroups)
-    console.log('t')
+    console.log('loadObjects')
     commit('setLoading', false)
    })
     .catch((error) => {
      commit('setLoading', false)
      commit('setError', error)
      throw error
-   })
-
+    })
 
 
    // commit('clearError')
@@ -104,6 +103,46 @@ export default {
    //  throw error
    // }
   },
+
+
+ async addToWorkSet({commit}, params) {
+   try {
+    await api.addToWorkset(params)
+   }catch (error) {
+    commit('setError', 'error conection')
+    throw error
+   }
+  },
+
+  async removeFromWorkSet({commit}, params) {
+   try {
+    await api.removeFromWorkset(params)
+   }catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async addGroupToWorkSet({commit}, params) {
+   try {
+    await api.addGroupToWorkset(params)
+   }catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async removeGroupFromWorkSet({commit}, params) {
+   try {
+    await api.removeGroupFromWorkset(params)
+   }catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
+
+
 
 // Realtime update
   async realTimeWatch({commit}) {
@@ -149,10 +188,10 @@ export default {
    commit('setLoading', true)
    try {
     if (response) {
-     let items =  response.data.data
-     for (let i in items){
+     let items = response.data.data
+     for (let i in items) {
       let geo = items[i]
-     commit('UPDATEOBJECT', geo)
+      commit('UPDATEOBJECT', geo)
      }
     }
     commit('setLoading', false)
@@ -163,7 +202,7 @@ export default {
   },
 
 
- async selectObject({commit, dispatch}, payload) {
+  async selectObject({commit, dispatch}, payload) {
    commit('SELECTOBJECT', payload)
   },
 
@@ -199,7 +238,7 @@ export default {
   },
 
   getMonitorObjects(state) {
-   return Object.values(Object.filter(state.objects, el => el.monitor))
+   // return Object.values(Object.filter(state.objects, el => el.monitor))
   },
 
  }

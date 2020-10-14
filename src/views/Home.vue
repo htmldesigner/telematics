@@ -215,9 +215,9 @@
    },
 
    onLoad() {
+    this.$refs.raports.onLoad()
     this.$refs.monitoring.onLoad()
     this.$refs.geozone.onLoad()
-    this.$refs.raports.onLoad()
    },
 
    logout() {
@@ -230,18 +230,17 @@
 
 
   async mounted() {
-
+   await this.$store.dispatch('getUserInfo')
    await this.$store.dispatch('loadObjects')
    await this.$store.dispatch('loadGeozones')
-   // await this.$store.dispatch('getUserInfo')
-   // await this.$store.dispatch('loadState')
+   await this.$store.dispatch('loadState')
 
+   this.onLoad()
 
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)
    $('.dropdown-toggle').dropdown()
-   this.onLoad()
   },
  }
 </script>

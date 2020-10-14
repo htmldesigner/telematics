@@ -8,20 +8,24 @@
     &:hover
       background-color: #618af3
       transition: .30s ease
+
     &.active
-      background-color: #698dea!important
+      background-color: #698dea !important
+
     span
       cursor: pointer
+
 .dropdown-menu
   border-radius: 0
   margin: 0
   z-index: 1300
+
 .dropdown-item
   font-size: 14px
   padding: 3px 15px
+
 .navbar-brand
   padding: 0
-
   img
     width: 35px
     height: 100%
@@ -130,13 +134,30 @@
     background-color: lighten(#dc3545, 5%)
     color: #fff
 
-
 .bg-blue
   background-color: #527dec
 
 .bg-gray
   background-color: #efefef
 
+.search
+  position: relative
+  .input-group-btn
+    position: absolute
+    right: 0px
+    z-index: 900
+    button
+      background-color: darken(#eee, 10%)
+      border: none!important
+      height: 32px
+      &:focus
+        outline: none!important
+      &:hover
+        transition: .25s ease
+        background-color: darken(#eee, 15%)
+
+.search-helper
+  font-size: 12px
 
 .notice-block
   p
@@ -156,8 +177,13 @@
 .p-treetable-thead
   display: none
 
+.p-treetable
+  .p-paginator-bottom
+    border: none
+    margin-top: 20px
 .p-treetable .p-treetable-tbody > tr > td
   border: none
+  padding: .15rem
 
 .p-treetable .p-treetable-thead > tr > th
   border: none
@@ -169,27 +195,30 @@
   position: relative
   top: -3px
 
-
 .vs__open-indicator
   transform: scale(.7)
 
-#refreshButton
+.refreshButton
   position: absolute
   background-color: #fff
   opacity: 0.9
   top: 10px
   right: 10px
-  padding: 6px 10px
+  padding: 10px
   color: #333
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65)
   border-radius: 4px
   z-index: 1200
+  img
+    display: block
+    height: 15px
 
-#refreshButton:hover
+.refreshButton:hover
   background-color: #f4f4f4
 
 ::-webkit-scrollbar
-  width: 6px
+  width: 4px
+  margin-left: 5px
 
 ::-webkit-scrollbar-track
   background: #d4d4d4
@@ -262,28 +291,45 @@
   width: 50%
   height: 80%
 
+//geozone page custom control
+
+.pi
+  font-size: 0.7rem
+  color: #000
+
+.treetable-custom-control
+  .p-treetable-tbody > tr > td
+    padding: 0 !important
+    font-family: $ProximaNovaRegular !important
+    font-size: 16px
+    .p-treetable-toggler
+      margin-right: 0.4rem
+      top: -4px
+
 
 .leaflet-control-zoomslider-body
   width: 1px
   border: none
 
-  //Form labels and title
+//Form labels and title
 .p-inputtext
   font-size: 14px
-  height: 32px!important
+  height: 32px !important
   width: 100%
   font-family: $ProximaNovaRegular
   border-radius: 0
 
 .form-control-custom
   font-size: 14px
-  height: 32px!important
+  height: 32px !important
   width: 100%
   font-family: $ProximaNovaRegular
   border-radius: 0
+  &:focus, &:active
+    background-color: transparent
 
 .vs__dropdown-toggle
-  border-radius: 0!important
+  border-radius: 0 !important
 
 .title-custom
   padding: 10px 0 5px 0
@@ -292,10 +338,13 @@
   font-family: $RobotoBold
   color: #444
 
+.modalObjectLoader-container
+  height: calc(100% - 170px)
+
 .modalObjectLoader
   position: absolute
   z-index: 1100
-  top: 40px
+  top: 39px
   margin: 0 auto
   width: 500px
   height: 100%
@@ -305,12 +354,71 @@
   display: flex
   flex-direction: column
   padding: 0 10px
+
   .object-loader-modal-header
     display: flex
     flex-direction: row
     justify-content: flex-end
-    border-bottom: 1px solid #eee
+    position: absolute
+    right: 15px
+    top: 10px
+    .close
+      cursor: pointer
 
+// Tabs
+.p-tabview
+  height: 100%
+  .p-tabview-nav
+    li
+      .p-tabview-nav-link
+        border: 1px solid #eee
+        background: transparent
+        color: #333333
+        padding: 0.5rem 1rem
+        font-weight: 700
+        border-radius: 0
+        transition: background-color 0.2s, box-shadow 0.2s
+        margin: 0 0 -1px 0
+        font-family: $ProximaNovaRegular
+        text-decoration: none
+        font-size: 14px
 
+.p-tabview
+  .p-tabview-nav
+    li
+      .p-tabview-nav-link
+        &:not(.p-disabled):focus
+          outline: none
+          box-shadow: none
 
+.p-tabview
+  .p-tabview-panels
+    background: #ffffff
+    padding: 0
+    border: none
+    border-top: 1px solid #eee
+    color: #333333
+    border-radius: 0
+    height: 100%
+    .p-tabview-panel
+      height: 100%
+
+.p-tabview
+  .p-tabview-nav
+    li.p-highlight
+      .p-tabview-nav-link
+        background: #527dec
+        border-color: #527dec
+        color: #ffffff
+
+.treeTable-custom
+  display: flex
+  flex-direction: column
+  justify-content: space-between
+  height: 100%
+  .p-treetable-wrapper
+    height: 100%
+    overflow: auto
+    table
+      width: 99%
 

@@ -10,6 +10,16 @@ import Vuelidate from 'vuelidate'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+
+
 import './utils/LeafletPlayback'
 import RotatedMarker from 'leaflet-rotatedmarker'
 
@@ -27,12 +37,15 @@ import Column from 'primevue/column';
 import ColumnGroup from 'primevue/columngroup';
 import Dropdown from 'primevue/dropdown';
 import Row from 'primevue/row';
-import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
 import MultiSelect from 'primevue/multiselect';
-import ColorPicker from 'primevue/colorpicker';
+
 
 import ToastService from 'primevue/toastservice';
+
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+
 Vue.use(ToastService);
 
 
@@ -56,10 +69,12 @@ Vue.component('Row', Row);
 Vue.component('Dropdown', Dropdown);
 Vue.component('Column', Column);
 Vue.component('ColumnGroup', ColumnGroup);
-// Vue.component('Button', Button);
+
 Vue.component('InputText', InputText);
 Vue.component('Checkbox', Checkbox);
-Vue.component('ColorPicker',  ColorPicker);
+
+Vue.component('TabView', TabView);
+Vue.component('TabPanel', TabPanel);
 
 // Vue.prototype.$utils = utils
 Vue.config.productionTip = false
@@ -69,7 +84,7 @@ import axios from "axios";
 Vue.prototype.$http = axios;
 const token = localStorage.getItem('token')
 if (token) {
-  Vue.prototype.$http.defaults.headers.common['Authorization'] = token
+  Vue.prototype.$http.defaults.headers.common['Token'] = token
 }
 
 new Vue({

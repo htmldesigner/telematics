@@ -50,6 +50,7 @@
       <span class="title-custom">Выбрать транспортное средство:</span>
       <div class="multi-selector d-flex align-items-center justify-content-between">
        <TreeTable
+        class="treetable-custom-control"
         :value="root"
         sortMode="single"
         selectionMode="checkbox"
@@ -84,6 +85,7 @@
       <div class="multi-selector d-flex align-items-center justify-content-between">
 
        <TreeTable
+        class="treetable-custom-control"
         :value="geoZone"
         sortMode="single"
         selectionMode="checkbox"
@@ -312,18 +314,18 @@
    },
 
    result(group) {
-    let keyFirst = 0
-    let keySecond = 0
     for (let i in group) {
-     let grobjects = Object.filter(this.objects, obj => (group[i].objects.includes(obj.id)));
+     let keyFirst = group[i].id
+     let grobjects = Object.values(this.objects).filter(el => {return group[i].objects.includes(el.id)})
      let createArray = {
-      "key": 0 + '-' + keyFirst++,
+      "key": 0 + '-' + keyFirst,
       "data": group[i],
       "children": []
      }
      if (grobjects) {
       for (let i in grobjects) {
-       createArray.children.push({data: grobjects[i], key: keySecond++ + '-' + keyFirst++})
+       let keySecond = grobjects[i].id
+       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
       }
      }
      this.root.push(createArray)
@@ -331,24 +333,23 @@
    },
 
    geoZoneArr(group, geozone) {
-    let keyFirst = 0
-    let keySecond = 0
     for (let i in group) {
-     let grobjects = Object.filter(geozone, obj => (group[i].objects.includes(obj.id)));
+     let keyFirst = group[i].id
+     let grobjects = Object.values(geozone).filter(el => {return group[i].objects.includes(el.id)})
      let createArray = {
-      "key": 0 + '-' + keyFirst++,
+      "key": 0 + '-' + keyFirst,
       "data": group[i],
       "children": []
      }
      if (grobjects) {
       for (let i in grobjects) {
-       createArray.children.push({data: grobjects[i], key: keySecond++ + '-' + keyFirst++})
+       let keySecond = grobjects[i].id
+       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
       }
      }
      this.geoZone.push(createArray)
     }
    },
-
 
    getParam() {
     const id = this.selectedObjectId;

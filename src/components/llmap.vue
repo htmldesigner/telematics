@@ -1,6 +1,8 @@
 <template>
  <div class="rel">
-  <a href="#" @click.prevent="mapReset" id="refreshButton"><i class="fa fa-eraser"></i></a>
+  <a href="#" @click.prevent="mapReset" class="refreshButton">
+   <img src="@/assets/erase.svg" alt="">
+  </a>
   <div ref="mapContainer" id="mapContainer" class="l-map"></div>
  </div>
 </template>
@@ -76,12 +78,12 @@
 
   },
   watch: {
-   objects: {
-    handler(newValue) {
-     this.addMarker(newValue)
-    },
-    deep: true,
-   },
+   // objects: {
+   //  handler(newValue) {
+   //   this.addMarker(newValue)
+   //  },
+   //  deep: true,
+   // },
    getMonitor: {
     handler(object) {
      this.monitorObjects(object)

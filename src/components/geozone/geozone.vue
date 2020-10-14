@@ -8,17 +8,14 @@
    </div>
 
    <select class="form-control mr-1 mb-3" v-model="currentGeozoneGroup">
-    <option v-for="(geozone, index) in root" :key="index"  :value="geozone.data.id">
+    <option v-for="(geozone, index) in root" :key="index" :value="geozone.data.id">
      {{geozone.data.name}}
     </option>
    </select>
    <div class="row mb-3">
     <div class="col d-flex justify-content-center">
-
      <button @click="drawShow" class="btn button btn-success mx-1 px-3 py-1">Добавить</button>
-
      <button @click="drawHide" class="btn btn-info mx-1 px-3 py-1">Завершить</button>
-
      <button @click="drawSave" type="button" class="btn-custom mx-1 px-3 py-1">
       <span>Сохранить</span>
      </button>
@@ -28,6 +25,7 @@
   </div>
 
   <TreeTable
+   class="treetable-custom-control"
    :value="root"
    sortMode="single"
    selectionMode="checkbox"
@@ -52,7 +50,8 @@
    <Column v-if="userPermission" headerStyle="display:none" bodyStyle="text-align: right; width: 80px">
     <template #body="slotProps">
      <div v-if="!slotProps.node.data.objects" class="d-flex">
-      <button class="btn-custom-outline-small mx-1" title="Редактировать" @click.once="editGeozone(slotProps.node.data.id)">
+      <button class="btn-custom-outline-small mx-1" title="Редактировать"
+              @click.once="editGeozone(slotProps.node.data.id)">
        <img :src="icon.pencil" alt="Alt">
       </button>
       <button class="btn-custom-outline-small mx-1" title="Удалить">
@@ -102,19 +101,20 @@
   },
 
   methods: {
+
    result(group, geozone) {
-    let keyFirst = 0
-    let keySecond = 0
     for (let i in group) {
-     let grobjects = Object.filter(geozone, obj => (group[i].objects.includes(obj.id)));
+     let keyFirst = group[i].id
+     let grobjects = Object.values(geozone).filter(el => {return group[i].objects.includes(el.id)})
      let createArray = {
-      "key": 0 + '-' + keyFirst++,
+      "key": 0 + '-' + keyFirst,
       "data": group[i],
       "children": []
      }
      if (grobjects) {
       for (let i in grobjects) {
-       createArray.children.push({data: grobjects[i], key: keySecond++ + '-' + keyFirst++})
+       let keySecond = grobjects[i].id
+       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
       }
      }
      this.root.push(createArray)
@@ -134,8 +134,8 @@
     this.$emit("on-Action", "save", this.currentGeozoneGroup);
    },
 
-   editGeozone(id){
-     this.$store.dispatch('getModifiableGeozone', id)
+   editGeozone(id) {
+    this.$store.dispatch('getModifiableGeozone', id)
    },
 
    onNodeSelect(node) {
@@ -167,7 +167,7 @@
     }
    },
 
-   onLoad(){
+   onLoad() {
     this.result(this.geozonesgroups, this.geozones)
    }
 
@@ -175,12 +175,8 @@
   async mounted() {
    this.userPermission = null // await this.$store.getters.getUserPermission
    this.detectPermission(this.userPermission)
-   // await this.$store.dispatch('loadGeozones')
-
-
-
-   eventBus.$on('map-Clear', ()=>{
-    this.selectedKeys = null
+   eventBus.$on('map-Clear', () => {
+   this.selectedKeys = null
    });
 
   },
