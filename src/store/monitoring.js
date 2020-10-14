@@ -16,9 +16,12 @@ export default {
    state.objectsgroups = payload
   },
 
-  UPDATEOBJECT(state, payload) {
-   let obj = Object.values(Object.filter(state.objects, el => el.device_id === payload.device_id))
-   state.objects[obj[0].id].geo = payload
+  UPDATEOBJECTPOSITION(state, payload) {
+   Object.values(state.objects).forEach(object => {
+    if (object.device_id === payload.device_id) {
+     object.geo = payload
+    }
+   })
   },
 
   REAL_TIME_UPDATE_POSITION(state, payload) {
@@ -30,6 +33,7 @@ export default {
    state.objects[payload.id].selected = payload.value
   },
 
+
   SELECT_OBJECT_GROUP(state, payload) {
    let objId = state.objectsgroups[payload.id].objects
    for (let i in objId) {
@@ -37,10 +41,7 @@ export default {
    }
   },
 
-  // flyToObject(state, payload) {
-  //  state.flyTo = payload
-  // },
-
+  // ??? Переделать а может и не нужно
   selectAllObject(state, payload) {
    let objects = state.objects
    for (let obj in objects) {
@@ -52,63 +53,47 @@ export default {
    state.objects[payload.id].monitor = payload.value;
   },
  },
+
  actions: {
-  loadObjects({commit}) {
+  async loadObjects({commit}) {
    commit('clearError')
    commit('setLoading', true)
-   api.getObjectsWorkSet()
-    .then(
-     response => response.data.data,
-    ).then(item => {
-    commit('SETOBJECTS', item.objects)
-    commit('SETOBJECTSGROUPS', item.objectsgroups)
-    console.log('loadObjects')
-    commit('setLoading', false)
-   })
-    .catch((error) => {
-     commit('setLoading', false)
-     commit('setError', error)
-     throw error
+   try {
+    let response = await api.getObjectsWorkSet()
+    let item = response.data.data
+
+    let device_id = Object.values(item.objects).map((el) => {
+     return el.device_id
     })
 
-
-   // commit('clearError')
-   // commit('setLoading', true)
-   // try {
-   //
-   //  const response = await api.getObjects()
-   //  console.log('loadObjects')
-   //  const item = response.data.data
-   //
-   //  // const device_id = Object.values(Object.map(item.objects, el => el.device_id))
-   //  //
-   //  // const geoData = await api.getObjectsPositionByDeviceId(device_id)
-   //  // const geos = geoData.data.data
-   //  //
-   //  // for (let i in item.objects){
-   //  //  for (let j in geos){
-   //  //   if (item.objects[i].device_id === geos[j].device_id){
-   //  //    item.objects[i].geo = geos[j]
-   //  //   }
-   //  //  }
-   //  // }
-   //  console.log('loadObjects mut')
-   //  commit('SETOBJECTS', item.objects)
-   //  commit('SETOBJECTSGROUPS', item.objectsgroups)
-   //  console.log('loadObjects end')
-   //  commit('setLoading', false)
-   // } catch (error) {
-   //  commit('setLoading', false)
-   //  commit('setError', 'error conection')
-   //  throw error
-   // }
+    if (device_id.length) {
+     let geoData = await api.getObjectsPositionByDeviceId(device_id)
+     let geo = geoData.data.data
+     if (geo) {
+      geo.forEach((goeData) => {
+       Object.values(item.objects).forEach(el => {
+        if (el.device_id === goeData.device_id) {
+         el.geo = goeData
+        }
+       })
+      })
+     }
+    }
+    commit('SETOBJECTS', item.objects)
+    commit('SETOBJECTSGROUPS', item.objectsgroups)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', error)
+    throw error
+   }
   },
 
 
- async addToWorkSet({commit}, params) {
+  async addToWorkSet({commit}, params) {
    try {
     await api.addToWorkset(params)
-   }catch (error) {
+   } catch (error) {
     commit('setError', 'error conection')
     throw error
    }
@@ -117,7 +102,7 @@ export default {
   async removeFromWorkSet({commit}, params) {
    try {
     await api.removeFromWorkset(params)
-   }catch (error) {
+   } catch (error) {
     commit('setError', error)
     throw error
    }
@@ -126,7 +111,7 @@ export default {
   async addGroupToWorkSet({commit}, params) {
    try {
     await api.addGroupToWorkset(params)
-   }catch (error) {
+   } catch (error) {
     commit('setError', error)
     throw error
    }
@@ -135,72 +120,56 @@ export default {
   async removeGroupFromWorkSet({commit}, params) {
    try {
     await api.removeGroupFromWorkset(params)
-   }catch (error) {
+   } catch (error) {
     commit('setError', error)
     throw error
    }
   },
 
-
-
-
 // Realtime update
-  async realTimeWatch({commit}) {
-   commit('clearError')
-   commit('setLoading', true)
-   try {
-    const response = await api.getObjects()
-    const items = response.data.data
-    for (let i in items.objects) {
-     commit('REAL_TIME_UPDATE_POSITION', items.objects[i])
-    }
-    commit('setLoading', false)
-   } catch (error) {
-    commit('setError', 'error conection')
-    throw error
-   }
-  },
-
-// Update selected object is check monitor object
-//   async updateSelectedObjectsPositionByImei({commit}, params) {
+//   async realTimeWatch({commit}) {
 //    commit('clearError')
+//    commit('setLoading', true)
 //    try {
-//     const response = await api.getObjectsPositionByImei(params)
-//     if (response) {
-//      let items = response.data.data
-//      for (let i in items) {
-//       let obj = items[i]
-//       commit({
-//        type: 'updateObject',
-//        geo: obj
-//       })
-//      }
+//     const response = await api.getObjects()
+//     const items = response.data.data
+//     for (let i in items.objects) {
+//      commit('REAL_TIME_UPDATE_POSITION', items.objects[i])
 //     }
+//     commit('setLoading', false)
 //    } catch (error) {
-//     commit('setError', 'нет данных')
+//     commit('setError', 'error conection')
 //     throw error
 //    }
 //   },
 
-  async updateSelectedObjectsPositionByDeviceId({commit, state}, params) {
-   const response = await api.getObjectsPositionByDeviceId(params)
-   commit('clearError')
-   commit('setLoading', true)
+
+  /**
+   * If enabled checkbox will watch for object in left side dar
+   *
+   * @param commit
+   * @param state
+   * @return {Promise<void>}
+   */
+  async realTimeWatch({commit, state}) {
    try {
-    if (response) {
-     let items = response.data.data
-     for (let i in items) {
-      let geo = items[i]
-      commit('UPDATEOBJECT', geo)
+    let device_id = Object.values(state.objects).map((el) => {
+     return el.device_id
+    })
+    if (device_id.length) {
+     let geoData = await api.getObjectsPositionByDeviceId(device_id)
+     let geo = geoData.data.data
+     if (geo) {
+      geo.forEach((geo) => {
+       commit('UPDATEOBJECTPOSITION', geo)
+      })
      }
     }
-    commit('setLoading', false)
    } catch (error) {
-    commit('setError', 'нет данных' + error)
+    commit('setError', error)
     throw error
    }
   },
-
 
   async selectObject({commit, dispatch}, payload) {
    commit('SELECTOBJECT', payload)
@@ -208,10 +177,6 @@ export default {
 
   selectAllObject({commit}, payload) {
    commit('selectAllObject', payload)
-  },
-
-  flyToObject({commit}, payload) {
-   commit('flyToObject', payload)
   },
 
   monitorObject({commit}, payload) {

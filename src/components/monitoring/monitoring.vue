@@ -97,7 +97,6 @@
     },
 
     filters: {},
-    root: [],
     selectedKeys: null,
     expandedKeys: {},
     checked: false,
@@ -108,43 +107,18 @@
    ...mapGetters({
     objects: 'getObjects',
     objectsgroups: 'getObjectsGroups',
-   })
+   }),
+   root() {
+    return  this.$utils.objectsArrayCreate(this.objectsgroups, this.objects)
+   }
   },
-  watch:{
-   objects: {
-    handler() {
-     this.onLoad()
-    },
-   },
-  },
+
   methods: {
    ...mapActions([
-    'selectObject',
-    'selectAllObject',
     'monitorObject',
+    'selectObject',
     'selectObjectGroup'
    ]),
-
-   result(group) {
-    let createArray = []
-    for (let i in group) {
-     let keyFirst = group[i].id
-     let grobjects = Object.values(this.objects).filter(el => {return group[i].objects.includes(el.id)})
-     let prepareArray = {
-      "key": 0 + '-' + keyFirst,
-      "data": group[i],
-      "children": []
-     }
-     if (grobjects) {
-      for (let i in grobjects) {
-       let keySecond = grobjects[i].id
-       prepareArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
-      }
-     }
-     createArray.push(prepareArray)
-    }
-    this.root = Array.from(new Set(createArray))
-   },
 
    expand() {
     if (!this.checked) {
@@ -223,10 +197,6 @@
 
    watchDevice(id, value) {
     this.monitorObject({id, value})
-   },
-
-   onLoad(){
-    this.result(this.objectsgroups)
    },
 
   async removeFromWorkSet(id){

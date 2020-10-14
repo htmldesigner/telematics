@@ -67,11 +67,14 @@
 
   },
 
-  mounted() {
+  async mounted() {
+   await this.$store.dispatch('getUserInfo')
+   await this.$store.dispatch('loadObjects')
+   await this.$store.dispatch('loadGeozones')
+   await this.$store.dispatch('loadState')
    setTimeout(() => {
     this.load = false
    }, 400)
-
    this.watcher()
   },
 

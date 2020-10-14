@@ -149,7 +149,6 @@ export default {
     const items = response.data.data
     commit('SELECTED_GEOZONE', items)
    } catch (error) {
-    console.log(error)
     commit('setLoading', false)
     commit('setError', 'Не содержит объекты')
     throw error

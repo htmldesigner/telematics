@@ -57,14 +57,17 @@
     <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
                 style="height: calc(100vh - 40px)">
      <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto;">
-
-      <monitoring ref="monitoring" @modalObjectList="modalObjectListRun" v-show="currentComponent === 'monitoring'"/>
-      <tracker ref="tracker" v-show="currentComponent === 'tracker'"/>
-      <raports ref="raports" v-show="currentComponent === 'raports'"/>
-      <geozone ref="geozone" v-show="currentComponent === 'geozone'"/>
-      <!--      <keep-alive>-->
-      <!--       <component :is="currentComponent" @on-Action="onAction"></component>-->
-      <!--      </keep-alive>-->
+<!--      <monitoring ref="monitoring" @modalObjectList="modalObjectListRun" v-show="currentComponent === 'monitoring'"/>-->
+<!--      <tracker v-show="currentComponent === 'tracker'"/>-->
+<!--      <raports v-show="currentComponent === 'raports'"/>-->
+<!--      <geozone v-show="currentComponent === 'geozone'"/>-->
+            <keep-alive>
+             <component
+              :is="currentComponent"
+              @on-Action="onAction"
+              @modalObjectList="modalObjectListRun"
+             ></component>
+            </keep-alive>
      </pane>
 
      <pane min-size="60" :size="100 - paneSize" max-size="100">
@@ -211,13 +214,6 @@
 
    modalObjectListRun() {
     this.modalObjectLoader = !this.modalObjectLoader
-    console.log('modalObjectListRun')
-   },
-
-   onLoad() {
-    this.$refs.raports.onLoad()
-    this.$refs.monitoring.onLoad()
-    this.$refs.geozone.onLoad()
    },
 
    logout() {
@@ -229,14 +225,7 @@
   },
 
 
-  async mounted() {
-   await this.$store.dispatch('getUserInfo')
-   await this.$store.dispatch('loadObjects')
-   await this.$store.dispatch('loadGeozones')
-   await this.$store.dispatch('loadState')
-
-   this.onLoad()
-
+  mounted() {
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)

@@ -142,7 +142,7 @@
           </div>
 
           <div class="col-md-2 d-flex justify-content-center align-items-center">
-           <input type="color" class="color-selecteor" v-model="item.color"/>
+           <input type="color" class="color-selector" v-model="item.color"/>
           </div>
 
           <div class="col-md-2 d-flex justify-content-center align-items-center">

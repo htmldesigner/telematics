@@ -199,6 +199,16 @@
     getStopMinDuration: 'getStopMinDuration',
     getOverSpeedMinDuration: 'getOverSpeedMinDuration'
    }),
+
+   root(){
+    console.log(this.$utils.objectsArrayCreate(this.objectsgroups, this.objects))
+    return this.$utils.objectsArrayCreate(this.objectsgroups, this.objects)
+   },
+
+   geoZone(){
+    return this.$utils.objectsArrayCreate(this.geozonesgroups, this.geozones)
+   }
+
   },
   data() {
    return {
@@ -215,7 +225,6 @@
     filters: {},
     filtersZone: {},
 
-    root: [],
     options: null,
 
     selectedKeys: null,
@@ -225,7 +234,6 @@
     expandedKeysZone: {},
 
     geoZoneValue: null,
-    geoZone: [],
 
     //Data for query
     reporttype: "group_geozone",
@@ -243,14 +251,6 @@
    }
   },
   methods: {
-   // expandNode(node) {
-   //  if (node.children && node.children.length) {
-   //   this.expandedKeys[node.key] = true;
-   //   for (let child of node.children) {
-   //    this.expandNode(child);
-   //   }
-   //  }
-   // },
    onTrackSelect(element) {
     let item = element.data
     if (item.objects) {
@@ -313,44 +313,6 @@
     }
    },
 
-   result(group) {
-    for (let i in group) {
-     let keyFirst = group[i].id
-     let grobjects = Object.values(this.objects).filter(el => {return group[i].objects.includes(el.id)})
-     let createArray = {
-      "key": 0 + '-' + keyFirst,
-      "data": group[i],
-      "children": []
-     }
-     if (grobjects) {
-      for (let i in grobjects) {
-       let keySecond = grobjects[i].id
-       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
-      }
-     }
-     this.root.push(createArray)
-    }
-   },
-
-   geoZoneArr(group, geozone) {
-    for (let i in group) {
-     let keyFirst = group[i].id
-     let grobjects = Object.values(geozone).filter(el => {return group[i].objects.includes(el.id)})
-     let createArray = {
-      "key": 0 + '-' + keyFirst,
-      "data": group[i],
-      "children": []
-     }
-     if (grobjects) {
-      for (let i in grobjects) {
-       let keySecond = grobjects[i].id
-       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
-      }
-     }
-     this.geoZone.push(createArray)
-    }
-   },
-
    getParam() {
     const id = this.selectedObjectId;
     let reportParam = {
@@ -395,7 +357,6 @@
       reportParam.speedLimits = "";
       break;
     }
-
     return reportParam;
    },
 
@@ -406,14 +367,9 @@
     this.$store.dispatch('loadRaport', query)
    },
 
-   onLoad(){
-    this.result(this.objectsgroups)
-    this.geoZoneArr(this.geozonesgroups, this.geozones)
-   }
-
   },
-  async mounted() {
 
+  async mounted() {
    if (this.objects) {
     this.options = Object.values(this.objects)
    }
@@ -422,11 +378,7 @@
     let key = Object.keys(this.objects)[0];
     this.selectedObjectId = this.objects[key].id;
    }
-
-   // await this.$store.dispatch('loadGeozones')
-
   },
-
  }
 
 </script>

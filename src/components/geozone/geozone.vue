@@ -68,7 +68,6 @@
 
 <script>
  import {mapGetters, mapActions, mapMutations, mapState} from 'vuex'
- import api from "@/app/api"
  import {eventBus} from "../../eventBus";
 
  export default {
@@ -78,18 +77,14 @@
    return {
     userPermission: true,
     filters: {},
-    root: [],
     selectedKeys: null,
     expandedKeys: {},
     value: '',
-
     currentGeozoneGroup: '',
-
     icon: {
      remove: '/img/remove.svg',
      pencil: '/img/pencil.svg'
     },
-
    }
   },
   computed: {
@@ -98,29 +93,12 @@
     geozones: 'getGeozones',
     geozonesgroups: 'getGeozonesGroups',
    }),
+   root(){
+    return this.$utils.objectsArrayCreate(this.geozonesgroups, this.geozones)
+   }
   },
 
   methods: {
-
-   result(group, geozone) {
-    for (let i in group) {
-     let keyFirst = group[i].id
-     let grobjects = Object.values(geozone).filter(el => {return group[i].objects.includes(el.id)})
-     let createArray = {
-      "key": 0 + '-' + keyFirst,
-      "data": group[i],
-      "children": []
-     }
-     if (grobjects) {
-      for (let i in grobjects) {
-       let keySecond = grobjects[i].id
-       createArray.children.push({data: grobjects[i], key: keyFirst + '-' + keySecond})
-      }
-     }
-     this.root.push(createArray)
-    }
-   },
-
    drawShow() {
     this.$emit("on-Action", "show");
    },
@@ -152,7 +130,6 @@
     } else {
      this.$store.dispatch('unselectGeozone', node.data.id)
     }
-
    },
 
    detectPermission(permission) {
@@ -167,24 +144,14 @@
     }
    },
 
-   onLoad() {
-    this.result(this.geozonesgroups, this.geozones)
-   }
-
   },
   async mounted() {
    this.userPermission = null // await this.$store.getters.getUserPermission
    this.detectPermission(this.userPermission)
    eventBus.$on('map-Clear', () => {
-   this.selectedKeys = null
+    this.selectedKeys = null
    });
-
   },
-  created() {
-
-  },
-
-
  }
 </script>
 

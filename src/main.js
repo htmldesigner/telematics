@@ -6,6 +6,7 @@ import App from './App.vue'
 import router from './router/router'
 import store from './store'
 import Vuelidate from 'vuelidate'
+import utils from "./utils/utils";
 
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -76,12 +77,12 @@ Vue.component('Checkbox', Checkbox);
 Vue.component('TabView', TabView);
 Vue.component('TabPanel', TabPanel);
 
-// Vue.prototype.$utils = utils
+Vue.prototype.$utils = utils
 Vue.config.productionTip = false
 
 import axios from "axios";
 
-Vue.prototype.$http = axios;
+Vue.prototype.$http = axios
 const token = localStorage.getItem('token')
 if (token) {
   Vue.prototype.$http.defaults.headers.common['Token'] = token

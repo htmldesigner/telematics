@@ -25,14 +25,16 @@
     defaultZoom: 10,
     defaultCenter: [51.7971, 55.1137],
 
+    markerGroup: new L.featureGroup(),
+
     arrowicon: L.icon({
-     iconUrl: '/img/navigator64.png',
-     iconSize: [32, 32],
+     iconUrl: require('@/assets/navigator64.png'),
+     iconSize: [30, 30],
      iconAnchor: [16, 16]
     }),
 
     directionicon: L.icon({
-     iconUrl: '/img/directionicon.png',
+     iconUrl: require('@/assets/directionicon.png'),
      iconSize: [10, 16],
      iconAnchor: [5, 8]
     }),
@@ -48,7 +50,6 @@
   computed: {
    ...mapState('mapModule', ['mapInstance']),
    ...mapGetters({
-    currentComponent: 'getCurrentComponent',
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
@@ -78,12 +79,12 @@
 
   },
   watch: {
-   // objects: {
-   //  handler(newValue) {
-   //   this.addMarker(newValue)
-   //  },
-   //  deep: true,
-   // },
+   objects: {
+    handler(newValue) {
+     this.addMarker(newValue)
+    },
+    deep: true,
+   },
    getMonitor: {
     handler(object) {
      this.monitorObjects(object)
@@ -108,7 +109,6 @@
 
    ...mapActions(['updateSelectedObjectsPositionByImei', 'saveGeozones']),
 
-
 // Global map instance
    createMapInstance() {
     let self = this
@@ -119,17 +119,13 @@
     )
 
     let osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: ''});
-
     let google1 = L.tileLayer('//{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
      maxZoom: 20,
      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     });
-
     let google2 = L.tileLayer('//www.google.com/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
      attribution: 'google'
     });
-
-    let custom = L.tileLayer('/img?x={x}&y={y}&z={z}', {minZoom: 7, maxZoom: 16, attribution: 'ccs', tms: false});
 
     // Поиск
     // var searchControl = new ELG.Geosearch({placeholder: "Поиск"}).addTo(map);
@@ -165,6 +161,9 @@
      self.zoom = map.getZoom()
     });
 
+    this.markerGroup.addTo(map)
+
+
     this.geozonesLayer = new L.featureGroup();
     this.geozonesLayer.addTo(map);
 
@@ -182,9 +181,7 @@
 
    mapReset() {
     this.geozonesLayer.clearLayers();
-    for (let i in this.markers) {
-     this.mapInstance.removeLayer(this.markers[i])
-    }
+    this.markerGroup.clearLayers()
     this.$store.dispatch('loadObjects')
     this.$store.dispatch('loadGeozones')
     eventBus.$emit('map-Clear', 'mapClear');
@@ -234,12 +231,10 @@
     return new L.Playback(this.map, [], null, playbackOptions);
    },
 
-
    renderMap() {
     this.SET_MAP_INSTANCE(this.createMapInstance())
     this.SET_PLAYBACK_INSTANCE(this.createPlaybackInstance())
    },
-
 
    drawInit() {
     let self = this;
@@ -400,7 +395,6 @@
 
    },
 
-
    saveList(layers, idGroup) {
     let layersData = [];
     for (let layer of layers) {
@@ -413,7 +407,6 @@
     }
     this.saveGeozones({id: idGroup, layersData})
    },
-
 
    geozonesDraw(geozonesList) {
     // Show all geozones in list
@@ -443,33 +436,28 @@
 
 // Add\Remove marker on the map
    async addMarker(newValue) {
-    for (let i in this.markers) {
-     this.mapInstance.removeLayer(this.markers[i])
-    }
-    this.markers = []
+
+    this.markerGroup.clearLayers()
+
     for (let i in newValue) {
      if (newValue[i].selected) {
-      const marker = L.marker(new L.LatLng(newValue[i].geo.latitude, newValue[i].geo.longitude),
-       {
-        rotationAngle: newValue[i].geo.course,
-        icon: this.arrowicon
-       })
-      this.markers.push(marker)
+      let marker = L.marker([newValue[i].geo.latitude, newValue[i].geo.longitude], {
+       icon: this.arrowicon,
+       rotationAngle: newValue[i].geo.course,
+      })
 
       // Need optimization
-
       let geocodeService = ELG.geocodeService()
-      geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude]).run(function (error, result) {
+      geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude])
+       .run(function (error, result) {
        if (error) {
         return;
        }
        return newValue[i].address = result.address.Match_addr
       })
 
-      function customTip() {
-       this.unbindTooltip();
-       if (!this.isPopupOpen()) {
-        this.bindTooltip(`
+      let toolitps = () => {
+       let tpl = `
         <div class="custom-tooltips d-flex flex-column p-2" style="width: 320px">
 
 <div class="header-tooltips d-flex justify-content-between align-content-start">
@@ -505,24 +493,12 @@
         <span>${newValue[i].geo.latitude}<br>${newValue[i].geo.longitude}</span>
         </div>
   </div>
-
-
-
 </div>
-        `,
-         {interactive: true}).openTooltip();
-       }
-      }
-
-      function customPop() {
-       this.unbindTooltip();
-      }
-
-      this.mapInstance.addLayer(marker.bindPopup('доп функции', {className: "custom-popup"}))
-      marker.on('mouseover', customTip);
-      marker.on('click', customPop)
-     } else {
-      console.log()
+        `;
+       return tpl;
+      };
+      marker.bindTooltip(toolitps)
+      this.markerGroup.addLayer(marker)
      }
     }
    },
@@ -551,7 +527,7 @@
   },
   async mounted() {
    await this.renderMap()
-   await this.drawInit()
+   // await this.drawInit()
    this.zoomSliderShow()
   }
  }
