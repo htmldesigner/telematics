@@ -201,12 +201,11 @@
    }),
 
    root(){
-    console.log(this.$utils.objectsArrayCreate(this.objectsgroups, this.objects))
-    return this.$utils.objectsArrayCreate(this.objectsgroups, this.objects)
+    return this.$service.objectsArrayCreate(this.objectsgroups, this.objects)
    },
 
    geoZone(){
-    return this.$utils.objectsArrayCreate(this.geozonesgroups, this.geozones)
+    return this.$service.objectsArrayCreate(this.geozonesgroups, this.geozones)
    }
 
   },

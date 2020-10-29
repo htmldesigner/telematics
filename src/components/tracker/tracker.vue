@@ -33,10 +33,10 @@
       </div>
      </div>
 
-     <button type="button" :disabled="loading" class="btn-custom float-right w-50 mt-2" @click="loadTracks">
-      <span v-if="loading">Загрузка...</span>
-      <span v-else>Загрузить треки</span>
-     </button>
+<!--     <button type="button" :disabled="loading" class="btn-custom float-right w-50 mt-2" @click="loadTracks">-->
+<!--      <span v-if="loading">Загрузка...</span>-->
+<!--      <span v-else>Загрузить треки</span>-->
+<!--     </button>-->
 
     </div>
    </div>

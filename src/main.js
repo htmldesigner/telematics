@@ -7,6 +7,7 @@ import router from './router/router'
 import store from './store'
 import Vuelidate from 'vuelidate'
 import utils from "./utils/utils";
+import RotatedMarker from 'leaflet-rotatedmarker'
 
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -19,16 +20,15 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-
+import tooltipDirective from "./directives/tooltip";
 
 import './utils/LeafletPlayback'
-import RotatedMarker from 'leaflet-rotatedmarker'
-
 import 'leaflet.zoomslider/src/L.Control.Zoomslider.css'
-
 import 'primevue/resources/themes/nova/theme.css';
 import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
+import '../sass/main.sass'
+import "esri-leaflet-geocoder/dist/esri-leaflet-geocoder.css"
 
 import InputText from 'primevue/inputtext';
 import Slider from 'primevue/slider';
@@ -39,8 +39,6 @@ import ColumnGroup from 'primevue/columngroup';
 import Dropdown from 'primevue/dropdown';
 import Row from 'primevue/row';
 import Checkbox from 'primevue/checkbox';
-import MultiSelect from 'primevue/multiselect';
-
 
 import ToastService from 'primevue/toastservice';
 
@@ -48,10 +46,6 @@ import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
 
 Vue.use(ToastService);
-
-
-import '../sass/main.sass'
-import "esri-leaflet-geocoder/dist/esri-leaflet-geocoder.css"
 
 
 // const moment = require('moment')
@@ -77,7 +71,7 @@ Vue.component('Checkbox', Checkbox);
 Vue.component('TabView', TabView);
 Vue.component('TabPanel', TabPanel);
 
-Vue.prototype.$utils = utils
+Vue.prototype.$service = utils
 Vue.config.productionTip = false
 
 import axios from "axios";
@@ -87,6 +81,8 @@ const token = localStorage.getItem('token')
 if (token) {
   Vue.prototype.$http.defaults.headers.common['Token'] = token
 }
+
+Vue.directive('tooltip', tooltipDirective)
 
 new Vue({
   L,

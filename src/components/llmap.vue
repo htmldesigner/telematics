@@ -40,7 +40,6 @@
     }),
 
     markers: [],
-    watchingObjects: [],
     interval: null,
 
     drawControl: null,
@@ -52,7 +51,6 @@
    ...mapGetters({
     objects: 'getObjects',
     selectedObjects: 'getSelectedObjects',
-    getMonitor: 'getMonitorObjects',
     selectedGeozone: 'selectedGeozone',
     modifyGeozone: 'getModifiableGeozone',
     getMapZoom: 'getMapZoom',
@@ -84,12 +82,6 @@
      this.addMarker(newValue)
     },
     deep: true,
-   },
-   getMonitor: {
-    handler(object) {
-     this.monitorObjects(object)
-     this.moveTo(object)
-    }
    },
    selectedGeozone: {
     handler(zone) {
@@ -345,10 +337,12 @@
    drawShow() {
     this.mapInstance.addControl(this.drawControl)
    },
+
    drawHide() {
     this.mapInstance.removeControl(this.drawControl)
     this.editableLayers.clearLayers()
    },
+
    drawGetGeozones() {
     return this.editableLayers.getLayers()
    },
@@ -440,7 +434,7 @@
     this.markerGroup.clearLayers()
 
     for (let i in newValue) {
-     if (newValue[i].selected) {
+     if (newValue[i].selected && newValue[i].geo) {
       let marker = L.marker([newValue[i].geo.latitude, newValue[i].geo.longitude], {
        icon: this.arrowicon,
        rotationAngle: newValue[i].geo.course,
@@ -458,73 +452,32 @@
 
       let toolitps = () => {
        let tpl = `
-        <div class="custom-tooltips d-flex flex-column p-2" style="width: 320px">
 
-<div class="header-tooltips d-flex justify-content-between align-content-start">
+  <div class="tooltips_content">
+    <div class="tooltips_header">
+      <div class="name">${newValue[i].name}</div>
+      <div class="last_contact">${moment(newValue[i].geo.fix_date).format('MM-DD-YYYY hh:mm')}</div>
+    </div>
 
-  <div class="custom-tooltips-name">
-    <h5>${newValue[i].name}</h5>
+     <div class="address"><hr> ${newValue[i].address}<hr></div>
+
+     <div class="tooltips_footer">
+       <div class="speed"><span>Последняя скорость</span>${newValue[i].geo.speed} км/ч</div>
+       <div class="coords"><span>Координаты</span>${newValue[i].geo.latitude}<br>${newValue[i].geo.longitude}</div>
+     </div>
   </div>
-
-  <div class="custom-tooltips-time">
-    <span style="font-size: 10px">${moment(newValue[i].geo.fix_date).format('MM-DD-YYYY hh:mm')}</span>
- </div>
-
-</div>
-<hr class="p-0 m-0">
-  <div class="content-container">
-
-      <div class="custom-tooltips-address mb-1 mt-1">
-         <span style="font-size: 12px">${newValue[i].address}</span>
-         </div>
-      </div>
-<hr class="p-0 m-0">
-  <div class="unit-content-container d-flex flex-row justify-content-between mt-2">
-        <div class="text-center">
-        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Скорость</p>
-        <span>${newValue[i].geo.speed} км/ч</span>
-        </div>
-        <div class="text-center">
-        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">IMEI</p>
-        <span>${newValue[i].device_id}</span>
-        </div>
-        <div class="text-center">
-        <p class="p-0 m-0" style="font-size: 12px; font-weight: bold">Координаты</p>
-        <span>${newValue[i].geo.latitude}<br>${newValue[i].geo.longitude}</span>
-        </div>
-  </div>
-</div>
         `;
+
+
        return tpl;
       };
-      marker.bindTooltip(toolitps)
+      marker.bindTooltip(toolitps, {className: "tooltips"})
       this.markerGroup.addLayer(marker)
      }
     }
    },
-
-   async moveTo(object) {
-    object.forEach((el) => {
-     this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 7, {animate: true})
-    })
-   },
-
-   monitorObjects(object) {
-    clearInterval(this.interval)
-    if (object.length !== 0) {
-     this.interval = setInterval(() => {
-      for (let i in object) {
-       if (object[i].monitor && object[i].selected) {
-        this.updateSelectedObjectsPositionByImei(object[i].device_id)
-       }
-      }
-     }, 1000 * 5);
-    } else {
-     clearInterval(this.interval)
-    }
-   },
-
   },
+
   async mounted() {
    await this.renderMap()
    // await this.drawInit()

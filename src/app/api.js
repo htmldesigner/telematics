@@ -47,12 +47,28 @@ export default {
 		};
 	},
 
+	authPost(route, data, token, withFile) {
+		if (!data.hasOwnProperty('isIndicatorRequired')) {
+			data.isIndicatorRequired = true;
+		}
+		return {
+			method: 'post',
+			url: r(route),
+			data: data,
+		};
+	},
+
+	auth(user) {
+		return axios(this.authPost('/mobile/authorization', user))
+	},
+
 	getObjectsWorkSet() {
 		return axios(this.dataGet("/object/getgrouped"));
 	},
 	addToWorkset(params) {
 		return axios(this.dataPost('/object/addToWorkset', { ids: params, isIndicatorRequired:false }))
 	},
+
 	removeFromWorkset(params) {
 		return axios(this.dataPost('/object/removeFromWorkset', { ids: params, isIndicatorRequired:false }))
 	},

@@ -1,4 +1,4 @@
-<template>
+<template >
  <div class="monitoring-container mt-3 px-2">
 
   <TreeTable
@@ -19,13 +19,30 @@
    </template>
 
    <div class="d-flex justify-content-between">
-    <div class="d-inline-block ml-2">
-     <Checkbox v-model="checked" :binary="true" @click="expand"/>
+
+    <div class="d-flex justify-content-start" style="width: 200px;">
+
+     <div class="d-inline-block ml-2">
+      <Checkbox v-model="checked" v-tooltip="'Раскрыть все группы'" :binary="true" @click="expand"/>
+     </div>
+
+     <div style="position: relative; top: -2px" v-tooltip="'Активные объекты'">
+      <input type="checkbox"
+             class="d-none"
+             id="activeObjectSelector"
+             @click="selectAll(activeObjectSelector = !activeObjectSelector)"
+      >
+      <label for="activeObjectSelector" class="m-0">
+       <img v-if="activeObjectSelector && getSelectedObjects.length" :src="icon.watch" alt="Alt">
+       <img v-else :src="icon.notWatch" alt="Alt">
+      </label>
+     </div>
     </div>
 
-    <div class="d-inline-block modal-object-list-ico" title="Объекты" v-on:click="$emit('modalObjectList')">
+    <div class="d-inline-block modal-object-list-ico" v-tooltip="'Объекты'" @click="$emit('modalObjectList')">
      <img :src="icon.group" alt="Alt">
     </div>
+
    </div>
 
    <Column field="name" :expander="true" filterMatchMode="contains">
@@ -33,19 +50,22 @@
      <img v-if="!slotProps.node.data.objects" class="mr-1"
           src="https://hst-api.wialon.com/avl_library_image/5/0/library/unit/A_11.png?b=16&amp;v=1&amp;sid=09b694edc6d76332da3bbc20210f9aa0"
           alt="Alt">
-     {{ slotProps.node.data.name }}
+     <span
+      v-tooltip.objects="slotProps.node.data"
+      :class="`${slotProps.node.data.objects ? 'parent' : 'children'}`">{{ slotProps.node.data.name }}
+     </span>
     </template>
    </Column>
 
-   <Column headerStyle="display:none" bodyStyle="text-align: right; width: 80px">
+   <Column headerStyle="display:none" bodyStyle="text-align: right; width: 100px">
     <template #body="slotProps">
-     <div class="d-flex justify-content-end" v-if="!slotProps.node.data.objects">
-      <div class="icon-watch mx-1" title="Следить за объектом на карте">
+     <div class="d-flex justify-content-end align-items-center" v-if="!slotProps.node.data.objects">
+      <div class="icon-watch mx-1" title="Следить за объектом на карте" style="position: relative;top: -2px;">
        <input type="checkbox"
               class="d-none"
               :disabled="!slotProps.node.data.selected"
               :id="`${slotProps.node.key}`"
-              @click="watchDevice(slotProps.node.data.id, slotProps.node.data.monitor = !slotProps.node.data.monitor)"
+              @click="slotProps.node.data.monitor = !slotProps.node.data.monitor"
        >
        <label :for="`${slotProps.node.key}`" class="m-0">
         <img v-if="slotProps.node.data.monitor && slotProps.node.data.selected" :src="icon.watch" alt="Alt">
@@ -53,33 +73,41 @@
        </label>
       </div>
 
-      <div class="mx-1">
-       <span class="icon-device">
-        <img v-if="slotProps.node.data.geo && slotProps.node.data.geo.speed" :src="icon.move" alt="Alt" class="">
-        <img v-else :src="icon.stop" alt="Alt" class="">
+      <div class="mx-1" style="position: relative;top: -3px;">
+       <span class="icon-device" v-tooltip="'Последнее состояние: '+ statusClassText(slotProps.node) +' '">
+        <img :src="statusClass(slotProps.node)" alt="Alt">
        </span>
       </div>
 
+      <!--      <div :class="statusColor(slotProps.node)"></div>-->
+
       <div>
-       <span style="cursor: pointer; z-index: 9999;" @click="removeFromWorkSet([slotProps.node.data.id])"><img :src="icon.remove" alt=""></span>
+       <span style="cursor: pointer; z-index: 9999; position: relative;top: -2px;"
+             v-tooltip="'Убрать из спаска'"
+             @click="removeFromWorkSet([slotProps.node.data.id])">
+        <img :src="icon.remove" alt="">
+       </span>
       </div>
      </div>
 
      <div v-else>
-      <span style="cursor: pointer; z-index: 9999;" @click="removeGroupFromWorkSet([slotProps.node.data.id])"><img :src="icon.remove" alt=""></span>
+      <span style="cursor: pointer; z-index: 9999;"
+            v-tooltip="'Убрать из спаска'"
+            @click="removeGroupFromWorkSet([slotProps.node.data.id])">
+       <img :src="icon.remove" alt="">
+      </span>
      </div>
 
     </template>
    </Column>
-
   </TreeTable>
-
  </div>
 </template>
 
 <script>
  import {mapActions, mapGetters, mapState} from "vuex";
  import {eventBus} from "../../eventBus";
+ import moment from 'moment'
 
  export default {
   name: "monitoring",
@@ -87,7 +115,10 @@
    return {
     filter: '',
     icon: {
-     stop: require('@/assets/stop-stroke.svg'),
+     stop: require('@/assets/stops.svg'),
+     stopFull: require('@/assets/stops-off.svg'),
+     stopNoContact: require('@/assets/NoContact.svg'),
+     pending: require('@/assets/stop-full.svg'),
      move: require('@/assets/start.svg'),
      watch: require('@/assets/watch-green.svg'),
      notWatch: require('@/assets/watch-grey.svg'),
@@ -100,6 +131,8 @@
     selectedKeys: null,
     expandedKeys: {},
     checked: false,
+    activeObjectSelector: null,
+    interval: null,
    }
   },
   computed: {
@@ -107,18 +140,104 @@
    ...mapGetters({
     objects: 'getObjects',
     objectsgroups: 'getObjectsGroups',
+    getSelectedObjects: 'getSelectedObjects',
+    getMonitor: 'getMonitorObjects',
    }),
    root() {
-    return  this.$utils.objectsArrayCreate(this.objectsgroups, this.objects)
-   }
+    return this.$service.objectsArrayCreate(this.objectsgroups, this.objects);
+   },
   },
 
+  watch: {
+   getMonitor: {
+    handler(object) {
+     this.monitorObjects(object)
+     this.moveTo(object)
+    }
+   },
+  },
   methods: {
    ...mapActions([
     'monitorObject',
     'selectObject',
-    'selectObjectGroup'
+    'selectObjectGroup',
+    'getObjectsLastPosition'
    ]),
+
+   statusClass(object) {
+    if (object.data.geo) {
+     let now = moment(new Date()) //todays
+     let end = moment(object.data.geo.fix_date) // another date
+     let duration = moment.duration(now.diff(end))
+     let diffTime = duration.asMinutes()
+
+     if (diffTime > 10) {
+      // 'red'
+      return this.icon.stopFull
+     } else if (diffTime < 5) {
+      // 'green'
+      if (object.data.geo.speed > 0) {
+       return this.icon.move
+      } else {
+       return this.icon.stop
+      }
+
+     } else {
+      // 'yellow'
+      return this.icon.pending
+     }
+    } else {
+     return this.icon.stopNoContact
+    }
+   },
+
+   statusColor(object) {
+    if (object.data.geo) {
+     let now = moment(new Date()) //todays
+     let end = moment(object.data.geo.fix_date) // another date
+     let duration = moment.duration(now.diff(end))
+     let diffTime = duration.asMinutes()
+     if (diffTime > 10) {
+      return 'red'
+     } else if (diffTime < 5) {
+      return 'green'
+     } else {
+      return 'yellow'
+     }
+    } else {
+     return 'red'
+    }
+   },
+
+   statusClassText(object) {
+    let online = "";
+    let onway = "";
+    if (object.data.geo) {
+     let now = moment(new Date()) //todays
+     let end = moment(object.data.geo.fix_date) // another date
+     let diffTime = moment.duration(now.diff(end))
+
+     if (diffTime.asMinutes() < 5) {
+      online = 'На связи'
+      onway = object.data.geo.speed > 0 ? "(едет)" : "(стоит)";
+     }
+     // By day
+     else if (diffTime.asHours() > 24) {
+      online = 'Стоит (более ' + Math.round(diffTime.asDays()) + ' дн.' + ')'
+     }
+     // By hours
+     else if (diffTime.asMinutes() > 60) {
+      online = 'Стоит (более ' + Math.round(diffTime.asHours()) + ' ч. ' + Math.round(diffTime.asMinutes()) + 'мин.' + ')'
+     }
+     // By minutes
+     else if (diffTime.asMinutes() < 60) {
+      online = 'Стоит (более ' + Math.round(diffTime.asMinutes()) + ' мин. ' + Math.round(diffTime.asSeconds()) + 'сек.' + ')'
+     }
+    } else {
+     online = "Отсутствуют данные о местонахождении";
+    }
+    return online + onway
+   },
 
    expand() {
     if (!this.checked) {
@@ -148,16 +267,67 @@
     }
    },
 
+   selectAll(toggler) {
+    if (toggler) {
+     for (let i in this.objects) {
+      if (this.objects[i].hasOwnProperty('geo'))
+       this.selectObject({id: this.objects[i].id, value: true})
+     }
+
+     for (let i in this.objectsgroups) {
+      if (this.objectsgroups[i].objects.length) {
+       this.selectObjectGroup({id: this.objectsgroups[i].id, value: true})
+      }
+     }
+
+     let result = {}
+
+     for (let group of this.root) {
+      if (group.children.length) {
+       for (let odj of group.children) {
+        if (odj.data.hasOwnProperty('geo')) {
+         result[odj.key] = {checked: true, partialChecked: false}
+        }
+       }
+       let countChildren = group.children.filter(el => {
+        return el.data.selected
+       })
+
+       if (countChildren.length === group.children.length) {
+        result[group.key] = {checked: true, partialChecked: false}
+       } else if (countChildren.length > 0) {
+        result[group.key] = {checked: false, partialChecked: true}
+       }
+      }
+     }
+     this.selectedKeys = result
+     this.flyToGroup()
+    } else {
+     for (let i in this.objects) {
+      if (this.objects[i])
+       this.selectObject({id: this.objects[i].id, value: false})
+     }
+     for (let i in this.objectsgroups) {
+      if (this.objectsgroups[i].objects.length) {
+       this.selectObjectGroup({id: this.objectsgroups[i].id, value: false})
+      }
+     }
+     this.selectedKeys = {}
+    }
+
+   },
+
    onNodeSelect(element) {
     let item = element.data
     if (element.data.objects) {
-     this.selectObjectGroup({id:element.data.id, value: true})
-     console.log(this.objects)
+     this.selectObjectGroup({id: element.data.id, value: true})
+     this.getObjectsLastPosition({groupId: element.data.id})
      this.flyToGroup(element)
     } else {
      if (item.geo) {
       this.selectObject({id: item.id, value: true})
-      this.mapInstance.flyTo([item.geo.latitude, item.geo.longitude])
+      this.getObjectsLastPosition({objectId: item.device_id})
+      this.flyToObject(item.device_id)
      } else {
       this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
        this.$store.dispatch('clearError')
@@ -169,59 +339,110 @@
    onNodeUnselect(element) {
     let item = element.data
     if (element.data.objects) {
-     this.selectObjectGroup({id:element.data.id, value: false})
+     this.selectObjectGroup({id: element.data.id, value: false})
     } else {
      if (item.geo) {
       this.selectObject({id: item.id, value: false})
-     } else {
-      this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
-       this.$store.dispatch('clearError')
-      })
      }
+     // else {
+     //  this.$store.dispatch('setError', 'У данного объекта отсутствуют координаты').then(() => {
+     //   this.$store.dispatch('clearError')
+     //  })
+     // }
     }
    },
 
-   flyToGroup(){
-    for(let i in this.objects){
-     if (this.objects[i].selected){
-      if (this.objects[i].geo){
-       this.mapInstance.flyTo([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
-      }else {
-       this.$store.dispatch('setError', 'У объекта ' + this.objects[i].name +' отсутствуют координаты').then(() => {
-        this.$store.dispatch('clearError')
-       })
+   flyToGroup() {
+    let latLng = []
+    for (let i in this.objects) {
+     if (this.objects[i].selected) {
+      if (this.objects[i].geo) {
+       latLng.push([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
+       this.mapInstance.fitBounds(latLng, {maxZoom: 15})
       }
+      // else {
+      //  this.$store.dispatch('setError', 'У объекта ' + this.objects[i].name + ' отсутствуют координаты').then(() => {
+      //   this.$store.dispatch('clearError')
+      //  })
+      // }
      }
     }
    },
 
-   watchDevice(id, value) {
-    this.monitorObject({id, value})
+   flyToObject(device_id) {
+    let lastPosition = Object.values(this.objects).filter(el => {
+     return el.device_id === device_id
+    }).map(el => el.geo)
+    this.mapInstance.flyTo([lastPosition[0].latitude, lastPosition[0].longitude], 12)
    },
 
-  async removeFromWorkSet(id){
+   async removeFromWorkSet(id) {
     await this.$store.dispatch('removeFromWorkSet', id)
-    await this.$store.dispatch('loadObjects')
+    // await this.$store.dispatch('loadObjects')
    },
 
-   async removeGroupFromWorkSet(id){
+   async removeGroupFromWorkSet(id) {
     await this.$store.dispatch('removeGroupFromWorkSet', id)
-    await this.$store.dispatch('loadObjects')
-   }
+    // await this.$store.dispatch('loadObjects')
+   },
+
+   async moveTo(object) {
+    object.forEach((el) => {
+     this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 12, {animate: true})
+    })
+   },
+
+   monitorObjects(object) {
+    clearInterval(this.interval)
+    if (object.length !== 0) {
+     this.interval = setInterval(() => {
+      for (let i in object) {
+       if (object[i].monitor && object[i].selected) {
+        this.getObjectsLastPosition({objectId: object[i].device_id})
+       }
+      }
+     },  1000 * 5);
+    } else {
+     clearInterval(this.interval)
+    }
+   },
 
   },
 
   mounted() {
-   eventBus.$on('map-Clear', ()=>{
+   eventBus.$on('map-Clear', () => {
     this.selectedKeys = null
    });
   }
-
  }
 </script>
 
 <style scoped>
  .p-treetable-toggler {
   margin-left: 0 !important;
+ }
+
+ .red {
+  background-color: red;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin: 0 7px;
+ }
+
+ .green {
+  background-color: green;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin: 0 5px;
+ }
+
+ .yellow {
+  background-color: yellow;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin: 0 5px;
  }
 </style>

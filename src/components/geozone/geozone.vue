@@ -94,7 +94,7 @@
     geozonesgroups: 'getGeozonesGroups',
    }),
    root(){
-    return this.$utils.objectsArrayCreate(this.geozonesgroups, this.geozones)
+    return this.$service.objectsArrayCreate(this.geozonesgroups, this.geozones)
    }
   },
 

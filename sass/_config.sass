@@ -1,15 +1,16 @@
 @import '~bootstrap/scss/bootstrap'
 
-
 // USER VARIABLES SECTION
 $accent: orange // Accent Color
 $fontsize: 14px // Body Font Size
 $textcolor: #333 // Text Color
 $system: -apple-system, BlinkMacSystemFont, Arial, sans-serif // System Font Family
+
 $ProximaNovaRegular: ProximaNovaRegular, sans-serif // ProximaNovaRegular Font Family
 $ProximaNovaBold: ProximaNovaBold, sans-serif // ProximaNovaRegular Font Family
-$RobotoBold: RobotoBold, sans-serif // RobotoBold Font Family
 
+$RobotoBold: RobotoBold, sans-serif // RobotoBold Font Family
+$RobotoRegular: RobotoRegular
 
 // Bootstrap compatible gutter variable => $gutter
 $grid-gutter-width: 20px
@@ -33,7 +34,7 @@ $gutter: $grid-gutter-width
 @include font('ProximaNovaBold', normal, 700, './fonts/ProximaNovaBold/ProximaNovaBold.woff')
 
 @include font('RobotoBold', normal, 700, './fonts/RobotoBold/RobotoBold.woff')
-@include font('RobotoRegular', italic, 700, './fonts/RobotoRegular/RobotoRegular.woff')
+@include font('RobotoRegular', normal, 700, './fonts/RobotoRegular/RobotoRegular.woff')
 
 // GENERAL DOCUMENT STYLES
 ::placeholder

@@ -7,4 +7,5 @@ module.exports = {
 	// 		chunkFilename: '[name].js',
 	// 	},
 	// },
+	publicPath: process.env.NODE_ENV === 'production' ? './' : '/'
 };

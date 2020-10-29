@@ -82,14 +82,11 @@
   border: 1px solid #999
   padding: 4px 15px
   border-radius: 3px
-
   &:hover
     background-color: #f5f5f5
     border: 1px solid #0066cc
-
   &:focus
     outline: none !important
-
   &:active
     color: lighten(#0066cc, 5%)
 
@@ -101,17 +98,32 @@
   border-radius: 3px
   width: 30px
   min-height: 28px
-
   &:hover
     background-color: #f5f5f5
     border: 1px solid #0066cc
-
   &:focus
     outline: none !important
-
   &:active
     color: lighten(#0066cc, 5%)
 
+.btn-custom-outline-ultra-small
+  color: #0066cc
+  background-color: transparent
+  border: 1px solid #999
+  padding: 0
+  border-radius: 3px
+  width: 18px
+  height: 18px
+  display: flex
+  justify-content: center
+  align-items: center
+  &:hover
+    background-color: #f5f5f5
+    border: 1px solid #0066cc
+  &:focus
+    outline: none !important
+  &:active
+    color: lighten(#0066cc, 5%)
 
 .btn-custom-outline-small-danger
   color: #dc3545
@@ -121,15 +133,12 @@
   border-radius: 3px
   width: 30px
   min-height: 28px
-
   &:hover
     background-color: #dc3545
     border: none
     color: #fff
-
   &:focus
     outline: none !important
-
   &:active
     background-color: lighten(#dc3545, 5%)
     color: #fff
@@ -184,6 +193,10 @@
 .p-treetable .p-treetable-tbody > tr > td
   border: none
   padding: .15rem
+  .parent
+    font-family: $ProximaNovaBold
+    font-weight: normal
+    color: #444
 
 .p-treetable .p-treetable-thead > tr > th
   border: none
@@ -194,6 +207,15 @@
   margin-right: 0.6rem
   position: relative
   top: -3px
+
+  // Ховер тритабле
+.p-treetable .p-treetable-tbody > tr
+  cursor: pointer
+  &:hover
+    background-color: #eee
+    transition: .25s
+  &:focus
+    outline: none!important
 
 .vs__open-indicator
   transform: scale(.7)
@@ -339,7 +361,7 @@
   color: #444
 
 .modalObjectLoader-container
-  height: calc(100% - 170px)
+  height: calc(100% - 160px)
 
 .modalObjectLoader
   position: absolute
@@ -411,14 +433,144 @@
         border-color: #527dec
         color: #ffffff
 
-.treeTable-custom
+//.treeTable-custom
+//  display: flex
+//  flex-direction: column
+//  justify-content: space-between
+//  height: 100%
+//  .p-treetable-wrapper
+//    height: 100%
+//    overflow: auto
+//    table
+//      width: 99%
+
+.tooltips
+  position: absolute
+  display: flex
+  z-index: 35000
+  box-shadow: 0 0 5px #d0d0d0
+  background-color: hsla(0,0%,100%,.95)
+  padding: .25em .7em
+  font-size: 14px
+  color: #000
+  overflow: hidden
+  border-radius: 1px
+  .tooltips_small_text
+    font-size: 12px
+    padding: 0
+    margin: 0
+  .tooltips_header
+    display: flex
+    flex-direction: row
+    margin-bottom: 2px
+    align-items: center
+    justify-content: space-between
+    .name
+      font-family: $RobotoBold
+      font-weight: normal
+      color: #444
+      font-size: 14px
+      margin-right: 20px
+    .last_contact
+      font-size: 11px
+      text-align: right
+      padding: 0
+      margin: 0
+      line-height: 1.2
+  .tooltips_footer
+    display: flex
+    flex-direction: row
+    justify-content: stretch
+    margin-top: 2px
+    .speed, .coords
+      display: flex
+      flex-direction: column
+      align-items: center
+      border: 1px solid #eee
+      padding: 0px 5px
+      width: 100%
+      font-size: 12px
+      text-align: center
+      span
+        font-family: $ProximaNovaBold
+        color: #444
+  .address
+    font-size: 12px!important
+    hr
+      padding: 0
+      margin: 1px 0
+
+//pagination
+.pagination-wrap
   display: flex
   flex-direction: column
   justify-content: space-between
   height: 100%
-  .p-treetable-wrapper
-    height: 100%
-    overflow: auto
-    table
-      width: 99%
+  overflow-y: auto
+  overflow-x: hidden
+  position: relative
+.pagination-items-list
+  padding: 0
+  .pagination-items
+    display: flex
+    justify-content: space-between
+    align-items: center
+    padding: 1px 10px
+    cursor: pointer
+    &:hover
+      background-color: #eee
 
+
+.pagination
+  position: sticky
+  bottom: 0
+  height: 50px
+  padding: 20px 5px
+  align-items: center
+  background: #ffffff
+  border-top: 1px solid #eee
+  border-radius: 0
+  z-index: 1000
+  display: flex
+  justify-content: space-between
+  align-items: center
+  .pagination-left, .pagination-right
+    button
+      border: 1px solid #d2d2d2!important
+      background-color: #f5f5f5
+      padding: 0 7px
+      font-size: 18px
+      line-height: 1.45
+      margin: 0
+      border-radius: 2px
+      color: #333
+      &:hover
+        background-color: darken(#f5f5f5, 3%)
+        //border-bottom: 2px solid red!important
+      &:active, &:focus
+        outline: none
+  .pagination-mid
+    ul
+      padding: 0
+      margin: 0
+      li
+        list-style: none
+        display: inline
+        margin: 0 2px
+        padding: 2px 6px
+        border-radius: 2px
+        border: 1px solid #d2d2d2
+        background-color: #f5f5f5
+        &.separation
+          background-color: transparent
+          border: none
+          margin: 0
+        &:hover
+          background-color: darken(#f5f5f5, 3%)
+          border-bottom: 2px solid red
+        &.current
+          border-bottom: 2px solid red
+        a
+          color: #333
+          font-size: 16px
+          text-decoration: none

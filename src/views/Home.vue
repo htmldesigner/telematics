@@ -1,5 +1,6 @@
 <template>
  <div v-if="isUserLoggedIn">
+  <Loader v-if="load"/>
   <nav class="navbar navbar-expand-xl navbar-dark bg-blue">
    <a class="navbar-brand mr-3" href="/">
     <img src="@/assets/logo.svg" alt="Alt">
@@ -49,8 +50,6 @@
    <template v-slot:footer>
    </template>
   </sittings>
-
-
 
   <div class="container-fluid">
    <div class="row">
@@ -107,11 +106,10 @@
  import trackerRaport from "../components/tracker/trackerRaport";
  import raportPanel from "../components/raport/raportPanel";
  import modalOL from "../components/monitoring/modalObjectLoader";
-
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
-
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+ import Loader from "../components/Loader";
 
  export default {
   components: {
@@ -126,7 +124,8 @@
    tracker,
    Splitpanes,
    Pane,
-   modalOL
+   modalOL,
+   Loader,
   },
   computed: {
    ...mapGetters({
@@ -175,7 +174,7 @@
    return {
     showModal: false,
     modalObjectLoader: false,
-
+    load: true,
    }
   },
   methods: {
@@ -225,7 +224,17 @@
   },
 
 
-  mounted() {
+  async mounted() {
+
+   if(this.isUserLoggedIn){
+    await this.$store.dispatch('getUserInfo')
+    await this.$store.dispatch('loadObjects')
+    await this.$store.dispatch('loadGeozones')
+    await this.$store.dispatch('loadState')
+   }
+
+   this.load = false
+
    setTimeout(() => {
     this.mapInstance().invalidateSize()
    }, 400)

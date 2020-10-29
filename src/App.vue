@@ -1,26 +1,21 @@
 <template>
  <div id="app">
-  <Loader v-if="load"/>
   <template v-if="error" />
   <Toast />
   <router-view/>
  </div>
 </template>
 <script>
- import Loader from "./components/Loader";
  import {mapActions, mapGetters} from "vuex";
  import Toast from 'primevue/toast';
- import store from "./store";
  export default {
   name: 'App',
   data() {
    return {
-    load: true,
     interval: null
    }
   },
   components: {
-   Loader,
    Toast,
   },
   computed: {
@@ -68,13 +63,7 @@
   },
 
   async mounted() {
-   await this.$store.dispatch('getUserInfo')
-   await this.$store.dispatch('loadObjects')
-   await this.$store.dispatch('loadGeozones')
-   await this.$store.dispatch('loadState')
-   setTimeout(() => {
-    this.load = false
-   }, 400)
+
    this.watcher()
   },
 

@@ -22,35 +22,27 @@ export default {
  },
 
  actions: {
-  login({commit}, user){
-   return new Promise((resolve, reject) => {
-    axios({url: 'http://telematics.checkedout.kz/api/mobile/authorization', data: user, method: 'POST' })
-     .then(resp => {
-
-      const token = resp.data.data.usertoken
-      // const user = resp.data.user
-      const user = resp.data.data.usertoken
-      localStorage.setItem('token', token)
-      axios.defaults.headers.common['Authorization'] = token //?
-
-      commit('AUTH_SUCCESS', token, user)
-
-      resolve(resp)
-
-     })
-     .catch(err => {
-      console.log('error')
-      localStorage.removeItem('token')
-      reject(err)
-     })
-   })
+  async login({commit}, user){
+   try {
+    const response = await api.auth(user)
+    if(response.status === 200){
+     const token = await response.data.data.usertoken
+     const user = await response.data.data.usertoken
+     await localStorage.setItem('token', token)
+     axios.defaults.headers.common['Token'] = token
+     commit('AUTH_SUCCESS', token, user)
+    }
+   }catch (error) {
+    localStorage.removeItem('token')
+    throw error
+   }
   },
 
   logout({commit}){
    return new Promise((resolve, reject) => {
     commit('LOGOUT')
     localStorage.removeItem('token')
-    delete axios.defaults.headers.common['Authorization']
+    delete axios.defaults.headers.common['Token']
     resolve()
    })
   }
