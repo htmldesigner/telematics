@@ -1,4 +1,4 @@
-<template >
+<template>
  <div class="monitoring-container mt-3 px-2">
 
   <TreeTable
@@ -60,7 +60,7 @@
    <Column headerStyle="display:none" bodyStyle="text-align: right; width: 100px">
     <template #body="slotProps">
      <div class="d-flex justify-content-end align-items-center" v-if="!slotProps.node.data.objects">
-      <div class="icon-watch mx-1" title="Следить за объектом на карте" style="position: relative;top: -2px;">
+      <div class="icon-watch mx-1" v-tooltip="'Следить за объектом на карте'" style="position: relative;top: -2px;">
        <input type="checkbox"
               class="d-none"
               :disabled="!slotProps.node.data.selected"
@@ -73,6 +73,14 @@
        </label>
       </div>
 
+
+      <div class="mx-1" style="position: relative;top: -3px;">
+       <span class="icon-device" v-tooltip="'Трек за три часа'">
+        <img :src="icon.track" alt="Alt">
+       </span>
+      </div>
+
+
       <div class="mx-1" style="position: relative;top: -3px;">
        <span class="icon-device" v-tooltip="'Последнее состояние: '+ statusClassText(slotProps.node) +' '">
         <img :src="statusClass(slotProps.node)" alt="Alt">
@@ -82,7 +90,7 @@
       <!--      <div :class="statusColor(slotProps.node)"></div>-->
 
       <div>
-       <span style="cursor: pointer; z-index: 9999; position: relative;top: -2px;"
+       <span style="cursor: pointer; z-index: 300; position: relative;top: -2px;"
              v-tooltip="'Убрать из спаска'"
              @click="removeFromWorkSet([slotProps.node.data.id])">
         <img :src="icon.remove" alt="">
@@ -125,6 +133,7 @@
      list: require('@/assets/list.svg'),
      group: require('@/assets/group.svg'),
      remove: require('@/assets/remove.svg'),
+     track: require('@/assets/zig-zag.svg')
     },
 
     filters: {},
@@ -133,6 +142,7 @@
     checked: false,
     activeObjectSelector: null,
     interval: null,
+    root: null
    }
   },
   computed: {
@@ -143,9 +153,6 @@
     getSelectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
    }),
-   root() {
-    return this.$service.objectsArrayCreate(this.objectsgroups, this.objects);
-   },
   },
 
   watch: {
@@ -153,16 +160,32 @@
     handler(object) {
      this.monitorObjects(object)
      this.moveTo(object)
-    }
+    },
+    deep: true
    },
+   objects: {
+    handler(objects){
+     this.watchingObjects(objects)
+    },
+    deep: true
+   },
+   objectsgroups: {
+    handler(groups){
+     this.watchingObjects(groups)
+    }
+   }
   },
   methods: {
-   ...mapActions([
+      ...mapActions([
     'monitorObject',
     'selectObject',
     'selectObjectGroup',
     'getObjectsLastPosition'
    ]),
+
+   watchingObjects(groups, objects){
+    this.root = this.$service.objectsArrayCreate(groups = this.objectsgroups, objects = this.objects);
+   },
 
    statusClass(object) {
     if (object.data.geo) {
@@ -322,7 +345,8 @@
     if (element.data.objects) {
      this.selectObjectGroup({id: element.data.id, value: true})
      this.getObjectsLastPosition({groupId: element.data.id})
-     this.flyToGroup(element)
+     let arrForFlyGroup = element.children.map(el => el.data.device_id)
+     this.flyToGroup(arrForFlyGroup)
     } else {
      if (item.geo) {
       this.selectObject({id: item.id, value: true})
@@ -352,21 +376,35 @@
     }
    },
 
-   flyToGroup() {
+   flyToGroup(element) {
     let latLng = []
-    for (let i in this.objects) {
-     if (this.objects[i].selected) {
-      if (this.objects[i].geo) {
-       latLng.push([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
-       this.mapInstance.fitBounds(latLng, {maxZoom: 15})
+    if (element) {
+     element.forEach(device_id => {
+      for (let i in this.objects) {
+       if (this.objects[i].device_id === device_id && this.objects[i]?.geo) {
+        latLng.push([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
+       }
       }
-      // else {
-      //  this.$store.dispatch('setError', 'У объекта ' + this.objects[i].name + ' отсутствуют координаты').then(() => {
-      //   this.$store.dispatch('clearError')
-      //  })
-      // }
+     })
+     if (latLng.length) {
+      this.mapInstance.fitBounds(latLng, {maxZoom: 15})
+     }
+    } else {
+     for (let i in this.objects) {
+      if (this.objects[i].selected) {
+       if (this.objects[i].geo) {
+        latLng.push([this.objects[i].geo.latitude, this.objects[i].geo.longitude])
+        this.mapInstance.fitBounds(latLng, {maxZoom: 15})
+       }
+      }
      }
     }
+    latLng = []
+    // else {
+    //  this.$store.dispatch('setError', 'У объекта ' + this.objects[i].name + ' отсутствуют координаты').then(() => {
+    //   this.$store.dispatch('clearError')
+    //  })
+    // }
    },
 
    flyToObject(device_id) {
@@ -387,6 +425,7 @@
    },
 
    async moveTo(object) {
+    console.log(object, 'moveTo')
     object.forEach((el) => {
      this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 12, {animate: true})
     })
@@ -401,7 +440,7 @@
         this.getObjectsLastPosition({objectId: object[i].device_id})
        }
       }
-     },  1000 * 5);
+     }, 1000 * 5);
     } else {
      clearInterval(this.interval)
     }
@@ -410,6 +449,7 @@
   },
 
   mounted() {
+   this.root = this.$service.objectsArrayCreate(this.objectsgroups, this.objects);
    eventBus.$on('map-Clear', () => {
     this.selectedKeys = null
    });

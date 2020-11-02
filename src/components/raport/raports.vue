@@ -156,11 +156,11 @@
    </div>
    <div class="row">
     <div class="col d-flex justify-content-end">
-     <button type="button" class="btn-custom-outline mr-3 mt-2">
+     <button class="btn-custom-outline mr-3 mt-2">
       <span>Очистить</span>
      </button>
      <button
-      type="button"
+
       class="btn-custom mt-2"
       @click="loadData"
      >

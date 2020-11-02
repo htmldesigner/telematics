@@ -202,19 +202,14 @@ export default {
    commit('SETSTOPMINDURATION', data.stopMinduration)
    commit('SETTRACKMINDURATION', data.trackMinduration)
    commit('SETGEOZONEVISITMINDURATION', data.geozoneVisitMinduration)
+
+   console.log(this.state)
   },
 
  },
  getters: {
   isRealTime: state => {
    return state.bool_realTime;
-  },
-  getTimerInterval: state => {
-   return state.int_timerInterval > 1 ? state.int_timerInterval : 5;
-  },
-
-  getOverSpeedMinDuration: state => {
-   return state.int_overSpeedMinDuration != null ? state.int_overSpeedMinDuration : 2;
   },
 
   getTimeIntervalStart: state => {
@@ -223,6 +218,14 @@ export default {
 
   getTimeIntervalEnd: state => {
    return state.long_timeIntervalEnd;
+  },
+
+  getTimerInterval: state => {
+   return state.int_timerInterval > 1 ? state.int_timerInterval : 5;
+  },
+
+  getOverSpeedMinDuration: state => {
+   return state.int_overSpeedMinDuration != null ? state.int_overSpeedMinDuration : 2;
   },
 
   getSpeedLimits: state => state.speedLimits,
@@ -253,7 +256,7 @@ export default {
 
   getSpeedLimitsColor: state => state.speedLimits.map(sp => sp.color),
 
-  getSpeedLimitsValue: state => state.speedLimits.map(sp => sp.speed-0),
+  getSpeedLimitsValue: state => state.speedLimits.map(sp => parseInt(sp.speed)),
 
   getMapZoom: state => {
    return state.mapZoom

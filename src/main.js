@@ -6,7 +6,7 @@ import App from './App.vue'
 import router from './router/router'
 import store from './store'
 import Vuelidate from 'vuelidate'
-import utils from "./utils/utils";
+import utils from "./utils/service";
 import RotatedMarker from 'leaflet-rotatedmarker'
 
 import 'leaflet/dist/leaflet.css'

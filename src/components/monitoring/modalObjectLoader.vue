@@ -79,6 +79,7 @@
        :perPage="perPage"
       ></pagination>
      </div>
+
     </TabPanel>
    </TabView>
   </div>
@@ -112,25 +113,6 @@
     groupCurrentPage: 1,
    }
   },
-  computed: {
-   ...mapGetters({
-    // objects: 'getObjects',
-    // objectsGroups: 'getObjectsGroups'
-   })
-  },
-
-  watch: {
-   // objects: {
-   //  handler() {
-   //   this.objectListProvider()
-   //  },
-   // },
-   // objectsGroups: {
-   //  handler() {
-   //   this.groupListProvider()
-   //  },
-   // },
-  },
 
   methods: {
    ...mapActions(['addToWorkSet', 'addGroupToWorkSet']),
@@ -142,9 +124,9 @@
      this.totalObjects = parseInt(response.data.data.count)
      this.currentPage = page
     } catch (error) {
+     throw error
     }
    },
-
 
    async groupListProvider(page) {
     try {
@@ -154,6 +136,7 @@
      this.totalGroups = parseInt(response.data.data.count)
      this.groupCurrentPage = page
     } catch (error) {
+     throw error
     }
    },
 
@@ -178,7 +161,6 @@
     this.groupListProvider()
     this.groupFilter = ''
    }
-
   },
 
   created() {

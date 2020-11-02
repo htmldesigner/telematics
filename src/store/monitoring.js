@@ -17,17 +17,13 @@ export default {
    state.objectsgroups = Object.values(payload)
   },
 
-  UPDATEOBJECTPOSITION(state, payload) {
-   Object.values(state.objects).forEach(object => {
-    if (object.device_id === payload.device_id) {
-     object.geo = payload
+  UPDATEOBJECTPOSITION(state, geo) {
+   state.objects.forEach(object => {
+    if (object.device_id === geo.device_id) {
+     object.geo = geo
+     console.log(object.device_id, 'UPDATEOBJECTPOSITION')
     }
    })
-  },
-
-  REAL_TIME_UPDATE_POSITION(state, payload) {
-   let obj = Object.values(Object.filter(state.objects, el => el.id === payload.id))
-   state.objects[obj[0].id].geo = payload.geo
   },
 
   SELECTOBJECT(state, payload) {
@@ -154,6 +150,11 @@ export default {
 
   async removeGroupFromWorkSet({commit, state}, params) {
    try {
+
+    state.objectsgroups = state.objectsgroups.filter(el => {
+     return el.id !== params[0]
+    })
+
     await api.removeGroupFromWorkset(params)
 
     let objectsId = []
@@ -162,9 +163,7 @@ export default {
      el.id === params ? objectsId = el.objects : objectsId = []
     })
 
-    state.objectsgroups = Object.values(state.objectsgroups).filter(el => {
-     return el.id !== params[0]
-    })
+
 
     objectsId.forEach(el => {
      remove(el)
@@ -187,13 +186,17 @@ export default {
    commit('clearError')
    commit('setLoading', true)
    try {
+
     let {objectId, groupId} = payload
     if (objectId) {
      this.dispatch('geoDataLoader', objectId)
     }
     if (groupId) {
-     let group = Object.values(state.objectsgroups).filter(el => el.id === groupId).map(el => el.objects)
+
+     let group = state.objectsgroups.filter(el => el.id === groupId).map(el => el.objects)
      group = group.flat()
+
+
 
      let device_id = []
      for (let i in group) {
@@ -204,6 +207,7 @@ export default {
       }
      }
      this.dispatch('geoDataLoader', device_id)
+
     }
    } catch (error) {
     commit('setError', error)
@@ -231,6 +235,7 @@ export default {
      let geo = geoData.data.data
      if (geo != null) {
       geo.forEach((geo) => {
+       console.log(geo, 'geoDataLoader')
        commit('UPDATEOBJECTPOSITION', geo)
       })
 
@@ -302,11 +307,11 @@ export default {
   },
 
   getSelectedObjects(state) {
-   return Object.values(state.objects).filter(el => el.selected);
+   return state.objects.filter(el => el.selected);
   },
 
   getMonitorObjects(state) {
-   return Object.values(state.objects).filter(el => el.monitor)
+   return state.objects.filter(el => el.monitor)
   },
 
  }

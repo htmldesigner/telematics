@@ -8,7 +8,7 @@ export default {
 
  },
  actions: {
-  async loadTracks({commit}, {query}) {
+  async loadTracks({commit}, query) {
    commit('clearError')
    commit('setLoading', true)
    try {
