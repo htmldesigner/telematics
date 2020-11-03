@@ -108,7 +108,6 @@ export default {
        })
      })
     }
-    console.log(state.objects)
     commit('setLoading', false)
    } catch (error) {
     commit('setLoading', false)
@@ -188,15 +187,14 @@ export default {
    try {
 
     let {objectId, groupId} = payload
+
     if (objectId) {
      this.dispatch('geoDataLoader', objectId)
     }
-    if (groupId) {
 
+    if (groupId) {
      let group = state.objectsgroups.filter(el => el.id === groupId).map(el => el.objects)
      group = group.flat()
-
-
 
      let device_id = []
      for (let i in group) {
@@ -206,6 +204,7 @@ export default {
        }
       }
      }
+
      this.dispatch('geoDataLoader', device_id)
 
     }

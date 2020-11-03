@@ -4,18 +4,18 @@ export default {
  state: {
   tracks: [],
  },
- mutations: {
-
- },
+ mutations: {},
  actions: {
   async loadTracks({commit}, query) {
    commit('clearError')
    commit('setLoading', true)
    try {
-    let response =  await api.serviceQuery(query)
+    let response = await api.serviceQuery(query)
+    if (response.data.data) {
+     return response
+    }
     commit('clearError')
     commit('setLoading', false)
-    return response
    } catch (error) {
     commit('setLoading', false)
     commit('setError', error)
@@ -24,6 +24,5 @@ export default {
   },
 
  },
- getters: {
- }
+ getters: {}
 }

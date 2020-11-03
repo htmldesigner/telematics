@@ -203,7 +203,6 @@ export default {
    commit('SETTRACKMINDURATION', data.trackMinduration)
    commit('SETGEOZONEVISITMINDURATION', data.geozoneVisitMinduration)
 
-   console.log(this.state)
   },
 
  },
@@ -254,9 +253,9 @@ export default {
    return state.currentComponent
   },
 
-  getSpeedLimitsColor: state => state.speedLimits.map(sp => sp.color),
-
-  getSpeedLimitsValue: state => state.speedLimits.map(sp => parseInt(sp.speed)),
+  // getSpeedLimitsColor: state => state.speedLimits.map(sp => sp.color),
+  //
+  // getSpeedLimitsValue: state => state.speedLimits.map(sp => parseInt(sp.speed)),
 
   getMapZoom: state => {
    return state.mapZoom

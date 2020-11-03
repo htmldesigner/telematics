@@ -59,6 +59,7 @@
  import {mapState, mapGetters, mapMutations, mapActions} from "vuex";
  import moment from 'moment'
  import Player from "../Player";
+ import 'leaflet-polylinedecorator'
 
  export default {
   name: "tracker",
@@ -85,36 +86,22 @@
     selectedObjectId: "",
 
     directionicon: L.icon({
-     iconUrl: '/img/directionicon.png',
+     iconUrl: require('@/assets/directionicon.png'),
      iconSize: [8, 14],
      iconAnchor: [4, 7]
     }),
+
     parkingred: L.icon({
-     iconUrl: '/img/parking_red.svg',
+     iconUrl: require('@/assets/parking_red.svg'),
      iconSize: [32, 32],
      iconAnchor: [16, 32]
-    }),
-    parkinggreen: L.icon({
-     iconUrl: '/img/parking_green.svg',
-     iconSize: [32, 32],
-     iconAnchor: [16, 32]
-    }),
-    parkingblue: L.icon({
-     iconUrl: '/img/parking_blue.svg',
-     iconSize: [32, 32],
-     iconAnchor: [16, 32]
-    }),
-    parkingpink: L.icon({
-     iconUrl: '/img/parking_pink.svg',
-     iconSize: [32, 32],
-     iconAnchor: [16, 32]
-    }),
-    overspeedIcon: L.icon({
-     iconUrl: '/img/overspeed.png',
-     iconSize: [20, 20],
-     iconAnchor: [10, 10],
     }),
 
+    parkingblue: L.icon({
+     iconUrl: require('@/assets/parking_blue.svg'),
+     iconSize: [32, 32],
+     iconAnchor: [16, 32]
+    }),
    }
   },
   computed: {
@@ -123,12 +110,9 @@
     objects: 'getObjects',
     timeIntervalStartDate: 'getTimeIntervalStart',
     timeIntervalEndDate: 'getTimeIntervalEnd',
-
     getSpeedLimits: 'getSpeedLimits',
-
     getStopMinDuration: 'getStopMinDuration',
     getOverSpeedMinDuration: 'getOverSpeedMinDuration',
-
    }),
 
    objectsArr() {
@@ -156,9 +140,9 @@
   methods: {
    ...mapMutations(['SETTIMEINTERVALSTART', 'SETTIMEINTERVALEND']),
 
-
    async loadTracks() {
     this.loading = true
+
     const id = this.selectedObjectId;
 
     let currentDevice = Object.assign({}, ...this.$store.state.monitoring.objects.filter(device => device.id === id).map(el => {
@@ -181,11 +165,15 @@
      }]
 
     let tracksDate = await this.$store.dispatch('loadTracks', query)
-    this.parseServiceResult(tracksDate.data.data, this.mapInstance, currentDevice)
+    this.parseServiceResult(tracksDate.data.data, currentDevice)
     this.loading = false
    },
 
-   parseServiceResult(data, map, currentDevice) {
+   parseServiceResult(data, currentDevice) {
+
+    console.time('print-track-on-map-time')
+
+    let self = this
 
     for (const serviceResult of data) {
      switch (serviceResult.queryType) {
@@ -193,14 +181,14 @@
        track(serviceResult, this.getSpeedLimits, currentDevice)
        break;
       case 'stop':
-       stop(serviceResult)
+       stop(serviceResult, this.getStopMinDuration, currentDevice)
      }
     }
 
+// TRACK
     function track(serviceResult, speedLimits, currentDevice) {
 
      if (serviceResult.queryType === "track") {
-
       let getSpeedIndex = (speed, speedLimits) => {
        let speedIndex
        speedLimits.forEach((el, index) => {
@@ -227,58 +215,62 @@
        "features": speedList
       }
 
-      serviceResult.data.forEach((element) => {
+      if (serviceResult.data.length) {
+       serviceResult.data.forEach((element) => {
 
-       let [lt, ln, speed, fix_date, course, distance, geoZones_id] = element
+        let [lt, ln, speed, fix_date, course, distance, geoZones_id] = element
 
-       if (maxSpeed < speed){
-        maxSpeed = speed;
-       }
+        if (maxSpeed < speed) {
+         maxSpeed = speed;
+        }
 
-       speedGroup.push([ln, lt])
-       distanceSum += distance;
-       if (first) {
-        first = false;
-        speedIndex = getSpeedIndex(speed, speedLimits)
-        startTime = fix_date;
-        startSpeed = speed;
-        distanceSum = 0;
-       } else {
-        if (getSpeedIndex(speed, speedLimits) === speedIndex) {
+        speedGroup.push([ln, lt])
+        distanceSum += distance;
+        if (first) {
+         first = false;
          speedIndex = getSpeedIndex(speed, speedLimits)
-        } else {
-         let diff = moment(fix_date).diff(moment(startTime));
-         let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60));
-
-         speedList.push(
-          {
-           "type": "Feature",
-           "properties": {
-            "currentDevice": currentDevice,
-            "speedIndex": speedIndex,
-            "startTime": startTime,
-            "endTime": fix_date,
-            "startSpeed": startSpeed,
-            "endSpeed": speed,
-            "distance": distanceSum,
-            "maxSpeed": maxSpeed,
-            "avgSpeed": avgSpeed,
-           },
-           "geometry": {
-            "type": "LineString",
-            "coordinates": speedGroup
-           }
-          }
-         )
-         distanceSum = 0;
-         speedGroup = [];
-         speedGroup.push([ln, lt])
          startTime = fix_date;
          startSpeed = speed;
-         speedIndex = getSpeedIndex(speed, speedLimits)
+         distanceSum = 0;
+        } else {
+         if (getSpeedIndex(speed, speedLimits) === speedIndex) {
+          speedIndex = getSpeedIndex(speed, speedLimits)
+         } else {
+          let diff = moment(fix_date).diff(moment(startTime));
+          let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60));
+
+          speedList.push(
+           {
+            "type": "Feature",
+            "properties": {
+             "currentDevice": currentDevice,
+             "speedIndex": speedIndex,
+             "startTime": startTime,
+             "endTime": fix_date,
+             "startSpeed": startSpeed,
+             "endSpeed": speed,
+             "distance": distanceSum,
+             "maxSpeed": maxSpeed,
+             "avgSpeed": avgSpeed,
+            },
+            "geometry": {
+             "type": "LineString",
+             "coordinates": speedGroup
+            }
+           }
+          )
+          distanceSum = 0;
+          speedGroup = [];
+          speedGroup.push([ln, lt])
+          startTime = fix_date;
+          startSpeed = speed;
+          speedIndex = getSpeedIndex(speed, speedLimits)
+         }
         }
-       }
-      });
+       });
+      } else {
+       self.$store.dispatch('setError', 'Нет данных по треку')
+      }
 
 
       let toolitps = (properties) => {
@@ -304,8 +296,22 @@
        return tpl;
       };
 
-
       function onEachFeature(feature, layer) {
+       L.polylineDecorator(layer, {
+        patterns: [
+         {
+          offset: 0, repeat: '100%', symbol: L.Symbol.arrowHead({
+           pixelSize: 15,
+           pathOptions: {
+            fillOpacity: 1,
+            weight: 0,
+            stroke: false,
+           }
+          })
+         }
+        ]
+       }).bindTooltip(toolitps(feature.properties)).addTo(self.mapInstance);
+
        if (feature.properties) {
         layer.bindTooltip(toolitps(feature.properties), {className: "tooltips", sticky: true, permanent: false});
        }
@@ -323,12 +329,86 @@
        };
       }
 
-      L.geoJSON(geo, {style: style, onEachFeature: onEachFeature}).addTo(map);
-      console.log(serviceResult)
+      let trackLayer = new L.featureGroup()
+      trackLayer.addTo(self.mapInstance)
+
+      let goeData = L.geoJSON(geo, {style: style, onEachFeature: onEachFeature})
+      trackLayer.addLayer(goeData)
+
+
+      // var lines = geo.features.filter(function(feature) { return feature.geometry.type === "LineString" })
+      //  .map(function(feature) {
+      //   var coordinates = feature.geometry.coordinates;
+      //   coordinates.forEach(function(coordinate) { coordinate.reverse(); })
+      //   return L.polyline(coordinates);
+      //  })
+      //
+      // var decorator = L.polylineDecorator(lines, {
+      //  patterns: [
+      //   {offset: 0, repeat: 50, symbol: L.Symbol.dash({pixelSize: false})}
+      //  ]
+      // }).addTo(self.mapInstance);
+      //
+      //
+      // var arrowHead = L.polylineDecorator(lines, {
+      //  patterns: [{
+      //   offset: 0,
+      //   repeat: 90,
+      //   symbol: L.Symbol.arrowHead({
+      //    pixelSize: 10,
+      //    pathOptions: {fillOpacity: 1, weight: 0}
+      //   })
+      //  }]
+      // }).addTo(self.mapInstance);
+
+
+      console.log(serviceResult.data.length)
      }
     }
-   },
 
+    console.timeEnd('print-track-on-map-time')
+
+//STOP
+    function stop(serviceResult, stopMinDuration, currentDevice) {
+
+     if (serviceResult.queryType === "stop") {
+
+      if (serviceResult.data.length) {
+
+       let markerGroup = new L.featureGroup()
+       markerGroup.addTo(self.mapInstance)
+
+       serviceResult.data.forEach(element => {
+
+        let duration = moment.utc(element.duration * 1000).format('HH:mm:ss')
+
+        if (element.duration > stopMinDuration) {
+
+         let ico = element.duration > 300 ? self.parkingred : self.parkingblue
+
+         let icon = L.divIcon({
+          className: "map-label",
+          html: '<img src="' + ico.options.iconUrl + '" /><div class="map-label-content">' + duration + '</div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32]
+         });
+
+         let marker = L.marker([element.latitude, element.longitude], {
+          icon: icon
+         })
+         marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
+         markerGroup.addLayer(marker)
+        }
+       })
+      } else {
+       self.$store.dispatch('setError', 'Нет данных по стоянкам')
+      }
+
+     }
+    }
+
+
+   },
 
    refreshObjectsInput() {
     if (Object.keys(this.objects).length > 0) {

@@ -105,7 +105,7 @@
    createMapInstance() {
     let self = this
     const map = L.map(
-     this.$refs.mapContainer, {zoomControl: false}).setView(
+     this.$refs.mapContainer, {zoomControl: false, preferCanvas: true}).setView(
      this.center,
      this.zoom
     )
