@@ -110,13 +110,18 @@
      this.zoom
     )
 
-    let osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18, attribution: ''});
+    let osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+     maxZoom: 18,
+     minZoom: 4,
+     attribution: ''
+    });
     let google1 = L.tileLayer('//{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-     maxZoom: 20,
+     maxZoom: 20, minZoom: 4,
      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     });
     let google2 = L.tileLayer('//www.google.com/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}', {
-     attribution: 'google'
+     attribution: 'google',
+     maxZoom: 20, minZoom: 4,
     });
 
     // Поиск
@@ -129,8 +134,6 @@
     //   console.log(data)
     //  }
     // });
-
-    this.myRenderer = L.canvas({padding: 0.5});
 
     L.control.layers({
      'OSM': osm.addTo(map),
@@ -145,7 +148,7 @@
     L.control.scale().addTo(map);
 
     map.on('zoomend', function () {
-     eventBus.$emit('mapzoomend', this);
+     eventBus.$emit('mapZoomEnd', map.getZoom());
     });
 
     map.on('moveend', function () {
@@ -444,11 +447,11 @@
       let geocodeService = ELG.geocodeService()
       geocodeService.reverse().latlng([newValue[i].geo.latitude, newValue[i].geo.longitude])
        .run(function (error, result) {
-       if (error) {
-        return;
-       }
-       return newValue[i].address = result.address.Match_addr
-      })
+        if (error) {
+         return;
+        }
+        return newValue[i].address = result.address.Match_addr
+       })
 
       let toolitps = () => {
        let tpl = `

@@ -21,6 +21,7 @@
     "leaflet-draw": "^1.0.4",
     "leaflet-polylinedecorator": "^1.6.0",
     "leaflet-rotatedmarker": "^0.2.0",
+    "leaflet-textpath": "^1.2.3",
     "leaflet.zoomslider": "^0.7.1",
     "primeicons": "^4.0.0",
     "primevue": "^2.1.0",

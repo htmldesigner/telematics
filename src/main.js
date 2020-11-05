@@ -83,7 +83,7 @@ if (token) {
 }
 
 Vue.directive('tooltip', tooltipDirective)
-
+import 'leaflet-textpath'
 new Vue({
   L,
   router,

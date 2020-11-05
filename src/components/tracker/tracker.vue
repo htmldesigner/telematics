@@ -60,6 +60,7 @@
  import moment from 'moment'
  import Player from "../Player";
  import 'leaflet-polylinedecorator'
+ import {eventBus} from "../../eventBus";
 
  export default {
   name: "tracker",
@@ -84,6 +85,11 @@
 
     loading: null,
     selectedObjectId: "",
+
+    trackLayer: new L.featureGroup(),
+    pointLayer: new L.featureGroup(),
+    stopMarkerGroup: new L.featureGroup(),
+    geo: null,
 
     directionicon: L.icon({
      iconUrl: require('@/assets/directionicon.png'),
@@ -189,6 +195,7 @@
     function track(serviceResult, speedLimits, currentDevice) {
 
      if (serviceResult.queryType === "track") {
+
       let getSpeedIndex = (speed, speedLimits) => {
        let speedIndex
        speedLimits.forEach((el, index) => {
@@ -210,7 +217,7 @@
       let maxSpeed = 0
       let speedList = []
 
-      let geo = {
+      self.geo = {
        "type": "FeatureCollection",
        "features": speedList
       }
@@ -297,21 +304,6 @@
       };
 
       function onEachFeature(feature, layer) {
-       L.polylineDecorator(layer, {
-        patterns: [
-         {
-          offset: 0, repeat: '100%', symbol: L.Symbol.arrowHead({
-           pixelSize: 15,
-           pathOptions: {
-            fillOpacity: 1,
-            weight: 0,
-            stroke: false,
-           }
-          })
-         }
-        ]
-       }).bindTooltip(toolitps(feature.properties)).addTo(self.mapInstance);
-
        if (feature.properties) {
         layer.bindTooltip(toolitps(feature.properties), {className: "tooltips", sticky: true, permanent: false});
        }
@@ -323,45 +315,20 @@
 
       function style(feature) {
        return {
-        weight: 5,
+        weight: 4,
         opacity: 1,
         color: getColor(feature.properties.speedIndex, speedLimits),
        };
       }
 
-      let trackLayer = new L.featureGroup()
-      trackLayer.addTo(self.mapInstance)
 
-      let goeData = L.geoJSON(geo, {style: style, onEachFeature: onEachFeature})
-      trackLayer.addLayer(goeData)
+      self.trackLayer.addTo(self.mapInstance).getBounds()
 
-
-      // var lines = geo.features.filter(function(feature) { return feature.geometry.type === "LineString" })
-      //  .map(function(feature) {
-      //   var coordinates = feature.geometry.coordinates;
-      //   coordinates.forEach(function(coordinate) { coordinate.reverse(); })
-      //   return L.polyline(coordinates);
-      //  })
-      //
-      // var decorator = L.polylineDecorator(lines, {
-      //  patterns: [
-      //   {offset: 0, repeat: 50, symbol: L.Symbol.dash({pixelSize: false})}
-      //  ]
-      // }).addTo(self.mapInstance);
-      //
-      //
-      // var arrowHead = L.polylineDecorator(lines, {
-      //  patterns: [{
-      //   offset: 0,
-      //   repeat: 90,
-      //   symbol: L.Symbol.arrowHead({
-      //    pixelSize: 10,
-      //    pathOptions: {fillOpacity: 1, weight: 0}
-      //   })
-      //  }]
-      // }).addTo(self.mapInstance);
-
-
+      let goeData = L.geoJSON(self.geo, {style: style, onEachFeature: onEachFeature})
+      self.trackLayer.addLayer(goeData)
+      // self.mapInstance.flyToBounds(self.trackLayer.getBounds(), {maxZoom: 10})
+      
+      self.makePointsLayer()
       console.log(serviceResult.data.length)
      }
     }
@@ -375,8 +342,7 @@
 
       if (serviceResult.data.length) {
 
-       let markerGroup = new L.featureGroup()
-       markerGroup.addTo(self.mapInstance)
+       self.stopMarkerGroup.addTo(self.mapInstance)
 
        serviceResult.data.forEach(element => {
 
@@ -397,7 +363,9 @@
           icon: icon
          })
          marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
-         markerGroup.addLayer(marker)
+
+         self.stopMarkerGroup.addLayer(marker)
+
         }
        })
       } else {
@@ -407,8 +375,81 @@
      }
     }
 
-
    },
+
+
+   makePointsLayer(zoom) {
+    console.log(zoom)
+    this.pointLayer.clearLayers()
+
+    let pointsCollection = []
+
+
+
+    var lines = geo.features.filter(function(feature) { return feature.geometry.type === "LineString" })
+     .map(function(feature) {
+      var coordinates = feature.geometry.coordinates;
+      coordinates.forEach(function(coordinate) { coordinate.reverse(); })
+      return L.polyline(coordinates);
+     })
+
+
+
+
+
+    this.geo.features.filter((feature) => {
+     return feature.geometry.type === "LineString"
+    })
+     .forEach((feature) => {
+      pointsCollection.push(
+       {
+        "type": "MultiPoint",
+        "coordinates":
+        feature.geometry.coordinates
+       }
+      )
+     })
+
+    let filterPointsCollection = pointsCollection.filter((el, index) => {
+      if (zoom > 8 && zoom <= 10){
+       return index % 12 === 0
+      }
+     if (zoom > 10 && zoom <= 12){
+      return index % 6 === 0
+     }
+     if (zoom > 12){
+      return index
+     }
+     }
+    )
+
+    let geoPoints = {
+     "type": "FeatureCollection",
+     "features": filterPointsCollection
+    }
+
+    console.log(Object.values(geoPoints))
+
+    this.pointLayer.addTo(this.mapInstance)
+
+    var geoJsonPointOptions = {
+     radius: 5,
+     fillColor: "#001aff",
+     weight: 0,
+     opacity: 1,
+     fillOpacity: 0.8
+    };
+
+    let goePoint = L.geoJSON(geoPoints, {
+     pointToLayer: function (feature, latlng) {
+      return L.circleMarker(latlng, geoJsonPointOptions);
+     }
+    })
+
+    this.pointLayer.addLayer(goePoint)
+    pointsCollection = []
+   },
+
 
    refreshObjectsInput() {
     if (Object.keys(this.objects).length > 0) {
@@ -418,6 +459,18 @@
    }
 
   },
+  mounted() {
+   eventBus.$on('mapZoomEnd', (zoom) => {
+    this.makePointsLayer(zoom)
+   });
+
+   eventBus.$on('map-Clear', () => {
+    this.trackLayer.clearLayers()
+    this.pointLayer.clearLayers()
+    this.stopMarkerGroup.clearLayers()
+   });
+
+  }
  }
 </script>
 
