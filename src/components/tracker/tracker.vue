@@ -86,15 +86,19 @@
     loading: null,
     selectedObjectId: "",
 
+
     trackLayer: new L.featureGroup(),
     pointLayer: new L.featureGroup(),
     stopMarkerGroup: new L.featureGroup(),
-    geo: null,
+    directionLayer: new L.featureGroup(),
+
+    pointCollection: null,
+    directionCollection: null,
 
     directionicon: L.icon({
-     iconUrl: require('@/assets/directionicon.png'),
-     iconSize: [8, 14],
-     iconAnchor: [4, 7]
+     iconUrl: require('@/assets/arrow-mark.svg'),
+     iconSize: [16, 16],
+     iconAnchor: [9, 7]
     }),
 
     parkingred: L.icon({
@@ -217,22 +221,28 @@
       let maxSpeed = 0
       let speedList = []
 
-      self.geo = {
+      let pointsList = []
+
+      let directionList = []
+
+      let geo = {
        "type": "FeatureCollection",
        "features": speedList
       }
 
+      self.pointCollection = pointsList
+      self.directionCollection = directionList
+
       if (serviceResult.data.length) {
-       serviceResult.data.forEach((element) => {
+       serviceResult.data.forEach((element, index, currentArray) => {
 
         let [lt, ln, speed, fix_date, course, distance, geoZones_id] = element
 
         if (maxSpeed < speed) {
          maxSpeed = speed;
         }
-
         speedGroup.push([ln, lt])
-        distanceSum += distance;
+        distanceSum += distance
         if (first) {
          first = false;
          speedIndex = getSpeedIndex(speed, speedLimits)
@@ -243,6 +253,7 @@
          if (getSpeedIndex(speed, speedLimits) === speedIndex) {
           speedIndex = getSpeedIndex(speed, speedLimits)
          } else {
+
           let diff = moment(fix_date).diff(moment(startTime));
           let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60));
 
@@ -274,11 +285,54 @@
           speedIndex = getSpeedIndex(speed, speedLimits)
          }
         }
+
+        pointsList.push(
+         {
+          "type": "Feature",
+          "properties": {
+           "currentDevice": currentDevice,
+           "speedIndex": speedIndex,
+           "startTime": startTime,
+           "endTime": fix_date,
+           "startSpeed": startSpeed,
+           "endSpeed": speed,
+           "distance": distanceSum,
+           "maxSpeed": maxSpeed,
+          },
+          "geometry": {
+           "type": "Point",
+           "coordinates": [ln, lt]
+          }
+         }
+        )
+
+        //Detected direction
+        let [startLat, startLong, endLat, endLong] = [lt, ln, lt, ln]
+        if (currentArray[index] && currentArray[index - 1]) {
+         [startLat, startLong] = currentArray[index]
+          [endLat, endLong] = currentArray[index - 1]
+         let direction = self._getBearing(startLat, startLong, endLat, endLong)
+
+         directionList.push(
+          {
+           "type": "Feature",
+           "properties": {
+            "currentDevice": currentDevice,
+            "direction": direction
+           },
+           "geometry": {
+            "type": "Point",
+            "coordinates": [ln, lt]
+           }
+          }
+         )
+
+        }
+
        });
       } else {
        self.$store.dispatch('setError', 'Нет данных по треку')
       }
-
 
       let toolitps = (properties) => {
 
@@ -321,15 +375,11 @@
        };
       }
 
-
       self.trackLayer.addTo(self.mapInstance).getBounds()
 
-      let goeData = L.geoJSON(self.geo, {style: style, onEachFeature: onEachFeature})
+      let goeData = L.geoJSON(geo, {style: style, onEachFeature: onEachFeature})
       self.trackLayer.addLayer(goeData)
-      // self.mapInstance.flyToBounds(self.trackLayer.getBounds(), {maxZoom: 10})
-      
-      self.makePointsLayer()
-      console.log(serviceResult.data.length)
+      self.mapInstance.flyToBounds(self.trackLayer.getBounds(), {maxZoom: 10})
      }
     }
 
@@ -374,100 +424,192 @@
 
      }
     }
-
    },
-
 
    makePointsLayer(zoom) {
-    console.log(zoom)
-    this.pointLayer.clearLayers()
 
-    let pointsCollection = []
+    if (this.pointCollection) {
 
+     this.pointLayer.addTo(this.mapInstance)
 
+     this.pointLayer.clearLayers()
 
-    var lines = geo.features.filter(function(feature) { return feature.geometry.type === "LineString" })
-     .map(function(feature) {
-      var coordinates = feature.geometry.coordinates;
-      coordinates.forEach(function(coordinate) { coordinate.reverse(); })
-      return L.polyline(coordinates);
-     })
+     let geoJsonPointOptions = {
+      radius: 5,
+      fillColor: "#001aff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 1,
+     }
 
+     function highlightFeature(e) {
+      let layer = e.target;
+      layer.setStyle({
+       weight: 2,
+       color: '#fff',
+       fillColor: "#001aff",
+       fillOpacity: 1,
+      });
 
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+       layer.bringToFront();
+      }
+     }
 
+     function resetHighlight(e) {
+      pointData.resetStyle(e.target);
+     }
 
+     let toolitps = (properties) => {
 
-    this.geo.features.filter((feature) => {
-     return feature.geometry.type === "LineString"
-    })
-     .forEach((feature) => {
-      pointsCollection.push(
-       {
-        "type": "MultiPoint",
-        "coordinates":
-        feature.geometry.coordinates
+      let tpl = `
+  <div class="tooltips_content" style="background-color: #42b983">
+    <div class="tooltips_header">
+      <div class="name">${properties.currentDevice.name}</div>
+    </div>
+
+   <div class="time_control">
+    <div class="start_time"><span>Начало</span> ${moment(properties.startTime).format('MM-DD-YYYY hh:mm')}</div>
+    <div class="end_time"><span>Конец</span> ${moment(properties.endTime).format('MM-DD-YYYY hh:mm')}</div>
+   </div>
+
+   <div class="speed_control">
+    <div class="start_speed"><span>Начальная скорость ${properties.startSpeed}</span> км/ч</div>
+    <div class="end_speed"><span>Конечная скорость ${properties.endSpeed}</span> км/ч</div>
+   </div>
+
+  </div>
+        `;
+      return tpl;
+     };
+
+     function onEachFeature(feature, layer) {
+      if (feature.properties) {
+       layer.bindTooltip(toolitps(feature.properties), {className: "tooltips", sticky: true, permanent: false});
+      }
+      layer.on({
+       mouseover: highlightFeature,
+       mouseout: resetHighlight,
+      })
+     }
+
+     let pointCollection = {
+      "type": "FeatureCollection",
+      "features": this.pointCollection.filter((point, index) => {
+        if (zoom > 8 && zoom <= 10) {
+         return index % 60 === 0
+        }
+        if (zoom > 10 && zoom <= 12) {
+         return index % 30 === 0
+        }
+        if (zoom > 12 && zoom <= 14) {
+         return index % 15 === 0
+        }
+        if (zoom > 14) {
+         return index % 5 === 0
+        }
        }
       )
+     }
+
+     let pointData = L.geoJSON(pointCollection, {
+      pointToLayer: function (feature, latlng) {
+       return L.circleMarker(latlng, geoJsonPointOptions);
+      }, onEachFeature: onEachFeature
      })
 
-    let filterPointsCollection = pointsCollection.filter((el, index) => {
-      if (zoom > 8 && zoom <= 10){
-       return index % 12 === 0
-      }
-     if (zoom > 10 && zoom <= 12){
-      return index % 6 === 0
-     }
-     if (zoom > 12){
-      return index
-     }
-     }
-    )
-
-    let geoPoints = {
-     "type": "FeatureCollection",
-     "features": filterPointsCollection
+     this.pointLayer.addLayer(pointData)
     }
 
-    console.log(Object.values(geoPoints))
-
-    this.pointLayer.addTo(this.mapInstance)
-
-    var geoJsonPointOptions = {
-     radius: 5,
-     fillColor: "#001aff",
-     weight: 0,
-     opacity: 1,
-     fillOpacity: 0.8
-    };
-
-    let goePoint = L.geoJSON(geoPoints, {
-     pointToLayer: function (feature, latlng) {
-      return L.circleMarker(latlng, geoJsonPointOptions);
-     }
-    })
-
-    this.pointLayer.addLayer(goePoint)
-    pointsCollection = []
    },
 
+   makeDirectionLayer(zoom) {
+
+    if (this.directionCollection) {
+     this.directionLayer.addTo(this.mapInstance)
+     this.directionLayer.clearLayers()
+
+     let directionCollection = {
+      "type": "FeatureCollection",
+      "features": this.directionCollection.filter((point, index) => {
+        if (zoom > 9 && zoom <= 11) {
+         return index % 180 === 0
+        }
+        if (zoom > 11 && zoom <= 13) {
+         return index % 36 === 0
+        }
+        if (zoom > 13 && zoom <= 15) {
+         return index % 15 === 0
+        }
+        if (zoom > 15) {
+         return index % 3 === 0
+        }
+       }
+      )
+     }
+
+     let directionData = L.geoJSON(directionCollection, {
+      pointToLayer: (feature, latlng) => {
+       return L.marker(latlng, {
+        icon: this.directionicon,
+        rotationAngle: feature.properties.direction / 2,
+       });
+      }
+     })
+
+     this.directionLayer.addLayer(directionData)
+    }
+
+   },
 
    refreshObjectsInput() {
     if (Object.keys(this.objects).length > 0) {
      let key = Object.keys(this.objects)[0];
      this.selectedObjectId = this.objects[key].id;
     }
+   },
+
+
+   _getBearing(startLat, startLong, endLat, endLong) {
+    startLat = this._radians(startLat);
+    startLong = this._radians(startLong);
+    endLat = this._radians(endLat);
+    endLong = this._radians(endLong);
+
+    let dLong = endLong - startLong;
+
+    let dPhi = Math.log(Math.tan(endLat / 2.0 + Math.PI / 4.0) / Math.tan(startLat / 2.0 + Math.PI / 4.0));
+    if (Math.abs(dLong) > Math.PI) {
+     if (dLong > 0.0) dLong = -(2.0 * Math.PI - dLong);
+     else dLong = 2.0 * Math.PI + dLong;
+    }
+
+    return (this._degrees(Math.atan2(dLong, dPhi)) + 360.0) % 360.0;
+   },
+
+   _radians(n) {
+    return n * (Math.PI / 180);
+   },
+
+   _degrees(n) {
+    return n * (180 / Math.PI);
    }
+
 
   },
   mounted() {
    eventBus.$on('mapZoomEnd', (zoom) => {
     this.makePointsLayer(zoom)
+    this.makeDirectionLayer(zoom)
    });
 
    eventBus.$on('map-Clear', () => {
     this.trackLayer.clearLayers()
     this.pointLayer.clearLayers()
     this.stopMarkerGroup.clearLayers()
+    this.directionLayer.clearLayers()
+    this.pointCollection = null
+    this.directionCollection = null
    });
 
   }
