@@ -21,7 +21,6 @@ export default {
    state.objects.forEach(object => {
     if (object.device_id === geo.device_id) {
      object.geo = geo
-     console.log(object.device_id, 'UPDATEOBJECTPOSITION')
     }
    })
   },
@@ -33,7 +32,6 @@ export default {
     }
    }
   },
-
 
   SELECT_OBJECT_GROUP(state, payload) {
    let objId = []
@@ -234,7 +232,6 @@ export default {
      let geo = geoData.data.data
      if (geo != null) {
       geo.forEach((geo) => {
-       console.log(geo, 'geoDataLoader')
        commit('UPDATEOBJECTPOSITION', geo)
       })
 

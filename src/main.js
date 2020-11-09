@@ -47,7 +47,6 @@ import TabPanel from 'primevue/tabpanel';
 
 Vue.use(ToastService);
 
-
 // const moment = require('moment')
 import moment from 'moment';
 require('moment/locale/ru')

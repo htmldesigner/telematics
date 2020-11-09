@@ -75,7 +75,7 @@
 
 
       <div class="mx-1" style="position: relative;top: -3px;">
-       <span class="icon-device" v-tooltip="'Трек за три часа'">
+       <span class="icon-device" v-tooltip="'Трек за три часа'" @click="lastTrack(slotProps.node.data.id)">
         <img :src="icon.track" alt="Alt">
        </span>
       </div>
@@ -425,7 +425,6 @@
    },
 
    async moveTo(object) {
-    console.log(object, 'moveTo')
     object.forEach((el) => {
      this.mapInstance.flyTo([el.geo.latitude, el.geo.longitude], 12, {animate: true})
     })
@@ -445,6 +444,11 @@
      clearInterval(this.interval)
     }
    },
+
+
+   lastTrack(id){
+    console.log(Date.now(), id)
+   }
 
   },
 

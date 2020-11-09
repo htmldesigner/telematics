@@ -33,12 +33,6 @@
      iconAnchor: [16, 16]
     }),
 
-    directionicon: L.icon({
-     iconUrl: require('@/assets/directionicon.png'),
-     iconSize: [10, 16],
-     iconAnchor: [5, 8]
-    }),
-
     markers: [],
     interval: null,
 
@@ -158,7 +152,6 @@
 
     this.markerGroup.addTo(map)
 
-
     this.geozonesLayer = new L.featureGroup();
     this.geozonesLayer.addTo(map);
 
@@ -169,7 +162,6 @@
     this.editGeozonesLayer.addTo(map);
 
     this.zoomZoomslider = new L.Control.Zoomslider({position: 'topleft'})
-
 
     return map
    },
@@ -198,7 +190,7 @@
         result = featureData.properties.path_options;
        }
        if (!result.radius) {
-        result.radius = 5;
+        result.radius = 1;
        }
        result.weight = 1;
        return new L.CircleMarker(latlng, result);

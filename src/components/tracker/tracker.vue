@@ -97,8 +97,8 @@
 
     directionicon: L.icon({
      iconUrl: require('@/assets/arrow-mark.svg'),
-     iconSize: [16, 16],
-     iconAnchor: [9, 7]
+     iconSize: [10, 10],
+     iconAnchor: [6, 7]
     }),
 
     parkingred: L.icon({
@@ -171,7 +171,7 @@
       objectId: id,
       dateFrom: this.datefrom,
       dateTo: this.dateto,
-      stopMinDuration: this.getStopMinDuration,
+      // stopMinDuration: this.getStopMinDuration,
      }]
 
     let tracksDate = await this.$store.dispatch('loadTracks', query)
@@ -180,7 +180,6 @@
    },
 
    parseServiceResult(data, currentDevice) {
-
     console.time('print-track-on-map-time')
 
     let self = this
@@ -241,6 +240,7 @@
         if (maxSpeed < speed) {
          maxSpeed = speed;
         }
+
         speedGroup.push([ln, lt])
         distanceSum += distance
         if (first) {
@@ -308,6 +308,7 @@
 
         //Detected direction
         let [startLat, startLong, endLat, endLong] = [lt, ln, lt, ln]
+
         if (currentArray[index] && currentArray[index - 1]) {
          [startLat, startLong] = currentArray[index]
           [endLat, endLong] = currentArray[index - 1]
@@ -326,7 +327,6 @@
            }
           }
          )
-
         }
 
        });
@@ -375,15 +375,14 @@
        };
       }
 
-      self.trackLayer.addTo(self.mapInstance).getBounds()
+      self.trackLayer.addTo(self.mapInstance)
 
       let goeData = L.geoJSON(geo, {style: style, onEachFeature: onEachFeature})
       self.trackLayer.addLayer(goeData)
       self.mapInstance.flyToBounds(self.trackLayer.getBounds(), {maxZoom: 10})
      }
+     console.log(serviceResult.data.length)
     }
-
-    console.timeEnd('print-track-on-map-time')
 
 //STOP
     function stop(serviceResult, stopMinDuration, currentDevice) {
@@ -412,7 +411,7 @@
          let marker = L.marker([element.latitude, element.longitude], {
           icon: icon
          })
-         marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
+         // marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
 
          self.stopMarkerGroup.addLayer(marker)
 
@@ -424,6 +423,8 @@
 
      }
     }
+
+    console.timeEnd('print-track-on-map-time')
    },
 
    makePointsLayer(zoom) {
@@ -500,10 +501,10 @@
          return index % 60 === 0
         }
         if (zoom > 10 && zoom <= 12) {
-         return index % 30 === 0
+         return index % 40 === 0
         }
         if (zoom > 12 && zoom <= 14) {
-         return index % 15 === 0
+         return index % 20 === 0
         }
         if (zoom > 14) {
          return index % 5 === 0
@@ -536,13 +537,13 @@
          return index % 180 === 0
         }
         if (zoom > 11 && zoom <= 13) {
-         return index % 36 === 0
+         return index % 120 === 0
         }
         if (zoom > 13 && zoom <= 15) {
-         return index % 15 === 0
+         return index % 60 === 0
         }
         if (zoom > 15) {
-         return index % 3 === 0
+         return index % 12 === 0
         }
        }
       )
@@ -569,7 +570,6 @@
     }
    },
 
-
    _getBearing(startLat, startLong, endLat, endLong) {
     startLat = this._radians(startLat);
     startLong = this._radians(startLong);
@@ -594,7 +594,6 @@
    _degrees(n) {
     return n * (180 / Math.PI);
    }
-
 
   },
   mounted() {

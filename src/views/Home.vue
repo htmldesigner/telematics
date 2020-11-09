@@ -75,14 +75,14 @@
         <llmap ref="llmap"></llmap>
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
        </pane>
-       <!--       <pane v-if="currentLink === 'tracker'"-->
-       <!--             mix-size="90">-->
-       <!--        <trackerRaport ref="trackerRaport"/>-->
-       <!--       </pane>-->
-       <!--       <pane v-if="currentLink === 'raports'"-->
-       <!--             mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">-->
-       <!--        <raportPanel/>-->
-       <!--       </pane>-->
+              <pane v-if="currentLink === 'tracker'"
+                    mix-size="90" min-size="5">
+               <trackerRaport ref="trackerRaport"/>
+              </pane>
+              <pane v-if="currentLink === 'raports'"
+                    mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
+               <raportPanel/>
+              </pane>
       </splitpanes>
 
      </pane>

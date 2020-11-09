@@ -1,7 +1,7 @@
 <template>
  <div class="playback-container">
 
-  <div class="playback-toolbars  d-flex justify-content-between align-items-center px-2 py-2">
+  <div class="playback-toolbars  d-flex justify-content-between align-items-center px-2 py-1">
 
    <div class="playback-control d-flex">
 
@@ -104,21 +104,21 @@
    return {
     currentComponent: 'allTrack',
     icon: {
-     stop: '/img/stops.svg',
-     stop_off: '/img/stops-off.svg',
-     speed: '/img/speedings.svg',
-     speed_off: '/img/speedings-off.svg',
-     parking: '/img/parkings.svg',
-     parking_off: '/img/parkings-off.svg',
-     filling: '/img/fillings.svg',
-     filling_off: '/img/fillings-off.svg',
-     playButton: '/img/playBig.svg',
-     pauseButton: '/img/pause.svg',
-     remove: '/img/remove.svg',
-     pdf: '/img/pdf_icon.svg',
-     exel: '/img/excel-file.svg',
-     printer: '/img/printer.svg',
-     road: '/img/zig-zag2.svg',
+     stop: require('@/assets/stops.svg'),
+     stop_off: require('@/assets/stops-off.svg'),
+     speed: require('@/assets/speedings.svg'),
+     speed_off: require('@/assets/speedings-off.svg'),
+     parking: require('@/assets/parkings.svg'),
+     parking_off: require('@/assets/parkings-off.svg'),
+     filling: require('@/assets/fillings.svg'),
+     filling_off: require('@/assets/fillings-off.svg'),
+     playButton: require('@/assets/playBig.svg'),
+     pauseButton: require('@/assets/pause.svg'),
+     remove: require('@/assets/remove.svg'),
+     pdf: require('@/assets/pdf_icon.svg'),
+     exel: require('@/assets/excel-file.svg'),
+     printer: require('@/assets/printer.svg'),
+     road: require('@/assets/zig-zag2.svg'),
     },
 
     boolOverspeed: true,
