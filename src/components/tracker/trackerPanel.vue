@@ -5,46 +5,31 @@
 
    <div class="playback-control d-flex">
 
-    <div class="tracker-stop-selector mx-1" title="Маршрут">
-
-     <input v-model="allTrack"
-            class="form-check-input d-none"
-            type="button"
-            value=""
-            id="allTrack"
-            @click="currentComponent = 'allTrack'"
-     >
-     <label class="form-check-label" for="allTrack">
-      <img :src="icon.road" alt="alt">
-     </label>
-    </div>
-
-    <div class="tracker-stop-selector mx-1" title="Остановки">
-
-     <input v-model="boolStops"
-            class="form-check-input d-none"
-            type="button"
-            value=""
-            id="boolStops"
-            @click="currentComponent = 'stopRaport'"
-     >
-     <label class="form-check-label" for="boolStops">
-      <img :src="icon.parking" alt="alt">
-      <!--      <img v-else :src="icon.stop_off" alt="alt">-->
-     </label>
-    </div>
-
-    <div class="tracker-speed-selector mx-1" title="Привышения">
+    <div class="tracker-speed-selector mx-1" v-tooltip="'Данные по привышению'">
      <input v-model="boolOverspeed"
             class="form-check-inputd d-none"
             type="button"
             value=""
             id="boolOverspeed11"
-            @click="currentComponent = 'overspeedRaport'"
+            @click="checkComponent('overSpeedRaport')"
      >
      <label class="form-check-label" for="boolOverspeed11">
       <img :src="icon.speed" alt="alt">
       <!--      <img v-else :src="icon.speed_off" alt="alt">-->
+     </label>
+    </div>
+
+    <div class="tracker-stop-selector mx-1" v-tooltip="'Данные по остановкам'">
+     <input v-model="boolStops"
+            class="form-check-input d-none"
+            type="button"
+            value=""
+            id="boolStops"
+            @click="checkComponent('stopRaport')"
+     >
+     <label class="form-check-label" for="boolStops">
+      <img :src="icon.parking" alt="alt">
+      <!--      <img v-else :src="icon.stop_off" alt="alt">-->
      </label>
     </div>
 
@@ -79,7 +64,13 @@
   </div>
 
   <keep-alive>
-   <component :is="currentComponent" ref="raportComponent"></component>
+   <component
+    :is="currentComponent"
+    :stops="stops"
+    :overSpeeds="overSpeeds"
+    ref="raportComponent"
+   >
+   </component>
   </keep-alive>
 
  </div>
@@ -90,19 +81,18 @@
 <script>
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import stopRaport from "./stopRaport";
- import overspeedRaport from "./overspeedRaport";
- import allTrack from "./allTrack";
+ import overSpeedRaport from "./overspeedRaport";
+ import {eventBus} from "../../eventBus";
 
  export default {
-  name: "trackerRaport",
+  name: "trackerPanel",
   components: {
    stopRaport,
-   overspeedRaport,
-   allTrack,
+   overSpeedRaport,
   },
   data() {
    return {
-    currentComponent: 'allTrack',
+    currentComponent: 'overSpeedRaport',
     icon: {
      stop: require('@/assets/stops.svg'),
      stop_off: require('@/assets/stops-off.svg'),
@@ -118,31 +108,43 @@
      pdf: require('@/assets/pdf_icon.svg'),
      exel: require('@/assets/excel-file.svg'),
      printer: require('@/assets/printer.svg'),
-     road: require('@/assets/zig-zag2.svg'),
+     road: require('@/assets/track.svg'),
     },
 
     boolOverspeed: true,
     boolStops: true,
-    allTrack: true,
-
    }
   },
-  computed: {},
+  computed: {
+   ...mapGetters({
+    stops: 'getStop',
+    overSpeeds: 'getOverSpeedTrack'
+   })
+  },
 
   methods: {
    ...mapActions(['clearTrackRaport']),
 
+   checkComponent(value){
+    this.currentComponent = value
+    if (value === 'overSpeedRaport'){
+     eventBus.$emit('showStopLayer', 'overSpeedRaport')
+    }
+
+    if (value === 'stopRaport'){
+     eventBus.$emit('showStopLayer', 'stopRaport')
+    }
+   },
+
+
    clearRaport() {
-    this.clearTrackRaport()
+    this.$store.dispatch('clearTracksRaport')
    },
 
    downloadPdf() {
     this.$refs.raportComponent.createPDF()
    }
 
-  },
-  mounted() {
-   // console.log('asa')
   },
 
  }

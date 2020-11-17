@@ -1,40 +1,23 @@
 <template>
  <div>
   <div id="pdf"></div>
-  <div class="col" v-if="overSpeedRaport">
-   <DataTable
-    :scrollable="true"
-    scrollHeight="500px"
-    class="p-datatable-sm"
-    ref="testHtml"
-    id="my-table"
-    :value="overSpeedRaport[0]"
-    selectionMode="single"
-    dataKey="id"
-    @row-select="moveToMarker"
-
-   >
-    <Column field="starttime" header="Дата">
-     <template #body="slotProps">
-      {{ slotProps.data.first.fix_date | moment('YYYY-MM-DD HH:mm:ss') }}
-     </template>
-    </Column>
-    <Column field="duration" header="Скорость">
-     <template #body="slotProps">
-      {{ slotProps.data.first.speed + ' ' + 'км/ч' }}
-     </template>
-    </Column>
-    <Column header="Превышение">
-     <template #body="slotProps">
-      {{ (slotProps.data.first.speed - speedLimit).toFixed(1) + ' ' + 'км/ч'}}
-     </template>
-    </Column>
-    <Column header="Продолжительность">
-     <template #body="slotProps">
-      {{moment(moment(slotProps.data.last.fix_date).diff(moment(slotProps.data.first.fix_date))) | moment('utc', 'HH:mm:ss')}}
-     </template>
-    </Column>
-   </DataTable>
+  <div class="col" v-if="overSpeeds">
+   <div class="v_table">
+    <div class="v_table__header">
+     <p>Дата</p>
+     <p>Продолжительность</p>
+     <p>Скорость км/ч</p>
+     <p>Расстояние, м</p>
+     <p>Средняя скорость км/ч</p>
+    </div>
+    <div class="v_table__body">
+     <overSpeedRow
+      v-for="(overSpeed, index) in overSpeeds" :key="index"
+      v-bind:over_Speed="overSpeed"
+      v-bind:over_Speed_Index="index"
+     />
+    </div>
+   </div>
   </div>
  </div>
 </template>
@@ -43,46 +26,45 @@
  import {mapGetters, mapState} from "vuex";
  import moment from 'moment'
  import downloadPdfMixin from "../../mixin/downloadPdfMixin";
-
+import overSpeedRow from "./overSpeedRow";
  export default {
   name: "overspeedRaport",
+  components: {
+   overSpeedRow
+  },
   mixins: [downloadPdfMixin],
   computed: {
    ...mapState('mapModule', ['mapInstance']),
-   ...mapGetters({
-    overSpeedRaport: 'getOverSpeedRaport',
-    speedLimitsValue: 'getSpeedLimitsValue',
-   }),
-   speedLimit() {
-    return this.subtractLimit(this.speedLimitsValue)
-   }
-
   },
-
+  props: {
+   overSpeeds: {
+    type: Array,
+    default: null
+   }
+  },
   data() {
    return {}
-  },
-
-  methods: {
-   moveToMarker(item) {
-    let marker = item.data.first;
-    let lt = marker.lt || marker.latitude;
-    let ln = marker.ln || marker.longitude;
-    this.mapInstance.flyTo([lt, ln], 14);
-   },
-
-   subtractLimit(limitValue) {
-    return +limitValue[limitValue.length - 1]
-   },
-
-   moment(date) {
-    return moment(date);
-   },
   },
 
  }
 </script>
 
 <style scoped>
+
+ .v_table{
+  width: auto;
+  margin: 0 auto;
+ }
+
+ .v_table__header{
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 1px solid #dcdcdc;
+ }
+ .v_table__header p {
+  flex-basis: 20%;
+  margin: 0 0 8px 0;
+  text-align: center;
+ }
 
 </style>

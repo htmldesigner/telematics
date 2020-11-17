@@ -4,7 +4,7 @@ export default {
  state: {
   stopRaport: null,
   overSpeedRaport: null,
-  allTrackRaport: null,
+
  },
 
  mutations: {

@@ -44,7 +44,7 @@
     </div>
    </div>
 
-   <div v-if="['group_geozone','group_overspeed', 'track'].includes(reporttype)">
+   <div v-if="['group_geozone','group_overspeed', 'track_group'].includes(reporttype)">
     <div class="row">
      <div class="col">
       <span class="title-custom">Выбрать транспортное средство:</span>
@@ -212,7 +212,7 @@
   data() {
    return {
     reportTypes: [{
-     name: "По движению/стоянкам", value: "track"
+     name: "По движению/стоянкам", value: "track_group"
     }, {
      name: "Посещение геозон групповое", value: "group_geozone"
     }, {
@@ -235,7 +235,7 @@
     geoZoneValue: null,
 
     //Data for query
-    reporttype: "group_geozone",
+    reporttype: "track_group",
     customLimit: false,
     speedLimit: 90,
     overSpeedSens: 10,
@@ -316,12 +316,10 @@
     const id = this.selectedObjectId;
     let reportParam = {
      type: "report",
-     report: "track_group",
-     objectId: 1,
-     dateFrom:'01.07.2020',
-     dateTo: '02.07.2020',
-
-     speedLimits: this.getSpeedLimitsValue.join(','),
+     report: this.reporttype,
+     objectId: this.trackId[0],
+     dateFrom: '2020-01-15',
+     dateTo: '2020-11-16',
 
      geozonevisitMinDuration: this.getGeoZoneVisitMinDuration,
 
@@ -332,7 +330,7 @@
       geozones: this.geoZoneId,
       objects: this.trackId,
       customLimit: this.customLimit,
-      speedLimit: 90,
+      speedLimits: this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1],
       overSpeedSens: this.overSpeedSens,
       minOverSpeedDuration: this.minOverSpeedDuration,
      }

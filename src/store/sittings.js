@@ -17,7 +17,7 @@ export default {
   /**
    * Set time for track loader
    */
-  long_timeIntervalStart: localStorage.getItem('long_timeIntervalStart') != null ? JSON.parse(localStorage.getItem('long_timeIntervalStart')) : moment().format("YYYY-MM-DDTHH:mm"),
+  long_timeIntervalStart: localStorage.getItem('long_timeIntervalStart') != null ? JSON.parse(localStorage.getItem('long_timeIntervalStart')) :  moment(Date.now()).subtract(1, 'd').format("YYYY-MM-DDTHH:mm"),
   long_timeIntervalEnd: localStorage.getItem('long_timeIntervalEnd') != null ? JSON.parse(localStorage.getItem('long_timeIntervalEnd')) : moment().format("YYYY-MM-DDTHH:mm"),
 
   speedLimits: null,
@@ -255,7 +255,7 @@ export default {
 
   // getSpeedLimitsColor: state => state.speedLimits.map(sp => sp.color),
   //
-  // getSpeedLimitsValue: state => state.speedLimits.map(sp => parseInt(sp.speed)),
+  getSpeedLimitsValue: state => state.speedLimits.map(sp => parseInt(sp.speed)),
 
   getMapZoom: state => {
    return state.mapZoom

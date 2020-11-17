@@ -11,10 +11,24 @@ export default {
  mutations: {
   SETOBJECTS(state, payload) {
    state.objects = Object.values(payload)
+   state.objects.forEach(el => {
+    el.lastTrack = false
+   })
   },
 
   SETOBJECTSGROUPS(state, payload) {
    state.objectsgroups = Object.values(payload)
+  },
+
+  LASTTRACK(state, payload){
+   console.log(payload)
+   state.objects.forEach(object => {
+    if (+object.id === +payload.id){
+     object.lastTrack = payload.value
+    }else {
+     object.lastTrack = false
+    }
+   })
   },
 
   UPDATEOBJECTPOSITION(state, geo) {

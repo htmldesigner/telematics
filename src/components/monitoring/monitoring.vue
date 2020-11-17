@@ -60,6 +60,7 @@
    <Column headerStyle="display:none" bodyStyle="text-align: right; width: 100px">
     <template #body="slotProps">
      <div class="d-flex justify-content-end align-items-center" v-if="!slotProps.node.data.objects">
+
       <div class="icon-watch mx-1" v-tooltip="'Следить за объектом на карте'" style="position: relative;top: -2px;">
        <input type="checkbox"
               class="d-none"
@@ -74,9 +75,15 @@
       </div>
 
 
-      <div class="mx-1" style="position: relative;top: -3px;">
-       <span class="icon-device" v-tooltip="'Трек за три часа'" @click="lastTrack(slotProps.node.data.id)">
-        <img :src="icon.track" alt="Alt">
+      <div class="mx-1" style="position: relative;top: -3px;" v-tooltip="'Трек за три часа'">
+       <span class="icon-device" :disabled="!slotProps.node.data.selected" v-tooltip="'Трек за три часа'"
+             @click="lastTrack(
+              slotProps.node.data.id,
+              slotProps.node.data.selected,
+              slotProps.node.data.lastTrack)"
+       >
+        <img v-if="slotProps.node.data.lastTrack && slotProps.node.data.selected" :src="icon.trackOn" alt="Alt">
+        <img v-else :src="icon.trackOff" alt="Alt">
        </span>
       </div>
 
@@ -109,16 +116,30 @@
     </template>
    </Column>
   </TreeTable>
+
+  <Traking
+   :dateto="dateto"
+   :datefrom="datefrom"
+   :selected-object-id="selectedObjectId"
+   :loadTracks="loadTracks"
+   @loadAfterResult="updateValue">
+   >
+  </Traking>
+
  </div>
 </template>
 
 <script>
- import {mapActions, mapGetters, mapState} from "vuex";
+ import {mapActions, mapGetters, mapState, mapMutations} from "vuex";
  import {eventBus} from "../../eventBus";
  import moment from 'moment'
+ import Traking from "../Traking";
 
  export default {
   name: "monitoring",
+  components: {
+   Traking
+  },
   data() {
    return {
     filter: '',
@@ -133,7 +154,8 @@
      list: require('@/assets/list.svg'),
      group: require('@/assets/group.svg'),
      remove: require('@/assets/remove.svg'),
-     track: require('@/assets/zig-zag.svg')
+     trackOff: require('@/assets/track.svg'),
+     trackOn: require('@/assets/track-green.svg'),
     },
 
     filters: {},
@@ -142,7 +164,13 @@
     checked: false,
     activeObjectSelector: null,
     interval: null,
-    root: null
+    root: null,
+
+    dateto: null,
+    datefrom: null,
+    selectedObjectId: null,
+    loadTracks: false,
+    lastTrackWatcher: null
    }
   },
   computed: {
@@ -164,26 +192,52 @@
     deep: true
    },
    objects: {
-    handler(objects){
+    handler(objects) {
      this.watchingObjects(objects)
     },
     deep: true
    },
    objectsgroups: {
-    handler(groups){
+    handler(groups) {
      this.watchingObjects(groups)
-    }
+    },
+    deep: true
+   },
+   lastTrackWatcher: {
+    handler(value) {
+     this.watchingObjects()
+    },
    }
   },
   methods: {
-      ...mapActions([
+
+   lastTrack(id, selected, value) {
+    if (selected) {
+     this.selectedObjectId = id
+     this.LASTTRACK({id, value: value = !value})
+     this.dateto = moment(Date.now()).format("YYYY-MM-DDTHH:mm")
+     this.datefrom = moment(Date.now()).subtract(3, 'h').format("YYYY-MM-DDTHH:mm")
+     this.loadTracks = true
+     this.lastTrackWatcher = value
+    }
+   },
+
+   updateValue() {
+    this.loadTracks = false
+   },
+
+   ...mapActions([
     'monitorObject',
     'selectObject',
     'selectObjectGroup',
     'getObjectsLastPosition'
    ]),
 
-   watchingObjects(groups, objects){
+   ...mapMutations([
+    'LASTTRACK',
+   ]),
+
+   watchingObjects(groups, objects) {
     this.root = this.$service.objectsArrayCreate(groups = this.objectsgroups, objects = this.objects);
    },
 
@@ -443,13 +497,7 @@
     } else {
      clearInterval(this.interval)
     }
-   },
-
-
-   lastTrack(id){
-    console.log(Date.now(), id)
    }
-
   },
 
   mounted() {

@@ -56,10 +56,6 @@
     <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
                 style="height: calc(100vh - 40px)">
      <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto;">
-<!--      <monitoring ref="monitoring" @modalObjectList="modalObjectListRun" v-show="currentComponent === 'monitoring'"/>-->
-<!--      <tracker v-show="currentComponent === 'tracker'"/>-->
-<!--      <raports v-show="currentComponent === 'raports'"/>-->
-<!--      <geozone v-show="currentComponent === 'geozone'"/>-->
             <keep-alive>
              <component
               :is="currentComponent"
@@ -75,14 +71,17 @@
         <llmap ref="llmap"></llmap>
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
        </pane>
-              <pane v-if="currentLink === 'tracker'"
-                    mix-size="90" min-size="5">
-               <trackerRaport ref="trackerRaport"/>
+
+              <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
+                    max-size="90" min-size="5">
+               <trackerRaport ref="trackerRaport" style="overflow-y: scroll"/>
               </pane>
+
               <pane v-if="currentLink === 'raports'"
-                    mix-size="90" style="background-color:#f5f5f5 !important; overflow: scroll">
+                    max-size="70" style="overflow-y: scroll">
                <raportPanel/>
               </pane>
+
       </splitpanes>
 
      </pane>
@@ -103,7 +102,7 @@
  import geozone from "../components/geozone/geozone";
  import drawnew from "../components/drawnew/drawnew";
  import llmap from '../components/llmap';
- import trackerRaport from "../components/tracker/trackerRaport";
+ import trackerRaport from "../components/tracker/trackerPanel";
  import raportPanel from "../components/raport/raportPanel";
  import modalOL from "../components/monitoring/modalObjectLoader";
  import {Splitpanes, Pane} from 'splitpanes'
@@ -132,7 +131,8 @@
     objects: 'getObjects',
     getPaneSize: 'getPaneSize',
     getCurrentComponent: 'getCurrentComponent',
-    UserInfo: 'getUserInfo'
+    UserInfo: 'getUserInfo',
+    getOverSpeedTrack: 'getOverSpeedTrack'
    }),
    currentLink: {
     set(val) {

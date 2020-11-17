@@ -2,7 +2,7 @@
  <div class="player">
   <ul class="routes-list">
    <li class="tracker-result"
-       v-for="(track, index) in 3"
+       v-for="(track, index) in 1"
        :key="index"
    >
 
