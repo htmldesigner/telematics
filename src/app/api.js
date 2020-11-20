@@ -62,6 +62,7 @@ export default {
 		return axios(this.authPost('/mobile/authorization', user))
 	},
 
+	// Load objects
 	getObjectsWorkSet() {
 		return axios(this.dataGet("/object/getgrouped"));
 	},
@@ -86,12 +87,44 @@ export default {
 		params.isIndicatorRequired =false;
 		return axios(this.dataPost('/object/listGroups',params))
 	},
+
+
+// Load geoZone
+	getGeozonesWorkSet() {
+		return axios(this.dataGet("/geozone/getgrouped"));
+	},
+	addGeozoneToWorkset(params) {
+		return axios(this.dataPost('/geozone/addToWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	removeGeozoneFromWorkset(params) {
+		return axios(this.dataPost('/geozone/removeFromWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	listGeozones(params) {
+		params.isIndicatorRequired =false;
+		return axios(this.dataPost('/geozone/listGeozones', params))
+	},
+	listGeozoneGroups(params) {
+		params.isIndicatorRequired =false;
+		return axios(this.dataPost('/geozone/listGroups',params))
+	},
+	addGeozoneGroupToWorkset(params) {
+		return axios(this.dataPost('/geozone/addGroupToWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+	removeGeozoneGroupFromWorkset(params) {
+		return axios(this.dataPost('/geozone/removeGroupFromWorkset', { ids: params, isIndicatorRequired:false }))
+	},
+
+
+
+
+
 	getGeozone(id) {
 		return axios(this.dataGet("/geozone/get/"+id));
 	},
 	getGeozones() {
 		return axios(this.dataGet("/geozone/getgrouped/"));
 	},
+
 	getUserInfo() {
 		return axios(this.dataGet("/user/getUserInfo/"));
 	},

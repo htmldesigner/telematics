@@ -2,172 +2,175 @@
  <div class="raport-container  mt-3 px-2">
 
 
-   <div class="row mb-3">
+  <div class="row mb-3">
+   <div class="col">
+    <div class="raportSelector d-flex align-items-center justify-content-between">
+     <label for="raportSelector1">Отчет:</label>
+     <v-select
+      id="raportSelector1"
+      class="w-75"
+      :options="reportTypes"
+      :reduce="report => report.value"
+      label="name"
+      v-model="reporttype"
+      :clearable="false"
+     >
+     </v-select>
+    </div>
+   </div>
+  </div>
+
+  <hr>
+
+  <div class="row" v-if="['group_overspeed'].includes(reporttype)">
+   <div class="col">
+    <div class="custom-control custom-switch">
+     Ручное ограничение:
+     <input type="checkbox" class="custom-control-input" v-model="customLimit"
+            id="customLimitSwitchReport"/>
+     <label class="custom-control-label" for="customLimitSwitchReport"></label>
+    </div>
+   </div>
+  </div>
+
+  <div class="row mt-2 mb-0" v-if="['group_overspeed'].includes(reporttype) && customLimit">
+   <div class="col">
+    <label class="mt-1 mb-0" for="speedLimit">Лимит скорости, км/ч:</label>
+    <input type="text" class="form-control form-control-custom" id="speedLimit" v-model="speedLimit"/>
+    <label class="mt-1 mb-0" for="speedError">Погрешность, км/ч:</label>
+    <input type="text" class="form-control form-control-custom" id="speedError" v-model="overSpeedSens"/>
+    <label class="mt-1 mb-0" for="minimumDuration">Минимальная длительность превышения, сек:</label>
+    <input type="text" class="form-control form-control-custom" id="minimumDuration" v-model="minOverSpeedDuration"/>
+   </div>
+  </div>
+
+  <div v-if="['group_geozone','group_overspeed', 'track_group'].includes(reporttype)">
+   <div class="row">
     <div class="col">
-     <div class="raportSelector d-flex align-items-center justify-content-between">
-      <label for="raportSelector1">Отчет:</label>
+     <span class="title-custom">Выбрать транспортное средство:</span>
+     <div class="multi-selector d-flex align-items-center justify-content-between">
+      <TreeTable
+       class="treetable-custom-control"
+       :value="root"
+       sortMode="single"
+       selectionMode="checkbox"
+       :filters="filters"
+       :expandedKeys="expandedKeys"
+       filterMode="lenient"
+       :selectionKeys.sync="selectedKeys"
+       @node-select="onTrackSelect"
+       @node-unselect="onTrackUnselect"
+      >
+       <template>
+        <InputText class="mb-3" v-model="filters['name']" placeholder="Введите название, IMEI, регномер"
+                   style="width: 100%; height: 35px"/>
+       </template>
+
+       <Column field="name" :expander="true" filterMatchMode="contains">
+        <template #body="slotProps">
+         {{ slotProps.node.data.name }}
+        </template>
+       </Column>
+      </TreeTable>
+     </div>
+    </div>
+   </div>
+   <hr>
+  </div>
+
+  <div v-if="['group_geozone', 'geozone','geozoneoverspeed','group_overspeed'].includes(reporttype)">
+   <div class="row">
+    <div class="col">
+     <span class="title-custom">Выбрать геозону:</span>
+     <div class="multi-selector d-flex align-items-center justify-content-between">
+
+      <TreeTable
+       class="treetable-custom-control"
+       :value="geoZone"
+       sortMode="single"
+       selectionMode="checkbox"
+       :filters="filtersZone"
+       :expandedKeys="expandedKeysZone"
+       filterMode="lenient"
+       :selectionKeys.sync="selectedKeysZone"
+       @node-select="onGeoZoneSelect"
+       @node-unselect="onGeoZoneUnselect"
+      >
+       <template>
+        <InputText class="mb-3" v-model="filtersZone['name']" placeholder="Выберете геозону или группу геозон"
+                   style="width: 100%; height: 35px"/>
+       </template>
+
+       <Column field="name" :expander="true" filterMatchMode="contains">
+        <template #body="slotProps">
+         {{ slotProps.node.data.name }}
+        </template>
+       </Column>
+      </TreeTable>
+     </div>
+    </div>
+   </div>
+   <hr>
+  </div>
+
+  <div v-if="['geozoneoverspeed'].includes(reporttype)">
+   <div class="row mt-3">
+    <div class="col">
+     <span class="title-custom">Выбрать транспортное средство:</span>
+     <div class="multi-selector d-flex align-items-center justify-content-between">
       <v-select
-       id="raportSelector1"
-       class="w-75"
-       :options="reportTypes"
-       :reduce="report => report.value"
+       style="width: 100%"
+       :options="Object.values(this.objects)"
+       :reduce="obj => obj.id"
        label="name"
-       v-model="reporttype"
+       v-model="selectedObjectId"
        :clearable="false"
       >
       </v-select>
+
      </div>
     </div>
    </div>
-
    <hr>
+  </div>
 
-   <div class="row" v-if="['group_overspeed'].includes(reporttype)">
-    <div class="col">
-     <div class="custom-control custom-switch">
-      Ручное ограничение:
-      <input type="checkbox" class="custom-control-input" v-model="customLimit"
-             id="customLimitSwitchReport"/>
-      <label class="custom-control-label" for="customLimitSwitchReport"></label>
+  <div class="row">
+   <div class="col">
+    <span class="title-custom">Отчет за периуд:</span>
+
+    <div class="form-group row">
+     <label for="example-datetime-local-input1" class="col-2 col-form-label">От:</label>
+     <div class="col-10">
+      <input class="form-control form-control-custom" type="datetime-local" v-model="datefrom"
+             id="example-datetime-local-input1">
      </div>
     </div>
-   </div>
 
-   <div class="row mt-2 mb-0" v-if="['group_overspeed'].includes(reporttype) && customLimit">
-    <div class="col">
-     <label class="mt-1 mb-0" for="speedLimit">Лимит скорости, км/ч:</label>
-     <input type="text" class="form-control form-control-custom" id="speedLimit" v-model="speedLimit"/>
-     <label class="mt-1 mb-0" for="speedError">Погрешность, км/ч:</label>
-     <input type="text" class="form-control form-control-custom" id="speedError" v-model="overSpeedSens"/>
-     <label class="mt-1 mb-0" for="minimumDuration">Минимальная длительность превышения, сек:</label>
-     <input type="text" class="form-control form-control-custom" id="minimumDuration" v-model="minOverSpeedDuration"/>
-    </div>
-   </div>
-
-   <div v-if="['group_geozone','group_overspeed', 'track_group'].includes(reporttype)">
-    <div class="row">
-     <div class="col">
-      <span class="title-custom">Выбрать транспортное средство:</span>
-      <div class="multi-selector d-flex align-items-center justify-content-between">
-       <TreeTable
-        class="treetable-custom-control"
-        :value="root"
-        sortMode="single"
-        selectionMode="checkbox"
-        :filters="filters"
-        :expandedKeys="expandedKeys"
-        filterMode="lenient"
-        :selectionKeys.sync="selectedKeys"
-        @node-select="onTrackSelect"
-        @node-unselect="onTrackUnselect"
-       >
-        <template>
-         <InputText class="mb-3" v-model="filters['name']" placeholder="Введите название, IMEI, регномер"
-                    style="width: 100%; height: 35px"/>
-        </template>
-
-        <Column field="name" :expander="true" filterMatchMode="contains">
-         <template #body="slotProps">
-          {{ slotProps.node.data.name }}
-         </template>
-        </Column>
-       </TreeTable>
-      </div>
+    <div class="form-group row">
+     <label for="example-datetime-local-input2" class="col-2 col-form-label">До:</label>
+     <div class="col-10">
+      <input class="form-control form-control-custom" type="datetime-local" v-model="dateto"
+             id="example-datetime-local-input2">
      </div>
     </div>
-    <hr>
+
    </div>
+  </div>
+  <div class="row">
+   <div class="col d-flex justify-content-end">
+    <button class="btn-custom-outline mr-3 mt-2">
+     <span>Очистить</span>
+    </button>
+    <button
 
-   <div v-if="['group_geozone', 'geozone','geozoneoverspeed','group_overspeed'].includes(reporttype)">
-    <div class="row">
-     <div class="col">
-      <span class="title-custom">Выбрать геозону:</span>
-      <div class="multi-selector d-flex align-items-center justify-content-between">
+     class="btn-custom mt-2"
+     @click="loadData"
+    >
+     <span>Выполнить</span>
+    </button>
 
-       <TreeTable
-        class="treetable-custom-control"
-        :value="geoZone"
-        sortMode="single"
-        selectionMode="checkbox"
-        :filters="filtersZone"
-        :expandedKeys="expandedKeysZone"
-        filterMode="lenient"
-        :selectionKeys.sync="selectedKeysZone"
-        @node-select="onGeoZoneSelect"
-        @node-unselect="onGeoZoneUnselect"
-       >
-        <template>
-         <InputText class="mb-3" v-model="filtersZone['name']" placeholder="Выберете геозону или группу геозон"
-                    style="width: 100%; height: 35px"/>
-        </template>
-
-        <Column field="name" :expander="true" filterMatchMode="contains">
-         <template #body="slotProps">
-          {{ slotProps.node.data.name }}
-         </template>
-        </Column>
-       </TreeTable>
-      </div>
-     </div>
-    </div>
-    <hr>
    </div>
-
-   <div v-if="['geozoneoverspeed'].includes(reporttype)">
-    <div class="row mt-3">
-     <div class="col">
-      <h6 class="mb-3 font-weight-bold text-secondary">Выбрать транспортное средство:</h6>
-      <div class="multi-selector d-flex align-items-center justify-content-between">
-       <v-select
-        style="width: 100%"
-        :options="options"
-        :reduce="obj => obj.id"
-        label="name"
-        v-model="selectedObjectId"
-        :clearable="false"
-       >
-       </v-select>
-
-      </div>
-     </div>
-    </div>
-    <hr>
-   </div>
-
-   <div class="row">
-    <div class="col">
-     <span class="title-custom">Отчет за периуд:</span>
-
-     <div class="form-group row">
-      <label for="example-datetime-local-input1" class="col-2 col-form-label">От:</label>
-      <div class="col-10">
-       <input class="form-control form-control-custom" type="datetime-local" v-model="datefrom" id="example-datetime-local-input1">
-      </div>
-     </div>
-
-     <div class="form-group row">
-      <label for="example-datetime-local-input2" class="col-2 col-form-label">До:</label>
-      <div class="col-10">
-       <input class="form-control form-control-custom" type="datetime-local" v-model="dateto" id="example-datetime-local-input2">
-      </div>
-     </div>
-
-    </div>
-   </div>
-   <div class="row">
-    <div class="col d-flex justify-content-end">
-     <button class="btn-custom-outline mr-3 mt-2">
-      <span>Очистить</span>
-     </button>
-     <button
-
-      class="btn-custom mt-2"
-      @click="loadData"
-     >
-      <span>Выполнить</span>
-     </button>
-    </div>
-   </div>
+  </div>
 
  </div>
 </template>
@@ -200,15 +203,26 @@
     getOverSpeedMinDuration: 'getOverSpeedMinDuration'
    }),
 
-   root(){
+   root() {
     return this.$service.objectsArrayCreate(this.objectsgroups, this.objects)
    },
 
-   geoZone(){
+   geoZone() {
     return this.$service.objectsArrayCreate(this.geozonesgroups, this.geozones)
    }
 
   },
+
+
+  watch: {
+   objects() {
+    if (Object.keys(this.objects).length > 0) {
+     let key = Object.keys(this.objects)[0];
+     this.selectedObjectId = this.objects[key].id;
+    }
+   }
+  },
+
   data() {
    return {
     reportTypes: [{
@@ -223,8 +237,6 @@
 
     filters: {},
     filtersZone: {},
-
-    options: null,
 
     selectedKeys: null,
     expandedKeys: {},
@@ -317,9 +329,9 @@
     let reportParam = {
      type: "report",
      report: this.reporttype,
-     objectId: this.trackId[0],
-     dateFrom: '2020-01-15',
-     dateTo: '2020-11-16',
+     objectId: id,
+     dateFrom: this.datefrom,
+     dateTo: this.dateto,
 
      geozonevisitMinDuration: this.getGeoZoneVisitMinDuration,
 
@@ -328,25 +340,25 @@
 
      parameters: {
       geozones: this.geoZoneId,
-      objects: this.trackId,
+      objects: this.trackId.length ? this.trackId : [],
       customLimit: this.customLimit,
-      speedLimits: this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1],
-      overSpeedSens: this.overSpeedSens,
-      minOverSpeedDuration: this.minOverSpeedDuration,
+      speedLimits: +this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1],
+      overSpeedSens: +this.overSpeedSens,
+      minOverSpeedDuration: +this.minOverSpeedDuration,
      }
     };
-    switch(this.reporttype){
+    switch (this.reporttype) {
      case "geozone":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
       break;
      case "track":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
       break;
      case "track_group":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
       break;
      case "overspeed":
-      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length-1];
+      reportParam.speedLimits = this.getSpeedLimitsValue[this.getSpeedLimitsValue.length - 1];
       break;
      case "overspeedgrad":
       break;
@@ -367,14 +379,7 @@
   },
 
   async mounted() {
-   if (this.objects) {
-    this.options = Object.values(this.objects)
-   }
 
-   if (Object.keys(this.objects).length > 0) {
-    let key = Object.keys(this.objects)[0];
-    this.selectedObjectId = this.objects[key].id;
-   }
   },
  }
 

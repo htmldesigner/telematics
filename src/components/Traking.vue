@@ -504,10 +504,10 @@
        }
       )
      }
-
+     let myRenderer = L.canvas({ padding: 0.5 });
      let pointData = L.geoJSON(pointCollection, {
       pointToLayer: function (feature, latlng) {
-       return L.circleMarker(latlng, geoJsonPointOptions);
+       return L.circleMarker(latlng, geoJsonPointOptions, {myRenderer});
       }, onEachFeature: onEachFeature
      })
 
@@ -526,16 +526,16 @@
       "type": "FeatureCollection",
       "features": this.directionCollection.filter((point, index) => {
         if (zoom > 9 && zoom <= 11) {
-         return index % 37 === 0
+         return index % 81 === 0
         }
         if (zoom > 11 && zoom <= 13) {
-         return index % 37 === 0
+         return index % 71 === 0
         }
         if (zoom > 13 && zoom <= 15) {
-         return index % 17 === 0
+         return index % 61 === 0
         }
         if (zoom > 15) {
-         return index % 4 === 0
+         return index % 51 === 0
         }
        }
       )

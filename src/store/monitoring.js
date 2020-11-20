@@ -20,12 +20,12 @@ export default {
    state.objectsgroups = Object.values(payload)
   },
 
-  LASTTRACK(state, payload){
+  LASTTRACK(state, payload) {
    console.log(payload)
    state.objects.forEach(object => {
-    if (+object.id === +payload.id){
+    if (+object.id === +payload.id) {
      object.lastTrack = payload.value
-    }else {
+    } else {
      object.lastTrack = false
     }
    })
@@ -50,7 +50,7 @@ export default {
   SELECT_OBJECT_GROUP(state, payload) {
    let objId = []
    state.objectsgroups.forEach(el => {
-    if(el.id === payload.id){
+    if (el.id === payload.id) {
      el.selected = payload.value
      objId = el.objects
     }
@@ -114,7 +114,7 @@ export default {
           })
           commit('SETOBJECTS', item.objects)
          })
-        }else {
+        } else {
          commit('SETOBJECTS', item.objects)
         }
        })
@@ -173,8 +173,6 @@ export default {
     state.objectsgroups.forEach(el => {
      el.id === params ? objectsId = el.objects : objectsId = []
     })
-
-
 
     objectsId.forEach(el => {
      remove(el)

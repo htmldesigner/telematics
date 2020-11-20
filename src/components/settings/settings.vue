@@ -181,6 +181,12 @@
   data() {
    return {
     object: [],
+    defaultSpeedIndex: [
+     {"speed":"0","color":"#00ff1e"},
+     // {"speed":"40","color":"#0000ff"},
+     // {"speed":"60","color":"#e1ff00"},
+     // {"speed":"70","color":"#ff0000"}
+    ]
    }
   },
   computed: {
@@ -279,7 +285,7 @@
 
    saveConfig() {
     this.saveState({
-     speedindex: this.speedLimits,
+     speedindex: this.speedLimits ? this.speedLimits : this.defaultSpeedIndex,
      isRealTime: this.isRealTime,
      stopMinradius: this.stopMinRadius,
      stopMinduration: this.stopMinDuration,
@@ -293,7 +299,6 @@
    deleteSpeed(index) {
     let self = this;
     this.speedLimits.splice(index, 1);
-    console.log(this.speedLimits);
     Vue.nextTick(function () {
      self.$forceUpdate()
     });
@@ -310,7 +315,7 @@
    },
 
    addSpeed() {
-    this.speedLimits.push({"speed": this.getMaxSpeed() + 5, color: "#0000ff"})
+    this.speedLimits.push({"speed": this.getMaxSpeed() + 5, "color": "#0000ff"})
    },
 
   },

@@ -74,7 +74,6 @@
        </label>
       </div>
 
-
       <div class="mx-1" style="position: relative;top: -3px;" v-tooltip="'Трек за три часа'">
        <span class="icon-device" :disabled="!slotProps.node.data.selected" v-tooltip="'Трек за три часа'"
              @click="lastTrack(
@@ -86,7 +85,6 @@
         <img v-else :src="icon.trackOff" alt="Alt">
        </span>
       </div>
-
 
       <div class="mx-1" style="position: relative;top: -3px;">
        <span class="icon-device" v-tooltip="'Последнее состояние: '+ statusClassText(slotProps.node) +' '">

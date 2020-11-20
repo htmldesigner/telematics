@@ -79,12 +79,14 @@ export default {
    commit('clearError')
    commit('setLoading', true)
    try {
-    const response = await api.getGeozones()
+    const response = await api.getGeozonesWorkSet()
     const items = response.data.data
     state.selectedGeozone = []
     commit('SETGEOZONESGROUPS', items.geozonesgroups)
     commit('SETGEOZONES', items.geozones)
     commit('setLoading', false)
+    console.log(state.geozones)
+    console.log(state.geozonesgroups)
    } catch (error) {
     commit('setLoading', false)
     commit('setError', `Нет объектов ${error}`)
@@ -157,7 +159,72 @@ export default {
 
   unselectGeozone({commit}, id) {
    commit('UNSELECT_GEOZONE', id)
-  }
+  },
+
+
+  async addGeoZoneToWorkSet({commit, state}, params) {
+   try {
+    await api.addGeozoneToWorkset(params)
+    console.log(this.state.geozones)
+   } catch (error) {
+    commit('setError', 'error conection')
+    throw error
+   }
+  },
+
+  async removeGeoZoneFromWorkSet({commit, state}, params) {
+   try {
+    await api.removeGeozoneFromWorkset(params)
+    state.geozones = Object.values(state.geozones).filter(el => {
+     return el.id !== params[0]
+    })
+   } catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async addGroupGeoZoneToWorkSet({commit}, params) {
+   try {
+    await api.addGeozoneGroupToWorkset(params)
+   } catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async removeGroupGeoZoneFromWorkSet({commit, state}, params) {
+   try {
+
+    state.geozonesgroups = state.geozonesgroups.filter(el => {
+     return el.id !== params[0]
+    })
+
+    await api.removeGeozoneGroupFromWorkset(params)
+
+    let objectsId = []
+
+    state.geozonesgroups.forEach(el => {
+     el.id === params ? objectsId = el.geozones : objectsId = []
+    })
+
+    objectsId.forEach(el => {
+     remove(el)
+    })
+
+    function remove(id) {
+     const index = state.geozones.findIndex(n => n.id === id);
+     if (index !== -1) {
+      state.objects.splice(index, 1);
+     }
+    }
+
+   } catch (error) {
+    commit('setError', error)
+    throw error
+   }
+  },
+
 
  },
 

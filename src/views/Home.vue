@@ -56,13 +56,14 @@
     <splitpanes class="default-theme" @resize="paneSize = $event[0].size, paneSizeResize()"
                 style="height: calc(100vh - 40px)">
      <pane min-size="15" max-size="50" :size="paneSize" style="overflow-y: auto;">
-            <keep-alive>
-             <component
-              :is="currentComponent"
-              @on-Action="onAction"
-              @modalObjectList="modalObjectListRun"
-             ></component>
-            </keep-alive>
+      <keep-alive>
+       <component
+        :is="currentComponent"
+        @on-Action="onAction"
+        @modalObjectList="modalObjectListRun"
+        @modalGeoZoneList="modalGeoZoneListRun"
+       ></component>
+      </keep-alive>
      </pane>
 
      <pane min-size="60" :size="100 - paneSize" max-size="100">
@@ -70,17 +71,19 @@
        <pane>
         <llmap ref="llmap"></llmap>
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
+        <modalGL v-if="modalGeoZoneLoader" @close="modalGeoZoneLoader = false"></modalGL>
        </pane>
 
-              <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
-                    max-size="90" min-size="5">
-               <trackerRaport ref="trackerRaport" style="overflow-y: scroll"/>
-              </pane>
+       <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
+             max-size="90" min-size="5">
+        <trackerRaport ref="trackerRaport" style="overflow-y: scroll"/>
+       </pane>
 
-              <pane v-if="currentLink === 'raports'"
-                    max-size="70" style="overflow-y: scroll">
-               <raportPanel/>
-              </pane>
+       <pane
+        v-if="currentLink === 'raports' && (getTrackGroup || getGroupGeoZone || getGroupOverSpeed || getGeoZoneOverSpeed)"
+        max-size="100" min-size="5" style="overflow-y: scroll">
+        <raportPanel/>
+       </pane>
 
       </splitpanes>
 
@@ -105,6 +108,7 @@
  import trackerRaport from "../components/tracker/trackerPanel";
  import raportPanel from "../components/raport/raportPanel";
  import modalOL from "../components/monitoring/modalObjectLoader";
+ import modalGL from "../components/geozone/modalGeoZoneLoader";
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
@@ -124,6 +128,7 @@
    Splitpanes,
    Pane,
    modalOL,
+   modalGL,
    Loader,
   },
   computed: {
@@ -132,7 +137,13 @@
     getPaneSize: 'getPaneSize',
     getCurrentComponent: 'getCurrentComponent',
     UserInfo: 'getUserInfo',
-    getOverSpeedTrack: 'getOverSpeedTrack'
+    getOverSpeedTrack: 'getOverSpeedTrack',
+
+    getTrackGroup: 'getTrackGroup',
+    getGroupGeoZone: 'getGroupGeoZone',
+    getGroupOverSpeed: 'getGroupOverSpeed',
+    getGeoZoneOverSpeed: 'getGeoZoneOverSpeed',
+
    }),
    currentLink: {
     set(val) {
@@ -174,6 +185,7 @@
    return {
     showModal: false,
     modalObjectLoader: false,
+    modalGeoZoneLoader: false,
     load: true,
    }
   },
@@ -214,6 +226,9 @@
    modalObjectListRun() {
     this.modalObjectLoader = !this.modalObjectLoader
    },
+   modalGeoZoneListRun() {
+    this.modalGeoZoneLoader = !this.modalGeoZoneLoader
+   },
 
    logout() {
     this.$store.dispatch('logout').then(() => {
@@ -225,8 +240,7 @@
 
 
   async mounted() {
-
-   if(this.isUserLoggedIn){
+   if (this.isUserLoggedIn) {
     await this.$store.dispatch('getUserInfo')
     await this.$store.dispatch('loadObjects')
     await this.$store.dispatch('loadGeozones')

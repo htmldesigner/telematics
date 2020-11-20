@@ -1,91 +1,157 @@
-import Vue from 'vue'
 import api from "@/app/api"
+
 export default {
  state: {
-  stopRaport: null,
-  overSpeedRaport: null,
-
+  trackGroup: null,
+  groupGeoZone: null,
+  groupOverSpeed: null,
+  geoZoneOverSpeed: null
  },
 
  mutations: {
-  SET_STOP_RAPORT(state, payload) {
-   state.stopRaport = Object.map(payload, el => {
-    return el.data
-   })
+  CLEAR_ALL_RAPORT(state, payload) {
+   state.trackGroup = payload,
+    state.groupGeoZone = payload,
+    state.groupOverSpeed = payload,
+    state.geoZoneOverSpeed = payload
   },
-  SET_OVER_SPEED_RAPORT(state, payload) {
-   state.overSpeedRaport = Object.map(payload, el => {
-    return el.data
-   })
+  /**
+   * По движению/стоянкам
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_TRACK_GROUP(state, payload) {
+   state.trackGroup = Array.from(new Set([payload]))
+   console.log(state.trackGroup)
   },
 
-  SET_ALL_TRACK_RAPORT(state, payload) {
-   state.allTrackRaport = { ...state.allTrackRaport, track: payload };
+  /**
+   *Посещение геозон групповое
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_GROUP_GEOZONE(state, payload) {
+   state.groupGeoZone = Array.from(new Set([payload]))
+   console.log(state.groupGeoZone)
   },
 
-  CLEAR_TRACK_RAPORT_STOP(state, payload) {
-   state.stopRaport = null
+  /**
+   * Превышение скорости групповое
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_GROUP_OVERSPEED(state, payload) {
+   state.groupOverSpeed = Array.from(new Set([payload]))
+   console.log(state.groupOverSpeed)
   },
-  CLEAR_TRACK_RAPORT_OVERSPEED(state, payload) {
-   state.overSpeedRaport = null
+
+  /**
+   * Превышение скорости в геозонах
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_GEOZONEOVERSPEED(state, payload) {
+   state.geoZoneOverSpeed = Array.from(new Set([payload]))
+   console.log(state.geoZoneOverSpeed)
   },
-  CLEAR_TRACK_ALL_RAPORT(state, payload) {
-   state.overSpeedRaport = null,
-    state.stopRaport = null
-  }
  },
 
  actions: {
-  setStopRaport({commit}, payload) {
-   commit('SET_STOP_RAPORT', payload)
-  },
-  setOverSpeedRaport({commit}, payload) {
-   commit('SET_OVER_SPEED_RAPORT', payload)
-  },
-  setAllTrackRaport({commit, getters}, payload) {
-  let objInfo = {...getters.getObjects[payload.objectId]}
-  let track = payload
-  track.name = objInfo.name
-  track.imei = objInfo.imei
-  track.reg_number =  objInfo.reg_number
-   commit('SET_ALL_TRACK_RAPORT', track)
-  },
-  clearTrackRaportStop({commit}, payload) {
-   commit('CLEAR_TRACK_RAPORT', payload)
-  },
-  clearTrackRaportOverSpeed({commit}, payload) {
-   commit('CLEAR_TRACK_RAPORT', payload)
-  },
-  clearTrackRaport({commit}, payload) {
-   commit('CLEAR_TRACK_ALL_RAPORT')
-  },
-
   async loadRaport({commit}, query) {
    commit('clearError')
    commit('setLoading', true)
    try {
-    let response =  await api.serviceQuery(query)
+    let response = await api.serviceQuery(query)
+
+    switch (response.data.data[0].data.report) {
+
+     case "group_overspeed":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_GROUP_OVERSPEED', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки Превышение скорости групповое')
+       return
+      }
+      break;
+
+     case "track_group":
+      if (response.data.data[0].data?.data) {
+       commit('SET_TRACK_GROUP', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки По движению/стоянкам')
+       return
+      }
+      break;
+
+     case "group_geozone":
+      if (response.data.data[0].data?.data) {
+       commit('SET_GROUP_GEOZONE', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки Посещение геозон групповое')
+       return
+      }
+      break;
+
+     case "geozoneoverspeed":
+      if (response.data.data[0].data?.data.length) {
+
+       let getDevice = this.state.monitoring.objects.filter(el => el.id === response.data.data[0].objectId).map(
+        el => {
+         return {name: el.name, device_id: el.device_id}
+        }
+       )
+
+       commit('SET_GEOZONEOVERSPEED', Object.assign({}, response.data.data[0].data, ...getDevice.flat()))
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки Превышение скорости в геозонах')
+       return
+      }
+      break;
+     default:
+      commit('SET_GEOZONEOVERSPEED', null)
+      commit('SET_GROUP_GEOZONE', null)
+      commit('SET_TRACK_GROUP', null)
+      commit('SET_GROUP_OVERSPEED', null)
+    }
+
     commit('clearError')
     commit('setLoading', false)
-    console.log(response)
-    return response
+
    } catch (e) {
     commit('setLoading', false)
-    commit('setError', 'Ошибка загрузкм трека')
+    commit('setError', 'Ошибка загрузки трека')
    }
   },
 
-
+  clearAllRaport({commit}) {
+   commit('CLEAR_ALL_RAPORT', null)
+  }
  },
+
  getters: {
-  getStopRaport(state) {
-   return state.stopRaport
+  getTrackGroup(state) {
+   return state.trackGroup
   },
-  getOverSpeedRaport(state) {
-   return state.overSpeedRaport
+  getGroupGeoZone(state) {
+   return state.groupGeoZone
   },
-  getAllTrackRaport(state) {
-   return state.allTrackRaport
+  getGroupOverSpeed(state) {
+   return state.groupOverSpeed
+  },
+  getGeoZoneOverSpeed(state) {
+   return state.geoZoneOverSpeed
   }
  },
 }

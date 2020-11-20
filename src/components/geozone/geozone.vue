@@ -38,8 +38,37 @@
   >
 
    <template>
-    <InputText class="mb-3" v-model="filters['name']" placeholder="Поиск объектов" style="width: 100%; height: 35px"/>
+    <InputText class="mb-2" v-model="filters['name']" placeholder="Поиск объектов" style="width: 100%; height: 35px"/>
    </template>
+
+
+   <div class="d-flex justify-content-end">
+
+    <!--    <div class="d-flex justify-content-start" style="width: 200px;">-->
+
+    <!--     <div class="d-inline-block ml-2">-->
+    <!--      <Checkbox v-model="checked" v-tooltip="'Раскрыть все группы'" :binary="true" @click="expand"/>-->
+    <!--     </div>-->
+
+    <!--     <div style="position: relative; top: -2px" v-tooltip="'Активные объекты'">-->
+    <!--      <input type="checkbox"-->
+    <!--             class="d-none"-->
+    <!--             id="activeObjectSelector"-->
+    <!--             @click="selectAll(activeObjectSelector = !activeObjectSelector)"-->
+    <!--      >-->
+    <!--      <label for="activeObjectSelector" class="m-0">-->
+    <!--       <img v-if="activeObjectSelector && getSelectedObjects.length" :src="icon.watch" alt="Alt">-->
+    <!--       <img v-else :src="icon.notWatch" alt="Alt">-->
+    <!--      </label>-->
+    <!--     </div>-->
+    <!--    </div>-->
+
+    <div class="d-inline-block modal-object-list-ico" v-tooltip="'Геозоны'" @click="$emit('modalGeoZoneList')">
+     <img :src="icon.group" alt="Alt">
+    </div>
+
+   </div>
+
 
    <Column field="name" :expander="true" filterMatchMode="contains">
     <template #body="slotProps">
@@ -47,9 +76,30 @@
     </template>
    </Column>
 
+   <Column headerStyle="display:none" bodyStyle="text-align: right; width: 100px">
+    <template #body="slotProps">
+     <div class="d-flex justify-content-end align-items-center" v-if="!slotProps.node.data.geozones">
+             <span style="cursor: pointer; z-index: 300; position: relative;top: -2px;"
+                   v-tooltip="'Убрать из спаска'"
+                   @click="removeGeoZoneFromWorkSet([slotProps.node.data.id])">
+        <img :src="icon.remove" alt="Alt">
+       </span>
+     </div>
+     <div v-else>
+        <span style="cursor: pointer; z-index: 300; position: relative;top: -2px;"
+                 v-tooltip="'Убрать из спаска'"
+                 @click="removeGroupGeoZoneFromWorkSet([slotProps.node.data.id])">
+        <img :src="icon.remove" alt="Alt">
+       </span>
+     </div>
+
+    </template>
+   </Column>
+
+
    <Column v-if="userPermission" headerStyle="display:none" bodyStyle="text-align: right; width: 80px">
     <template #body="slotProps">
-     <div v-if="!slotProps.node.data.objects" class="d-flex">
+     <div v-if="!slotProps.node.data.geozones" class="d-flex">
       <button class="btn-custom-outline-small mx-1" title="Редактировать"
               @click.once="editGeozone(slotProps.node.data.id)">
        <img :src="icon.pencil" alt="Alt">
@@ -82,8 +132,9 @@
     value: '',
     currentGeozoneGroup: '',
     icon: {
-     remove: '/img/remove.svg',
-     pencil: '/img/pencil.svg'
+     remove: require('@/assets/remove.svg'),
+     pencil: require('@/assets/pencil.svg'),
+     group: require('@/assets/group.svg'),
     },
    }
   },
@@ -93,7 +144,7 @@
     geozones: 'getGeozones',
     geozonesgroups: 'getGeozonesGroups',
    }),
-   root(){
+   root() {
     return this.$service.objectsArrayCreate(this.geozonesgroups, this.geozones)
    }
   },
@@ -118,19 +169,32 @@
 
    onNodeSelect(node) {
     let id = node.data.id
-    if (!node.data.objects) {
+    if (!node.data.geozones) {
      this.$store.dispatch('getSelectedGeozone', id)
     } else {
      this.$store.dispatch('getSelectedGeozoneGroup', id)
     }
    },
    onNodeUnselect(node) {
-    if (node.data.objects) {
-     this.$store.dispatch('unselectGeozone', node.data.objects)
+    if (node.data.geozones) {
+     this.$store.dispatch('unselectGeozone', node.data.geozones)
     } else {
      this.$store.dispatch('unselectGeozone', node.data.id)
     }
    },
+
+
+   async removeGeoZoneFromWorkSet(id) {
+    console.log(id)
+    await this.$store.dispatch('removeGeoZoneFromWorkSet', id)
+    // await this.$store.dispatch('loadObjects')
+   },
+
+   async removeGroupGeoZoneFromWorkSet(id) {
+    await this.$store.dispatch('removeGroupGeoZoneFromWorkSet', id)
+    // await this.$store.dispatch('loadObjects')
+   },
+
 
    detectPermission(permission) {
     if (permission) {

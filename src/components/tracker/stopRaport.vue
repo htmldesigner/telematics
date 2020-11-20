@@ -43,8 +43,7 @@
 </script>
 
 <style scoped>
-
- .v_table{
+.v_table{
   width: auto;
   margin: 0 auto;
  }
@@ -59,8 +58,5 @@
  margin: 0 0 8px 0;
  text-align: center;
 }
- /*.v_table__body{*/
- /* height: 700px;*/
- /* overflow-x: scroll!important;*/
- /*}*/
+
 </style>

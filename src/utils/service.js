@@ -5,7 +5,12 @@ const objectsArrayCreate = (group, objects) => {
  for (let i in group) {
   let keyFirst = group[i].id
   let grobjects = Object.values(objects).filter(el => {
-   return group[i].objects.includes(el.id)
+   if (group[i]?.objects) {
+    return group[i].objects.includes(el.id)
+   }
+   if (group[i]?.geozones) {
+    return group[i].geozones.includes(el.id)
+   }
   })
   let prepareArray = {
    "key": 0 + '-' + keyFirst,
