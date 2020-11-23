@@ -38,20 +38,20 @@
 
    <div class="playback-toolbar d-flex align-items-center">
 
-    <div class="export-pdf mx-2">
-     <label for="inputButtonPdf11" class="m-0"><img :src="icon.pdf" alt="Alt"></label>
-     <input type="button" id="inputButtonPdf11" class="d-none" @click="downloadPdf">
-    </div>
+<!--    <div class="export-pdf mx-2">-->
+<!--     <label for="inputButtonPdf11" class="m-0"><img :src="icon.pdf" alt="Alt"></label>-->
+<!--     <input type="button" id="inputButtonPdf11" class="d-none" @click="downloadPdf">-->
+<!--    </div>-->
 
-    <div class="export-exel mx-2">
-     <label for="inputButtonExel11" class="m-0"><img :src="icon.exel" alt="Alt"></label>
-     <input type="button" id="inputButtonExel11" class="d-none">
-    </div>
+<!--    <div class="export-exel mx-2">-->
+<!--     <label for="inputButtonExel11" class="m-0"><img :src="icon.exel" alt="Alt"></label>-->
+<!--     <input type="button" id="inputButtonExel11" class="d-none">-->
+<!--    </div>-->
 
-    <div class="export-printer mx-2">
-     <label for="inputButtonPrinter11" class="m-0"><img :src="icon.printer" alt="Alt"></label>
-     <input type="button" id="inputButtonPrinter11" class="d-none">
-    </div>
+<!--    <div class="export-printer mx-2">-->
+<!--     <label for="inputButtonPrinter11" class="m-0"><img :src="icon.printer" alt="Alt"></label>-->
+<!--     <input type="button" id="inputButtonPrinter11" class="d-none">-->
+<!--    </div>-->
 
     <div class="clear mx-1">
      <button type="button" class="btn-custom-outline px-2 py-0" @click="clearRaport">

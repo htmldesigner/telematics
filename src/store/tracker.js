@@ -2,10 +2,14 @@ import api from "@/app/api"
 
 export default {
  state: {
+  playbackData: null,
   tracks: null,
   stops: null
  },
  mutations: {
+  SETPLAYBACKDATA(state, payload) {
+   state.playbackData = payload
+  },
   SETTRACK(state, payload) {
    state.tracks = payload
   },
@@ -34,6 +38,7 @@ export default {
   async clearTracksRaport({commit}){
    commit('SETSTOP', null)
    commit('SETTRACK', null)
+   // commit('SETPLAYBACKDATA', null)
   }
 
  },
@@ -43,6 +48,9 @@ export default {
   },
   getStop(state) {
    return state.stops
+  },
+  getPlayBackData(state) {
+   return state.playbackData
   }
  }
 }

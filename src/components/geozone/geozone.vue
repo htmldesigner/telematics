@@ -72,7 +72,10 @@
 
    <Column field="name" :expander="true" filterMatchMode="contains">
     <template #body="slotProps">
-     {{slotProps.node.data.name}}
+     <span
+      v-tooltip.geozones="slotProps.node.data"
+      :class="`${slotProps.node.data.geozones ? 'parent' : 'children'}`">{{ slotProps.node.data.name }}
+     </span>
     </template>
    </Column>
 

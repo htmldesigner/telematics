@@ -13,6 +13,7 @@ export default {
     let text = ''
 
     if (binding.modifiers.objects) {
+
      text = `<div class="tooltips_content">
 
     <div class="tooltips_header">
@@ -20,11 +21,31 @@ export default {
       <div class="last_contact">${binding.value.geo ? moment(binding.value.geo.fix_date).format('MM-DD-YYYY hh:mm') : ''}</div>
     </div>
     
-     <div class="address">${binding.value.address ? '<hr>' + binding.value.address + '<hr>' : ''}</div>
+     <div class="address">
+       ${binding.value.address ? '<hr>' + binding.value.address + '<hr>' : ''}
+     </div>
 
      <div class="tooltips_footer">
        ${binding.value.geo ? '<div class="speed"><span>Последняя скорость</span>' + binding.value.geo.speed + ' км/ч' + '</div>' : ''}
       ${binding.value.geo ? '<div class="coords"><span>Координаты</span>' + binding.value.geo.latitude + '<br>' + binding.value.geo.longitude + '</div>' : ''}
+     </div>
+     
+    </div>`
+
+    } else if (binding.modifiers.geozones) {
+     text = `<div class="tooltips_content">
+
+    <div class="tooltips_header">
+      <div class="name">${binding.value.name}</div>
+      <div class="color" style="background-color: ${binding.value.color}; width: 10px; height: 10px"></div>
+    </div>
+    
+    <div class="speedLimit">
+     ${binding.value.speedlimit ? '<hr>' + '<span>Ограничение скорости </span>' + binding.value.speedlimit + ' км/ч' + '<hr>' : ''}
+    </div>
+    
+     <div class="tooltips_footer">
+     
      </div>
      
     
@@ -51,20 +72,20 @@ export default {
 
   el.addEventListener('mouseout', function (event) {
    let elem = document.querySelector('.tooltips')
-   if (elem)elem.remove()
+   if (elem) elem.remove()
    // removeEventListener('mouseover', listener, false)
   })
 
  },
 
- update(el, binding, vnode){
+ update(el, binding, vnode) {
   let elem = document.querySelector('.tooltips')
-  if (elem)elem.remove()
+  if (elem) elem.remove()
  },
 
  unbind() {
   let elem = document.querySelector('.tooltips')
-  if (elem)elem.remove()
+  if (elem) elem.remove()
  }
 
 }

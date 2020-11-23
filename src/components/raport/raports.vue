@@ -158,15 +158,19 @@
   </div>
   <div class="row">
    <div class="col d-flex justify-content-end">
-    <button class="btn-custom-outline mr-3 mt-2">
-     <span>Очистить</span>
-    </button>
-    <button
 
-     class="btn-custom mt-2"
+    <button
+     class="btn-custom mr-3 mt-2"
      @click="loadData"
     >
-     <span>Выполнить</span>
+
+     <span v-if="loading">Загрузка...</span>
+     <span v-else>Выполнить</span>
+
+    </button>
+
+    <button class="btn-custom mt-2">
+     <span>Запланировать</span>
     </button>
 
    </div>
@@ -213,7 +217,6 @@
 
   },
 
-
   watch: {
    objects() {
     if (Object.keys(this.objects).length > 0) {
@@ -225,6 +228,7 @@
 
   data() {
    return {
+    loading: false,
     reportTypes: [{
      name: "По движению/стоянкам", value: "track_group"
     }, {
@@ -372,8 +376,11 @@
    loadData() {
     let query = [];
     let reportParam = this.getParam();
-    query.push(reportParam);
-    this.$store.dispatch('loadRaport', query)
+    query.push(reportParam)
+    this.loading = true
+    this.$store.dispatch('loadRaport', query).then(response => {
+     this.loading = false
+    })
    },
 
   },

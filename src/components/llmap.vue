@@ -16,7 +16,6 @@
  import Zoomslider from 'leaflet.zoomslider'
  import {eventBus} from '../eventBus'
  import mapInstance from "../store/modules/mapInstance";
-
  export default {
   name: "llmap",
   components: {},
@@ -177,29 +176,15 @@
 
    createPlaybackInstance() {
     this.map = this.mapInstance;
-    var self = this;
+    let self = this;
     // Playback options
     let playbackOptions = {
-     // layer and marker options
      tracksLayer: false,
      orientIcons: true,
-     layer: {
-      pointToLayer: function (featureData, latlng) {
-       let result = {};
-       if (featureData && featureData.properties && featureData.properties.path_options) {
-        result = featureData.properties.path_options;
-       }
-       if (!result.radius) {
-        result.radius = 1;
-       }
-       result.weight = 1;
-       return new L.CircleMarker(latlng, result);
-      }
-     },
      marker: function () {
       return {
        icon: L.icon({
-        iconUrl: '/img/navigator48.png',
+        iconUrl: require('@/assets/navigator64.png'),
         iconSize: [32, 32], // size of the icon
         shadowSize: [0, 0], // size of the shadow
         iconAnchor: [16, 16], // point of the icon which will correspond to marker's location
@@ -404,15 +389,18 @@
      let geozone = geozonesList[i];
 
      let geom = JSON.parse('{"type": "Feature", "geometry": ' + geozone.geom + ', "properties": {"id": 1, "name": "one", "color":"red"}}');
+
      let geolayer = L.geoJSON(geom, {
       style: function (feature) {
        return {color: geozone.color};
       },
-     }).bindPopup(geozone.name).addTo(this.geozonesLayer);
+     }).bindPopup(`${geozone.name} <br><hr> <span>Ограничение скорости </span> ${geozone.speedlimit} км/ч`).addTo(this.geozonesLayer);
     }
+
     if (geozonesList.length > 0) {
      this.mapInstance.flyToBounds(this.geozonesLayer.getBounds())
     }
+
    },
 
    geozonesClear() {

@@ -1,37 +1,23 @@
 <template>
- <div class="player">
+ <div class="player" v-if="getPlayBackData">
   <ul class="routes-list">
-   <li class="tracker-result"
-       v-for="(track, index) in 1"
-       :key="index"
-   >
+   <li class="tracker-result">
 
-    <div class="routes-target d-flex justify-content-between">
-     <div class="initPlayer" @click="itemInit(track.id, index)"><p>{{track.name}}</p></div>
-     <div class="route-remove mx-1">
-      <label :for="'inputRemove' + index" class="m-0 p-0">
-       <img :src="icon.remove" alt="Alt">
-      </label>
-      <input type="button" :id="'inputRemove' + index" class="d-none" @click="deleteTrack(index)">
-     </div>
-    </div>
+    <div class="routes-navigation-panel mt-2 mb-2 align-items-center d-flex" id="example">
 
-
-    <div class="routes-navigation-panel mt-2 mb-2 align-items-center d-none" :id="'example' + index">
      <div class="play-button">
-      <label :for="'inputPlay' + index" class="play-stop-icon m-0 p-0">
+      <label for="inputPlay" class="play-stop-icon m-0 p-0">
        <img v-if="play" :src="icon.pauseButton" alt="Alt">
        <img v-else :src="icon.playButton" alt="Alt">
       </label>
-      <input type="button" :id="'inputPlay' + index" class="d-none" @click="onPlayPause">
+      <input type="button" id="inputPlay" class="d-none" @click="onPlayPause">
      </div>
 
      <div class="col ">
       <Slider @change="onPlayBackSliderChange"
-              :min="0"
-              :max="500"
+              :min="sliderMin"
+              :max="sliderMax"
               v-model="comp_sliderValue"/>
-      <!--      <span style="font-size: 10px">{{comp_sliderValue | moment('MM-DD-YYYY hh:mm')}}</span>-->
      </div>
 
      <select class="mr-2" v-model="comp_sliderSpeedValue">
@@ -46,10 +32,17 @@
       <option value="500">500x</option>
       <option value="1000">1000x</option>
      </select>
+
     </div>
+
+    <div class="routes-target d-flex">
+     <div class="route-remove mx-1">
+      <span style="font-size: 12px">{{comp_sliderValue | moment('MM-DD-YYYY HH:mm')}}</span>
+     </div>
+    </div>
+
    </li>
   </ul>
-
 
  </div>
 </template>
@@ -58,33 +51,24 @@
  import {mapGetters, mapState, mapMutations, mapActions} from 'vuex';
  import moment from 'moment'
  import {eventBus} from '../eventBus'
+
  export default {
 
   name: "Player",
   components: {},
   data() {
    return {
-    mapLayers: ['track', 'stop', 'overspeed', 'overspeed2'],
-    mapTrackLayer: null,
-    currentId: null,
-    list: [],
     play: false,
-    layers: {},
-    trackLayer: new L.featureGroup(),
-    result: {
-     type: "LineString",
-     coordinates: []
-    },
-
     icon: {
      playButton: require('@/assets/play.svg'),
-     pauseButton: '/img/pause.svg',
+     pauseButton: require('@/assets/pause.svg'),
      remove: require('@/assets/remove.svg'),
     },
 
-    sliderMin: null,
-    sliderMax: null,
-    sliderValue: null,
+    sliderMin: new Date().getTime() - 10000,
+    sliderMax: new Date().getTime() + 10000,
+    sliderValue: new Date().getTime(),
+
     sliderSpeedValue: 1,
     step: 500,
    }
@@ -94,6 +78,11 @@
 
    ...mapState('mapModule', ['mapInstance']),
    ...mapState('playbackModule', ['playbackInstance']),
+
+   ...mapGetters({
+    getPlayBackData: 'getPlayBackData'
+   }),
+
    comp_sliderSpeedValue: {
     set(val) {
      this.sliderSpeedValue = val;
@@ -113,43 +102,90 @@
      return this.sliderValue
     }
    }
-
   },
+
+  watch: {
+   getPlayBackData: {
+    handler(val) {
+     this.playbackLoad(val)
+    }
+   }
+  },
+
   methods: {
 
-   ...mapActions(['removeTrackInPlayer']),
+   ...mapMutations(['SETPLAYBACKDATA']),
 
+   playbackLoad(obj) {
 
+    this.clear() // Clear playback
 
-   itemInit(id, index) {
-    let element = document.querySelectorAll('#example' + index)
-    if (element) {
-     this.list.push(element)
-    }
-    this.list.forEach(elemets => {
-     elemets.forEach(el => {
-      el.classList.remove('d-flex')
-     })
-    })
-    let elementOpen = document.querySelector('#example' + index)
+    if (obj?.length > 1) {
 
-    if (elementOpen) {
-     elementOpen.classList.add('d-flex')
+     let playbackTracks = {
+      "type": "Feature",
+      "geometry": {
+       "type": "MultiPoint",
+       "coordinates": []
+      },
+      "properties": {
+       "time": [],
+       "speed": []
+      }
+     };
+
+     let startTime = 0;
+     let endTime = 0;
+     let prev = 0;
+     for (let point of obj) {
+
+      let date = point[3];
+
+      let speed = point[2];
+      if (prev === date) {
+       continue;
+      }
+      date = moment(date).valueOf();
+      playbackTracks.geometry.coordinates.push([point[1], point[0]]);
+      playbackTracks.properties.time.push(date);
+      playbackTracks.properties.speed.push(speed);
+
+      if (startTime === 0) {
+       startTime = date;
+       endTime = date;
+      }
+      if (date > endTime) {
+       endTime = date;
+      }
+      if (date < startTime) {
+       startTime = date;
+      }
+      prev = date;
+     }
+
+     this.playbackInstance.addData(playbackTracks);
+
+     this.playbacksetup()
+
     } else {
-     elementOpen.classList.remove('d-flex')
+     console.log('showmessage', "Отсутствуют данные перемещения", 'info')
     }
-    this.trackFilterforPayer(index)
-    this.showTrack(index)
+   },
+
+   playbacksetup() {
+    let startTime = this.playbackInstance.getStartTime();
+    this.sliderMin = startTime;
+    this.sliderMax = this.playbackInstance.getEndTime();
+    this.sliderValue = startTime;
    },
 
    clear() {
     this.playbackInstance.clearData()
-    this.sliderMin = 0
-    this.sliderMax = 0
-    this.sliderValue = 0
-    this.comp_sliderSpeedValue = 1;
+    this.sliderMin = new Date().getTime() - 10000
+    this.sliderMax = new Date().getTime() + 10000
+    this.sliderValue = new Date().getTime()
+    this.comp_sliderSpeedValue = 1
     this.play = false
-    // this.result.coordinates = []
    },
 
    onPlayBackSliderChange(ms) {
@@ -180,13 +216,13 @@
      }, this.step)
     }
    },
-
-
   },
+  mounted() {
+   eventBus.$on('map-Clear', () => {
+    this.SETPLAYBACKDATA(null)
+   });
+  }
 
-  async mounted() {
-
-  },
  }
 
 
@@ -202,20 +238,21 @@
   padding: 0;
  }
 
- .routes-list{
+ .routes-list {
   padding: 0 15px;
   margin: 0;
 
  }
 
- .routes-list li{
+ .routes-list li {
   /*padding: 0 5px;*/
   list-style: none;
 
  }
 
  .tracker-result {
-  border-bottom: 1px solid #c2c2c2;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   margin-bottom: 5px;
   width: 100%;
 

@@ -51,15 +51,16 @@
    >
   </Traking>
 
-<!--  <div class="routes mt-5">-->
-<!--   <div class="row">-->
-<!--    <div class="col p-0 m-0">-->
-<!--     <div class="player">-->
-<!--      <Player ref="player"/>-->
-<!--     </div>-->
-<!--    </div>-->
-<!--   </div>-->
-<!--  </div>-->
+  <div class="routes mt-5">
+   <div class="row">
+    <div class="col p-0 m-0">
+     <div class="player">
+      <Player ref="player"/>
+     </div>
+    </div>
+   </div>
+  </div>
+
  </div>
 </template>
 

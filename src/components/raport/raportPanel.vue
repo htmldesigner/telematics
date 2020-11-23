@@ -266,8 +266,7 @@
     </TabNav>
 
    </div>
-   {{tabName}}
-   {{selected}}
+
   </div>
  </div>
 </template>

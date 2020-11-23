@@ -2,8 +2,12 @@
  <div class="v-table-row"
       @click="flyToOverSpeedPoint(over_Speed.id)"
       :id="`${over_Speed_Index + 1}`"
+      :class="`overSpeed-${over_Speed_Index + 1}`"
+
  >
-  {{over_Speed_Index + 1}}
+
+  <div :style="{backgroundColor: over_Speed.properties.color, width: 5+'px', height: 'auto', marginRight: 5+'px'}"></div>
+    {{over_Speed_Index + 1}}
   <div class="t_row row__date">{{$moment(over_Speed.properties.startTime).format('MM-DD-YYYY HH:mm')}}</div>
   <div class="t_row row__time">{{$moment.utc($moment(over_Speed.properties.endTime) - $moment(over_Speed.properties.startTime)).format('HH:mm:ss')}}</div>
   <div class="t_row row__address">{{over_Speed.properties.startSpeed}}</div>

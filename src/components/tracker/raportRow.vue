@@ -2,12 +2,12 @@
  <div class="v-table-row"
       @click="flyToStopPoint(stop_row.latitude, stop_row.longitude, stop_index + 1)"
       :id="`${stop_index + 1}`"
+      :class="`stop-${stop_index + 1}`"
  >
+  <div style="margin-right: 5px;" :class="{'overStopDuration': stop_row.duration > 300, 'notOverStopDuration': stop_row.duration < 300,}"></div>
   {{stop_index + 1}}
   <div class="t_row row__date">{{$moment.utc(stop_row.starttime).format('YYYY-MM-DD HH:mm:ss')}}</div>
-  <div class="t_row row__time"
-       :class="{'overStopDuration': stop_row.duration > 300, 'notOverStopDuration': stop_row.duration < 300,}"
-  >
+  <div class="t_row row__time">
    {{$moment.utc(stop_row.duration * 1000).format('HH:mm:ss') }}
   </div>
   <div class="t_row row__address">{{stop_row.address}}</div>
@@ -67,16 +67,20 @@
   border-bottom: 1px solid #eee;
  }
 
- .row__time.overStopDuration {
-  color: #ff0000;
+.overStopDuration {
+  background-color: red;
+  width: 5px;
+  height: auto;
  }
 
  .v-table-row.isActive{
   background-color: #eee;
  }
 
- .row__time.notOverStopDuration {
-  color: #0044fc;
+.notOverStopDuration {
+  background-color: #0044fc;
+  width: 5px;
+ height: auto;
  }
 
  .v-table-row:hover {

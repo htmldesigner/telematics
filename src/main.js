@@ -63,10 +63,8 @@ Vue.component('Row', Row);
 Vue.component('Dropdown', Dropdown);
 Vue.component('Column', Column);
 Vue.component('ColumnGroup', ColumnGroup);
-
 Vue.component('InputText', InputText);
 Vue.component('Checkbox', Checkbox);
-
 Vue.component('TabView', TabView);
 Vue.component('TabPanel', TabPanel);
 

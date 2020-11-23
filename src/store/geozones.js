@@ -85,8 +85,6 @@ export default {
     commit('SETGEOZONESGROUPS', items.geozonesgroups)
     commit('SETGEOZONES', items.geozones)
     commit('setLoading', false)
-    console.log(state.geozones)
-    console.log(state.geozonesgroups)
    } catch (error) {
     commit('setLoading', false)
     commit('setError', `Нет объектов ${error}`)
@@ -165,7 +163,6 @@ export default {
   async addGeoZoneToWorkSet({commit, state}, params) {
    try {
     await api.addGeozoneToWorkset(params)
-    console.log(this.state.geozones)
    } catch (error) {
     commit('setError', 'error conection')
     throw error

@@ -88,6 +88,7 @@
 
   computed: {
    ...mapState('mapModule', ['mapInstance']),
+   ...mapState('playbackModule', ['playbackInstance']),
    ...mapGetters({
     objects: 'getObjects',
     timeIntervalStartDate: 'getTimeIntervalStart',
@@ -99,12 +100,14 @@
   },
 
   methods: {
-   ...mapMutations(['SETTIMEINTERVALSTART', 'SETTIMEINTERVALEND', 'SETTRACK', 'SETSTOP']),
+   ...mapMutations(['SETTIMEINTERVALSTART', 'SETTIMEINTERVALEND', 'SETTRACK', 'SETSTOP', 'SETPLAYBACKDATA']),
 
    async loadTrack() {
 
     this.SETTRACK(null)
     this.SETSTOP(null)
+    this.SETPLAYBACKDATA(null)
+    this.playbackInstance.clearData()
 
     await this.trackLayer.clearLayers()
     await this.pointLayer.clearLayers()
@@ -162,8 +165,8 @@
     console.timeEnd('print-track-on-map-time')
    },
 
-
    track(serviceResult, speedLimits, currentDevice) {
+    let self = this
     if (serviceResult.queryType === "track") {
 
      let getSpeedIndex = (speed, speedLimits) => {
@@ -185,7 +188,7 @@
      let previousGeoZones = []
      let distanceSum = 0
      let maxSpeed = 0
-
+     let forindex = 0;
      let id = 1
 
      let speedList = []
@@ -200,11 +203,14 @@
      this.pointCollection = pointsList
      this.directionCollection = directionList
 
-
      if (serviceResult.data.length) {
-      serviceResult.data.forEach((element, index, currentArray) => {
 
-       let [lt, ln, speed, fix_date, course, distance, geoZones_id] = element
+      //Data for playback
+      this.SETPLAYBACKDATA(serviceResult.data)
+
+      serviceResult.data.forEach((element, index, currentArray) => {
+       forindex++
+       let [lt, ln, speed, fix_date, course, distance, geoZonesId, geoZonesNames] = element
 
        if (maxSpeed < speed) {
         maxSpeed = speed;
@@ -233,6 +239,7 @@
            "properties": {
             "currentDevice": currentDevice,
             "speedIndex": speedIndex,
+            "color": this.getSpeedLimits[speedIndex].color,
             "startTime": startTime,
             "endTime": fix_date,
             "startSpeed": startSpeed,
@@ -254,31 +261,38 @@
          startSpeed = speed;
          speedIndex = getSpeedIndex(speed, speedLimits)
         }
-
-        // let diff = moment(fix_date).diff(moment(startTime));
-        // let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60))
-        //
-        // speedList.push(
-        //  {
-        //   "type": "Feature",
-        //   "properties": {
-        //    "currentDevice": currentDevice,
-        //    "speedIndex": speedIndex,
-        //    "startTime": startTime,
-        //    "endTime": fix_date,
-        //    "startSpeed": startSpeed,
-        //    "endSpeed": speed,
-        //    "distance": distanceSum,
-        //    "maxSpeed": maxSpeed,
-        //    "avgSpeed": avgSpeed,
-        //   },
-        //   "geometry": {
-        //    "type": "LineString",
-        //    "coordinates": speedGroup
-        //   }
-        //  }
-        // )
        }
+
+       if (forindex === serviceResult.data.length){
+        let diff = moment(fix_date).diff(moment(startTime));
+        let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60))
+        speedList.push(
+         {
+          "type": "Feature",
+          "id": id++,
+          "properties": {
+           "currentDevice": currentDevice,
+           "speedIndex": speedIndex,
+           "color": this.getSpeedLimits[speedIndex].color,
+           "startTime": startTime,
+           "endTime": fix_date,
+           "startSpeed": startSpeed,
+           "endSpeed": speed,
+           "distance": distanceSum,
+           "maxSpeed": maxSpeed,
+           "avgSpeed": avgSpeed,
+          },
+          "geometry": {
+           "type": "LineString",
+           "coordinates": speedGroup
+          }
+         }
+        )
+       } // догрузить остаток
+
+
+       let diff = moment(fix_date).diff(moment(startTime));
+       let avgSpeed = Math.round((distanceSum / 1000) / (diff / 1000 / 60 / 60));
 
        pointsList.push(
         {
@@ -286,12 +300,11 @@
          "properties": {
           "currentDevice": currentDevice,
           "speedIndex": speedIndex,
-          "startTime": startTime,
-          "endTime": fix_date,
-          "startSpeed": startSpeed,
-          "endSpeed": speed,
-          "distance": distanceSum,
-          "maxSpeed": maxSpeed,
+          "color": this.getSpeedLimits[speedIndex].color,
+          "time": fix_date,
+          "speed": speed,
+          "address": [ln, lt],
+          "geoZoneName": geoZonesNames
          },
          "geometry": {
           "type": "Point",
@@ -354,6 +367,37 @@
       if (feature.properties) {
        layer.bindTooltip(toolitps(feature.properties), {className: "tooltips", sticky: true, permanent: false});
       }
+      layer.on({
+       click: getLayerId
+      });
+     }
+
+     function getLayerId(e) {
+
+      self.resetStyleLayer()
+
+      let layer = e.target
+
+      layer.setStyle({
+       weight: 5,
+       color: '#ea00f8',
+       dashArray: '',
+       fillOpacity: 1
+      }).bringToFront()
+
+      let id = e.target.feature.id
+
+      let elem = document.querySelector('.isActive')
+      if (elem) {
+       elem.classList.remove('isActive')
+      }
+
+      let stopElement = document.querySelector(`.overSpeed-${id}`)
+      let topPos = stopElement.offsetTop
+      if (stopElement.classList.contains(`overSpeed-${id}`)) {
+       stopElement.classList.add('isActive')
+       document.querySelector('.playback-container').scrollTop = topPos - 20;
+      }
      }
 
      let getColor = (speedIndex, speedColor) => {
@@ -392,31 +436,46 @@
     }
    },
 
-
    stop(serviceResult, stopMinDuration, currentDevice) {
-     if (serviceResult.data.length) {
-      this.SETSTOP(serviceResult.data)
-      this.stopMarkerGroup.addTo(this.mapInstance)
-      serviceResult.data.forEach(element => {
-       let duration = moment.utc(element.duration * 1000).format('HH:mm:ss')
-       if (element.duration > stopMinDuration) {
-        let ico = element.duration > 300 ? this.parkingred : this.parkingblue
-        let icon = L.divIcon({
-         className: "map-label",
-         html: '<img src="' + ico.options.iconUrl + '" /><div class="map-label-content">' + duration + '</div>',
-         iconSize: [32, 32],
-         iconAnchor: [16, 32]
-        });
-        let marker = L.marker([element.latitude, element.longitude], {
-         icon: icon
-        })
-        // marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
-        this.stopMarkerGroup.addLayer(marker)
+    if (serviceResult.data.length) {
+     this.SETSTOP(serviceResult.data)
+     this.stopMarkerGroup.addTo(this.mapInstance)
+     serviceResult.data.forEach(element => {
+      let duration = moment.utc(element.duration * 1000).format('HH:mm:ss')
+      if (element.duration > stopMinDuration) {
+       let ico = element.duration > 300 ? this.parkingred : this.parkingblue
+       let icon = L.divIcon({
+        className: "map-label",
+        html: '<img src="' + ico.options.iconUrl + '" /><div class="map-label-content">' + duration + '</div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+       });
+
+       let markerStopEvent =  (e) => {
+
+        let el = document.querySelector('.isActive')
+        if (el) {
+         el.classList.remove('isActive')
+        }
+
+        let stopElement = document.querySelector(`.stop-${element.id}`)
+        let topPos = stopElement.offsetTop
+        if (stopElement.classList.contains(`stop-${element.id}`)) {
+         stopElement.classList.add('isActive')
+         document.querySelector('.playback-container').scrollTop = topPos - 20;
+        }
        }
-      })
-     } else {
-      this.SETSTOP(null)
-     }
+
+       let marker = L.marker([element.latitude, element.longitude], {
+        icon: icon
+       }).on('click', markerStopEvent)
+       // marker.bindTooltip(`${duration}`, {sticky: true, permanent: false, direction: 'right'})
+       this.stopMarkerGroup.addLayer(marker)
+      }
+     })
+    } else {
+     this.SETSTOP(null)
+    }
    },
 
    makePointsLayer(zoom) {
@@ -430,6 +489,7 @@
      let geoJsonPointOptions = {
       radius: 5,
       fillColor: "#001aff",
+      color: "#001aff",
       weight: 1,
       opacity: 1,
       fillOpacity: 1,
@@ -455,22 +515,21 @@
 
      let toolitps = (properties) => {
 
-      let tpl = `
-  <div class="tooltips_content" style="background-color: #42b983">
+     let tpl = `
+  <div class="tooltips_content">
+
     <div class="tooltips_header">
       <div class="name">${properties.currentDevice.name}</div>
     </div>
 
-   <div class="time_control">
-    <div class="start_time"><span>Начало</span> ${moment(properties.startTime).format('MM-DD-YYYY hh:mm')}</div>
-    <div class="end_time"><span>Конец</span> ${moment(properties.endTime).format('MM-DD-YYYY hh:mm')}</div>
+   <div class="point_address"><span>Координаты:</span> ${properties.address}</div>
+
+   <div class="point_content">
+    <div class="point_speed"><span>Текущая скорость ${properties.speed}</span> км/ч</div>
+    <div class="point_time"><span>Время:</span> ${moment(properties.time).format('MM-DD-YYYY HH:mm')}</div>
    </div>
 
-   <div class="speed_control">
-    <div class="start_speed"><span>Начальная скорость ${properties.startSpeed}</span> км/ч</div>
-    <div class="end_speed"><span>Конечная скорость ${properties.endSpeed}</span> км/ч</div>
-   </div>
-
+   <div class="point_geozone"><span>Пересеченные геозоны:</span> ${properties.geoZoneName}</div>
   </div>
         `;
       return tpl;
@@ -504,7 +563,7 @@
        }
       )
      }
-     let myRenderer = L.canvas({ padding: 0.5 });
+     let myRenderer = L.canvas({padding: 0.5});
      let pointData = L.geoJSON(pointCollection, {
       pointToLayer: function (feature, latlng) {
        return L.circleMarker(latlng, geoJsonPointOptions, {myRenderer});
@@ -583,11 +642,9 @@
    getGeoLayer(id) {
     let self = this
 
-    this.goeData?.resetStyle()
+    this.resetStyleLayer()
 
     this.goeData?.eachLayer(function (layer) {
-
-     layer.unbindTooltip()
 
      if (layer.feature.id === id) {
       self.mapInstance.flyToBounds(layer.getBounds(), {maxZoom: 15, duration: 1})
@@ -626,7 +683,8 @@
        sticky: true,
        permanent: false
       }).openTooltip()
-
+     } else {
+      layer.closeTooltip()
      }
 
     })
@@ -639,8 +697,11 @@
      this.stop(this.serviceResultStop, this.getStopMinDuration)
     }
    },
-  },
 
+   resetStyleLayer(){
+    this.goeData?.resetStyle()
+   }
+  },
 
   mounted() {
    eventBus.$on('mapZoomEnd', (zoom) => {
@@ -663,9 +724,9 @@
    })
 
    eventBus.$on('showStopLayer', (arg) => {
-    if (arg === 'stopRaport' && this.serviceResultStop){
-      this.showStopLayer()
-    }else if (arg === 'overSpeedRaport'){
+    if (arg === 'stopRaport' && this.serviceResultStop) {
+     this.showStopLayer()
+    } else if (arg === 'overSpeedRaport') {
      this.mapInstance.removeLayer(this.stopMarkerGroup)
     }
    })
