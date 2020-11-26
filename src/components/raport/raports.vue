@@ -160,7 +160,7 @@
    <div class="col d-flex justify-content-end">
 
     <button
-     class="btn-custom mr-3 mt-2"
+     class="btn-custom mr-2 mt-2"
      @click="loadData"
     >
 
@@ -169,7 +169,7 @@
 
     </button>
 
-    <button class="btn-custom mt-2">
+    <button class="btn-custom mt-2" :disabled="true">
      <span>Запланировать</span>
     </button>
 

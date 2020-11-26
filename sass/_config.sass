@@ -57,6 +57,7 @@ input, textarea
     border-color: green
 html
   height: 100%
+  position: relative
 body
   font-family: $ProximaNovaRegular
   font-size: $fontsize
@@ -69,3 +70,15 @@ body
 
 label
   cursor: pointer
+
+button:disabled,
+button[disabled]
+  border: 1px solid #999999
+  background-color: #e4e4e4
+  color: #666666
+  &:hover
+    background-color: #e4e4e4
+
+
+.leaflet-container.cursor-enabled
+  cursor: crosshair

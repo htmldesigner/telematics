@@ -63,7 +63,6 @@
   },
 
   async mounted() {
-
    this.watcher()
   },
 

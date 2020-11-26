@@ -102,6 +102,7 @@
  import tracker from "../components/tracker/tracker";
  import sittings from "../components/settings/settings";
  import raports from "../components/raport/raports";
+ import routes from "../components/routes/routes";
  import geozone from "../components/geozone/geozone";
  import drawnew from "../components/drawnew/drawnew";
  import llmap from '../components/llmap';
@@ -121,6 +122,7 @@
    monitoring,
    sittings,
    raports,
+   routes,
    raportPanel,
    geozone,
    drawnew,
@@ -174,6 +176,7 @@
      return [
       {title: 'Мониторинг', alias: 'monitoring', icon: 'mdi-earth'},
       {title: 'Треки', alias: 'tracker', icon: 'mdi-flag-checkered'},
+      {title: 'Маршруты', alias: 'routes', icon: 'mdi-flag-checkered'},
       {title: 'Отчеты', alias: 'raports', icon: 'mdi-playlist-check'},
       {title: 'Геозоны', alias: 'geozone', icon: 'mdi-shape-polygon-plus'},
      ]
@@ -245,6 +248,7 @@
     await this.$store.dispatch('loadObjects')
     await this.$store.dispatch('loadGeozones')
     await this.$store.dispatch('loadState')
+    await this.$store.dispatch('getRouteList')
    }
 
    this.load = false

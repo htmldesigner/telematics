@@ -9,6 +9,7 @@ import geozones from "./geozones";
 import raport from "./raport";
 import mapModule from './modules/mapInstance'
 import auth from "./auth";
+import route from "./route";
 
 
 import draw from './draw'
@@ -35,6 +36,7 @@ Vue.use(Vuex)
    draw,
    geozones,
    raport,
+   route
   }
 })
 

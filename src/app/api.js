@@ -25,6 +25,22 @@ export default {
 		};
 	},
 
+
+	// Routes
+	addRoute(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/addroute'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
+
+	getRouteList(){
+		return axios(this.dataGet('/route/list'))
+	},
+
+
 	dataGet(route, token, params) {
 		let addUrl = '';
 		if (params !== undefined) {

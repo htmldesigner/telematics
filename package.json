@@ -12,6 +12,7 @@
     "axios": "^0.20.0",
     "bootstrap": "^4.5.2",
     "core-js": "^3.6.5",
+    "draggable-vue-directive": "^2.1.0",
     "esri-leaflet-geocoder": "^2.3.3",
     "html2canvas": "^1.0.0-rc.7",
     "jquery": "^3.5.1",
