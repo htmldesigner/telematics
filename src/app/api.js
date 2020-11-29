@@ -25,22 +25,6 @@ export default {
 		};
 	},
 
-
-	// Routes
-	addRoute(params, isIndicatorRequired = true){
-		return axios({
-			method: 'post',
-			url: r('/route/addroute'),
-			data: params,
-			isIndicatorRequired: isIndicatorRequired
-		});
-	},
-
-	getRouteList(){
-		return axios(this.dataGet('/route/list'))
-	},
-
-
 	dataGet(route, token, params) {
 		let addUrl = '';
 		if (params !== undefined) {
@@ -77,6 +61,39 @@ export default {
 	auth(user) {
 		return axios(this.authPost('/mobile/authorization', user))
 	},
+
+
+
+	// Routes
+	getRouteList(){
+		return axios(this.dataGet('/route/list'))
+	},
+
+	addRoute(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/addroute'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
+
+	editRoute(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/editroute'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
+
+	deleteRoute(id){
+		console.log(id)
+		return axios(this.dataPost('/route/deleteroute', { id: id, reasonForLog: 'deleteRoute', isIndicatorRequired: false}))
+	},
+
+
+
 
 	// Load objects
 	getObjectsWorkSet() {

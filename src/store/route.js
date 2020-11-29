@@ -5,7 +5,7 @@ export default {
   routeList: null
  },
  mutations: {
-  SETROUTERLIST(state, payload){
+  SETROUTERLIST(state, payload) {
    state.routeList = Array.from(new Set(payload))
   }
  },
@@ -15,7 +15,16 @@ export default {
    commit('setLoading', true)
    try {
     let response = await api.getRouteList()
-    commit('SETROUTERLIST', response.data.data)
+    if(response.data.data.length){
+     response.data.data.forEach(el => {
+      let pointOrder = 0
+      el.points.forEach(point => {
+       pointOrder++
+       point.pointorder = pointOrder
+      })
+     })
+     commit('SETROUTERLIST', response.data.data)
+    }
     commit('setLoading', false)
    } catch (error) {
     commit('setLoading', false)
@@ -34,6 +43,29 @@ export default {
     commit('setError', error)
     throw error
    }
+  },
+
+  async editRoute({commit}, payload) {
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    await api.editRoute(payload)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async deleteRoute({commit}, payload) {
+   commit('clearError')
+   try {
+    await api.deleteRoute(payload)
+   } catch (error) {
+    commit('setError', error)
+   }
+
   }
  },
  getters: {
