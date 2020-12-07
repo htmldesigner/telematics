@@ -5,15 +5,19 @@ export default {
   trackGroup: null,
   groupGeoZone: null,
   groupOverSpeed: null,
-  geoZoneOverSpeed: null
+  geoZoneOverSpeed: null,
+  mileageshort: null,
+  mileagefull: null,
  },
 
  mutations: {
   CLEAR_ALL_RAPORT(state, payload) {
-   state.trackGroup = payload,
-    state.groupGeoZone = payload,
-    state.groupOverSpeed = payload,
-    state.geoZoneOverSpeed = payload
+   state.trackGroup = payload
+   state.groupGeoZone = payload
+   state.groupOverSpeed = payload
+   state.geoZoneOverSpeed = payload
+   state.mileageshort = payload
+   state.mileagefull = payload
   },
   /**
    * По движению/стоянкам
@@ -25,6 +29,16 @@ export default {
   SET_TRACK_GROUP(state, payload) {
    state.trackGroup = Array.from(new Set([payload]))
    console.log(state.trackGroup)
+  },
+
+  SET_MILEAGESHORT(state, payload) {
+   state.mileageshort = Array.from(new Set([payload]))
+   console.log(state.mileageshort)
+  },
+
+  SET_MILEAGEFULL(state, payload) {
+   state.mileagefull = Array.from(new Set([payload]))
+   console.log(state.mileagefull)
   },
 
   /**
@@ -72,6 +86,26 @@ export default {
     let response = await api.serviceQuery(query)
 
     switch (response.data.data[0].data.report) {
+
+     case "mileageshort":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_MILEAGESHORT', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки По пробегу (короткий)')
+       return
+      }
+      break;
+
+     case "mileagefull":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_MILEAGEFULL', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Ошибка загрузки По пробегу (Полный)')
+       return
+      }
+      break;
 
      case "group_overspeed":
       if (response.data.data[0].data?.data.length) {
@@ -124,6 +158,7 @@ export default {
       commit('SET_GROUP_GEOZONE', null)
       commit('SET_TRACK_GROUP', null)
       commit('SET_GROUP_OVERSPEED', null)
+      commit('SET_MILEAGESHORT', null)
     }
 
     commit('clearError')
@@ -152,6 +187,12 @@ export default {
   },
   getGeoZoneOverSpeed(state) {
    return state.geoZoneOverSpeed
+  },
+  getMileageShort(state) {
+   return state.mileageshort
+  },
+  getMileageFull(state) {
+   return state.mileagefull
   }
  },
 }

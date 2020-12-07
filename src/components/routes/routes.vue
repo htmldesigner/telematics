@@ -29,17 +29,17 @@
 
    <div class="routes-control-create-cp-actions d-flex align-items-center justify-content-between">
     <span style="line-height: 1;">Контрольные точки:</span>
-    <div class="d-flex w-75">
+    <div class="d-flex w-50">
      <button v-tooltip="'Добавить контрольные точки'"
              @click="checkPointWindow = true"
              class="btn-custom-outline w-100">
-      <img :src="icon.mapMarker" alt="Alt">
+      <img style="vertical-align: text-top;" :src="icon.mapMarker" alt="Alt">
      </button>
      <button
       v-tooltip="'Добавить геозоны как контрольные точки'"
       @click="geoZonePointWindow = true"
       class="btn-custom-outline w-100">
-      <img :src="icon.penta" alt="Alt">
+      <img style="vertical-align: text-top;" :src="icon.penta" alt="Alt">
      </button>
     </div>
     <!--    <button class="btn-custom-outline w-100">geoZone</button>-->
@@ -56,11 +56,11 @@
          @dragover.prevent
      >
       <span class="flex-grow-1">{{point.name}}</span>
-      <input type="text"
+      <input type="text" v-if="point.radius >= 0"
              v-model="point.radius"
              class="input-custom-small mr-1"
       >
-      <span>м</span>
+      <span v-if="point.radius >= 0">м</span>
       <span class="ml-3 routes-control-cp-remove"
             @click="removePoint(index)"
       >
@@ -110,20 +110,33 @@
       </div>
 
       <div class="created-routes-control">
-       <div class="ml-1 mr-2 d-flex" v-tooltip="'Расписание'" style="cursor: pointer">
+       <div class="ml-1 mr-2 d-flex" v-tooltip="'Расписание'" style="cursor: pointer"
+            @click="addSchedule(route.id), editRoutes = false"
+       >
         <img :src="icon.schedule" alt="Alt">
        </div>
+
+       <div class="ml-1 mr-2 d-flex"
+            v-tooltip="'Список рейсов по этому маршруту'"
+            style="cursor: pointer"
+            @click="roundList(route.id), editRoutes = false"
+       ><img :src="icon.rounds" alt="Alt">
+       </div>
+
        <div class="ml-1 mr-1 d-flex"
             v-tooltip="'Редактировать'"
             style="cursor: pointer"
             @click="editableRoute(route.id)"
        ><img :src="icon.key" alt="Alt">
        </div>
+
        <div class="ml-1 mr-2 d-flex"
             v-tooltip="'Удалить'"
             style="cursor: pointer"
             @click="deleteRoute(route.id)"
-       ><img style="width: 18px;" :src="icon.remove" alt=""></div>
+       ><img style="width: 18px;" :src="icon.remove" alt="">
+       </div>
+
       </div>
 
      </div>
@@ -131,6 +144,23 @@
      <ul v-if="route.points && selectedOption === 'CheckPoint'">
       <li v-for="point in route.points">
        <span>{{point.address ? point.address : point.name}}</span>
+      </li>
+     </ul>
+
+     <ul v-if="route.schedules && selectedOption === 'Schedule'" class="w-100">
+      <li v-for="schedule in route.schedules" class="mb-1 d-flex justify-content-between align-items-center">
+       <span style="cursor: pointer" @click="editSchedule(schedule.id), editRoutes = false">{{schedule.name}}</span>
+       <div class="d-flex">
+        <img
+         @click="addRound(route.id)"
+         v-tooltip="'Создать рейс'"
+         class="ml-1"
+         :src="icon.pencil"
+         style="margin-right: 30px; width: 14px;" alt="Alt">
+        <img @click="deleteSchedule(schedule.id)" v-tooltip="'Удалить расписание'" class="ml-1 mr-2" :src="icon.remove"
+             alt="Alt" style="width: 18px; cursor: pointer">
+       </div>
+
       </li>
      </ul>
 
@@ -148,6 +178,8 @@
   <geoZonePoint
    v-if="geoZonePointWindow"
    @close="closeGeoZonePointWindow"
+   @add-geoZone="addZone"
+   :getGeozones="getGeozones"
   >
   </geoZonePoint>
 
@@ -159,16 +191,19 @@
  import checkPoint from "./checkPoint";
  import geoZonePoint from "./geoZonePoint";
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
+ import {eventBus} from "../../eventBus";
+
 
  export default {
   components: {
    checkPoint,
-   geoZonePoint
+   geoZonePoint,
   },
   computed: {
    ...mapState('mapModule', ['mapInstance']),
    ...mapGetters({
-    getRouteList: 'getRouteList'
+    getRouteList: 'getRouteList',
+    getGeozones: 'getGeozones'
    }),
    routeName: {
     get() {
@@ -182,8 +217,10 @@
   watch: {
    route: {
     handler() {
-      this.setPointOrder()
+     this.setPointOrder()
+     if (this.route.points.length) {
       this.renderCheckPoints(this.route)
+     }
     },
     deep: true,
    },
@@ -199,7 +236,7 @@
     geoZonePointWindow: false,
     dragging: -1,
     routeLayer: new L.featureGroup(),
-
+    editableRouteID: null,
     geoJsonData: [],
 
     //For send
@@ -209,14 +246,17 @@
     options: [
      {name: 'Маршруты', value: 'Routes'},
      {name: 'Контрольные точки', value: 'CheckPoint'},
+     {name: 'Расписания', value: 'Schedule'},
     ],
 
     icon: {
+     rounds: require('@/assets/rounds.svg'),
      remove: require('@/assets/remove.svg'),
      mapMarker: require('@/assets/map-marker.svg'),
      penta: require('@/assets/penta.svg'),
      key: require('@/assets/key.svg'),
-     schedule: require('@/assets/schedule.svg')
+     schedule: require('@/assets/schedule.svg'),
+     pencil: require('@/assets/pencil.svg')
     },
 
     route: {
@@ -242,6 +282,11 @@
     this.setPointOrder()
    },
 
+   addZone(zone) {
+    this.route.points.push(zone)
+    this.setPointOrder()
+   },
+
    removePoint(index) {
     this.route.points.splice(index, 1)
     this.setPointOrder()
@@ -254,7 +299,10 @@
      this.route.name = this.name
      this.route.description = this.routeDescription
      this.route.ispublished = false
-     console.log(this.route, 'save')
+     this.route.points.forEach(point => {
+      point.geom = JSON.stringify(point.geom)
+     })
+     // console.log(this.route, 'save')
      await this.$store.dispatch('addRoute', this.route)
      await this.$store.dispatch('getRouteList')
     }
@@ -263,15 +311,25 @@
      this.route.name = this.name
      this.route.description = this.routeDescription
      this.route.ispublished = false
-     console.log(this.route, 'edit')
+     this.route.points.forEach(point => {
+      point.geom = JSON.stringify(point.geom)
+     })
+     // console.log(this.route, 'edit')
      await this.$store.dispatch('editRoute', this.route)
      await this.$store.dispatch('getRouteList')
+
+     let updatedRoute = this.getRouteList.filter(el => {
+      return el.id === this.editableRouteID
+     })
+     this.renderCheckPoints(...updatedRoute)
     }
     this.nullifyRoute()
    },
 
-   //Keep id
+   //Keep id in sending array
    editableRoute(id) {
+    this.editableRouteID = id
+    this.$emit('add-schedule', {status: false})
     this.createRoutes = false
     this.nullifyRoute()
     let element = this.getRouteList.filter(route => route.id === id)
@@ -293,21 +351,35 @@
     await this.$store.dispatch('getRouteList')
    },
 
+   addSchedule(id) {
+    this.$emit('add-schedule', {status: true, id})
+   },
+
+   async editSchedule(id){
+    // editSchedule
+    await this.$store.dispatch('getSchedulesById', id)
+    await this.$emit('editSchedule', {status: true, id})
+   },
+
+   addRound(id) {
+    this.$emit('add-round', {status: true, id})
+   },
+
+   roundList(id) {
+    this.$emit('roundList', {status: true, id})
+   },
+
+   async deleteSchedule(id) {
+    await this.$store.dispatch('deleteSchedule', id)
+    await this.$store.dispatch('getRouteList')
+   },
+
    closePointWindow() {
     this.checkPointWindow = false
    },
 
    closeGeoZonePointWindow() {
     this.geoZonePointWindow = false
-   },
-
-   updatePointRadius(index) {
-    let point = this.route.points.filter((point, idx) => +idx === +index)
-    console.log(point)
-   },
-
-   inpitingRadius(event) {
-    console.log(event.target.value)
    },
 
    nullifyRoute() {
@@ -342,13 +414,12 @@
     this.renderCheckPoints(this.route)
    },
 
-
    selectAllRoutes(event) {
     if (event.target.checked) {
      this.getRouteList.forEach(el => {
       this.selectRoute(event, el)
      })
-    }else{
+    } else {
      this.selectAll = false
      this.geoJsonData = []
      this.routeLayer.clearLayers()
@@ -359,6 +430,7 @@
     if (event.target.checked) {
      let coordinates = []
      let checkPoints = []
+     let polygon = []
 
      let prepareGeoJsonRoute = {
       type: "Feature",
@@ -372,6 +444,7 @@
 
      route.points.forEach((el) => {
       coordinates.push([el.lon, el.lat])
+
       checkPoints.push(
        {
         type: "Feature",
@@ -388,13 +461,28 @@
         }
        }
       )
-     })
 
-     this.geoJsonData.push(prepareGeoJsonRoute, ...checkPoints)
+      if (el?.geom.type === "Polygon" || el?.geom.type === "MultiPolygon") {
+       polygon.push(
+        {
+         type: "Feature",
+         belongRoute: route.id,
+         properties: {
+          "type": "polygons",
+          "color": el.geom.properties?.color === '0' ? 'black' : el.geom.properties?.color,
+          radius: 0,
+         },
+         geometry: el.geom
+        }
+       )
+      }
+     })
+     this.geoJsonData.push(prepareGeoJsonRoute, ...checkPoints, ...polygon)
      this.renderRoute()
      prepareGeoJsonRoute = null
      coordinates = null
      checkPoints = null
+     polygon = null
     } else {
      this.geoJsonData = this.geoJsonData.filter(el => {
       return el.id !== route.id && el.belongRoute !== route.id
@@ -403,11 +491,13 @@
     }
    },
 
+   // Building track on map when user select checkpoint on map
    renderCheckPoints(route) {
     if (route) {
      this.geoJsonData = []
      let coordinates = []
      let checkPoints = []
+     let polygon = []
 
      let prepareGeoJsonRoute = {
       type: "Feature",
@@ -437,28 +527,50 @@
         }
        }
       )
+      if (el?.geom?.type === "Polygon" || el?.geom?.type === "MultiPolygon") {
+       polygon.push(
+        {
+         type: "Feature",
+         belongRoute: route.id,
+         properties: {
+          "type": "polygons",
+          "color": el.geom.properties.color === '0' ? 'black' : el.geom.properties.color,
+          radius: 0,
+         },
+         geometry: el.geom
+        }
+       )
+      }
      })
 
-     this.geoJsonData.push(prepareGeoJsonRoute, ...checkPoints)
+     this.geoJsonData.push(prepareGeoJsonRoute, ...checkPoints, ...polygon)
+
      this.renderRoute()
      prepareGeoJsonRoute = null
      coordinates = null
      checkPoints = null
+     polygon = null
      this.geoJsonData = []
     }
    },
 
+   // Building track if route already exist
    renderRoute() {
     this.routeLayer.clearLayers()
-
     if (this.geoJsonData.length) {
      let route = []
      let point = []
+     let polygon = []
+
      this.geoJsonData.forEach(el => {
       if (el.properties.type === 'route') {
        route.push(el)
-      } else {
+      }
+      if (el.properties.type === 'points') {
        point.push(el)
+      }
+      if (el.properties.type === 'polygons' || el.properties.type === 'multipolygons') {
+       polygon.push(el)
       }
      })
 
@@ -493,6 +605,19 @@
       }, onEachFeature: setPoint
      })
 
+
+     function stylePoligon(feature) {
+      return {
+       fillColor: feature.properties.color,
+       weight: 2,
+       opacity: 1,
+       color: feature.properties.color,
+       fillOpacity: 0.7
+      };
+     }
+
+     let readyPolygon = L.geoJSON(polygon, {style: stylePoligon})
+
      let readyMarker = L.geoJSON(point, {
       pointToLayer: function (feature, latlng) {
        return L.marker(latlng, {
@@ -507,22 +632,21 @@
 
      let readyRoute = L.geoJSON(route, {style: style})
 
+     this.routeLayer.addLayer(readyPolygon)
      this.routeLayer.addLayer(readyRoute)
      this.routeLayer.addLayer(readyMarker)
      this.routeLayer.addLayer(readyPoint)
 
-     this.mapInstance.flyToBounds(readyRoute.getBounds(), {duration: 0.5})
+     this.mapInstance.flyToBounds(readyRoute.getBounds(), {duration: 1, maxZoom: 10})
 
      route = null
      point = null
+     polygon = null
      readyRoute = null
      readyPoint = null
      readyMarker = null
+     readyPolygon = null
     }
-   },
-
-   buildRouteOnMap() {
-
    }
 
   },
@@ -530,7 +654,13 @@
    this.routeLayer.addTo(this.mapInstance)
   },
   mounted() {
-
+   eventBus.$on('map-Clear', () => {
+    this.routeLayer.clearLayers()
+    this.route = {
+     points: []
+    }
+    this.selectAll = false
+   });
   }
  }
 </script>

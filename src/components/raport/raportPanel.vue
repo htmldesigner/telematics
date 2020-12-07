@@ -85,6 +85,89 @@
       </slot>
      </Tab>
 
+
+
+     <Tab :isSelected="selected === 'По пробегу (короткий)'">
+      <slot>
+       <div class="v_tab_table mr-2">
+        <div v-for="(mileage) in getMileageShort">
+
+         <div class="download-links" v-if="mileage.linkpdf">
+          <a download :href="mileage.link"><img :src="icon.exel" alt="Alt"></a>
+          <a download :href="mileage.linkpdf"><img :src="icon.pdf" alt="Alt"></a>
+         </div>
+
+         <table class="table table-hover table-sm">
+          <thead>
+          <tr>
+           <th class="text-center th-font">Начало движения</th>
+           <th class="text-center th-font">Конец движения</th>
+           <th class="text-center th-font">Время движения</th>
+           <th class="text-center th-font">Пробег м.</th>
+           <th class="text-center th-font">Среедняя скорость км\ч</th>
+           <th class="text-center th-font">Адрес</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(mileage) in mileage.data" :key="mileage.id">
+           <td class="text-center">{{mileage.starttime}}</td>
+           <td class="text-center">{{mileage.endtime}}</td>
+           <td class="text-center">{{mileage.duration}}</td>
+           <td class="text-center">{{mileage.distance}}</td>
+           <td class="text-center">{{mileage.avgSpeed}}</td>
+           <td class="text-center">{{mileage.address}}</td>
+          </tr>
+          </tbody>
+         </table>
+
+        </div>
+       </div>
+      </slot>
+     </Tab>
+
+     <Tab :isSelected="selected === 'По пробегу (полный)'">
+      <slot>
+       <div class="v_tab_table mr-2">
+        <div v-for="(mileage) in getMileageFull">
+
+         <div class="download-links" v-if="mileage.linkpdf">
+          <a download :href="mileage.link"><img :src="icon.exel" alt="Alt"></a>
+          <a download :href="mileage.linkpdf"><img :src="icon.pdf" alt="Alt"></a>
+         </div>
+
+         <table class="table table-hover table-sm">
+          <thead>
+          <tr>
+           <th class="text-center th-font">Начало движения</th>
+           <th class="text-center th-font">Конец движения</th>
+           <th class="text-center th-font">Время движения</th>
+           <th class="text-center th-font">Пробег м.</th>
+           <th class="text-center th-font">Среедняя скорость км\ч</th>
+           <th class="text-center th-font">Макс. скорость км\ч</th>
+           <th class="text-center th-font">Городской пробег</th>
+           <th class="text-center th-font">Загородный пробег</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(mileage) in mileage.data" :key="mileage.id">
+           <td class="text-center">{{mileage.starttime}}</td>
+           <td class="text-center">{{mileage.endtime}}</td>
+           <td class="text-center">{{mileage.duration}}</td>
+           <td class="text-center">{{mileage.distance}}</td>
+           <td class="text-center">{{mileage.avgSpeed}}</td>
+           <td class="text-center">{{mileage.maxspeed}}</td>
+           <td class="text-center">{{mileage.mileagecity}}</td>
+           <td class="text-center">{{mileage.mileageout}}</td>
+          </tr>
+          </tbody>
+         </table>
+
+        </div>
+       </div>
+      </slot>
+     </Tab>
+
+
      <Tab :isSelected="selected === 'Посещение геозон групповое'">
       <slot>
        <div class="v_tab_table mr-2">
@@ -299,7 +382,9 @@
     getTrackGroup: 'getTrackGroup',
     getGroupGeoZone: 'getGroupGeoZone',
     getGroupOverSpeed: 'getGroupOverSpeed',
-    getGeoZoneOverSpeed: 'getGeoZoneOverSpeed'
+    getGeoZoneOverSpeed: 'getGeoZoneOverSpeed',
+    getMileageShort: 'getMileageShort',
+    getMileageFull: 'getMileageFull',
    }),
    tabName() {
     let prepareTabList = []
@@ -322,11 +407,50 @@
      prepareTabList.push({alias: 'geoZoneOverSpeed', tab: 'Превышение скорости в геозонах'})
      // this.selected = 'Превышение скорости в геозонах'
     }
+
+    if (this.getMileageShort?.length) {
+     prepareTabList.push({alias: 'mileageShort', tab: 'По пробегу (короткий)'})
+     // this.selected = 'Превышение скорости в геозонах'
+    }
+
+    if (this.getMileageFull?.length) {
+     prepareTabList.push({alias: 'mileageFull', tab: 'По пробегу (полный)'})
+     // this.selected = 'Превышение скорости в геозонах'
+    }
     return prepareTabList
    }
   },
 
   watch: {
+
+   getMileageFull: {
+    handler(newValue, oldValue) {
+     if (newValue) {
+      setTimeout(() => {
+       this.selected = 'По пробегу (полный)'
+      }, 100)
+     } else {
+      this.selected = this.tabName[0].tab
+     }
+    },
+    immediate: true,
+    deep: true
+   },
+
+
+   getMileageShort: {
+    handler(newValue, oldValue) {
+     if (newValue) {
+      setTimeout(() => {
+       this.selected = 'По пробегу (короткий)'
+      }, 100)
+     } else {
+      this.selected = this.tabName[0].tab
+     }
+    },
+    immediate: true,
+    deep: true
+   },
 
    getTrackGroup: {
     handler(newValue, oldValue) {
@@ -369,6 +493,7 @@
     immediate: true,
     deep: true
    },
+
    getGeoZoneOverSpeed: {
     handler(newValue, oldValue) {
      if (newValue) {
@@ -390,6 +515,22 @@
 
    tabClose(tab) {
     switch (tab) {
+
+
+     case 'mileageFull':
+      this.$store.state.raport.mileagefull = null
+      this.tabName.filter(el => {
+       return el.alias !== 'mileageFull'
+      })
+      break;
+
+     case 'mileageShort':
+      this.$store.state.raport.mileageshort = null
+      this.tabName.filter(el => {
+       return el.alias !== 'mileageShort'
+      })
+      break;
+
      case 'trackGroup':
       this.$store.state.raport.trackGroup = null
       this.tabName.filter(el => {

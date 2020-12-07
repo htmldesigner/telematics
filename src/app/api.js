@@ -88,9 +88,26 @@ export default {
 	},
 
 	deleteRoute(id){
-		console.log(id)
 		return axios(this.dataPost('/route/deleteroute', { id: id, reasonForLog: 'deleteRoute', isIndicatorRequired: false}))
 	},
+
+	addSchedule(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/addschedule'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
+
+	deleteSchedule(id){
+		return axios(this.dataPost('/route/deleteschedule', { id: id, reasonForLog: 'deleteRoute', isIndicatorRequired: false}))
+	},
+
+	getSchedulesById(id) {
+		return axios(this.dataGet("/route/getschedule/"+id));
+	},
+
 
 
 

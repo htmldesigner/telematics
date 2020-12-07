@@ -123,7 +123,6 @@
    },
 
    findLatLng(e) {
-    console.log(e.target.value)
     let self = this
     let geocodeService = ELG.geocodeService()
     geocodeService.geocode().text(e.target.value).run(function (error, results) {
@@ -151,9 +150,8 @@
      this.latitude = latlng.lat
      this.longitude = latlng.lng
     }
-
     if (this.latitude && this.longitude)
-     this.mapInstance.flyTo([this.latitude, this.longitude])
+     this.mapInstance.flyTo([this.latitude, this.longitude], 13)
    },
 
    onSubmitPoint(){
@@ -167,7 +165,6 @@
      }
      this.$emit('add-point', newPoint)
     }
-
 
    },
 

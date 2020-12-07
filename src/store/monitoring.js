@@ -112,8 +112,9 @@ export default {
             object.geo = geo
            }
           })
-          commit('SETOBJECTS', item.objects)
+          // commit('SETOBJECTS', item.objects)
          })
+         commit('SETOBJECTS', item.objects)
         } else {
          commit('SETOBJECTS', item.objects)
         }

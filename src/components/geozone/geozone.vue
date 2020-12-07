@@ -217,7 +217,7 @@
    this.detectPermission(this.userPermission)
    eventBus.$on('map-Clear', () => {
     this.selectedKeys = null
-   });
+   })
   },
  }
 </script>

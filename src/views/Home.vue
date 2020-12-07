@@ -62,6 +62,10 @@
         @on-Action="onAction"
         @modalObjectList="modalObjectListRun"
         @modalGeoZoneList="modalGeoZoneListRun"
+        @add-schedule="scheduleRun"
+        @add-round="roundRun"
+        @roundList="roundListRun"
+        @editSchedule="editScheduleRun"
        ></component>
       </keep-alive>
      </pane>
@@ -72,6 +76,10 @@
         <llmap ref="llmap"></llmap>
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
         <modalGL v-if="modalGeoZoneLoader" @close="modalGeoZoneLoader = false"></modalGL>
+        <createSchedule v-if="createScheduleShow" @close="createScheduleShow = false" :routeId="routeId"></createSchedule>
+        <editSchedule v-if="editScheduleShow" @close="editScheduleShow = false" :scheduleId="scheduleId"></editSchedule>
+        <createRound v-if="createRoundShow" @close="createRoundShow = false" :roundId="roundId"></createRound>
+        <roundsList v-if="roundsListShow" @close="roundsListShow = false" :roundId="roundId"></roundsList>
        </pane>
 
        <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
@@ -80,7 +88,7 @@
        </pane>
 
        <pane
-        v-if="currentLink === 'raports' && (getTrackGroup || getGroupGeoZone || getGroupOverSpeed || getGeoZoneOverSpeed)"
+        v-if="currentLink === 'raports' && (getTrackGroup || getGroupGeoZone || getGroupOverSpeed || getGeoZoneOverSpeed || getMileageShort || getMileageFull)"
         max-size="100" min-size="5" style="overflow-y: scroll">
         <raportPanel/>
        </pane>
@@ -110,6 +118,10 @@
  import raportPanel from "../components/raport/raportPanel";
  import modalOL from "../components/monitoring/modalObjectLoader";
  import modalGL from "../components/geozone/modalGeoZoneLoader";
+ import createSchedule from "../components/routes/createSchedule";
+ import editSchedule from "../components/routes/editSchedule";
+ import createRound from "../components/routes/createRound";
+ import roundsList from "../components/routes/roundsList";
  import {Splitpanes, Pane} from 'splitpanes'
  import 'splitpanes/dist/splitpanes.css'
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
@@ -132,6 +144,10 @@
    modalOL,
    modalGL,
    Loader,
+   createSchedule,
+   editSchedule,
+   createRound,
+   roundsList
   },
   computed: {
    ...mapGetters({
@@ -145,6 +161,8 @@
     getGroupGeoZone: 'getGroupGeoZone',
     getGroupOverSpeed: 'getGroupOverSpeed',
     getGeoZoneOverSpeed: 'getGeoZoneOverSpeed',
+    getMileageShort: 'getMileageShort',
+    getMileageFull: 'getMileageFull',
 
    }),
    currentLink: {
@@ -182,13 +200,19 @@
      ]
     }
    }
-
   },
   data() {
    return {
     showModal: false,
     modalObjectLoader: false,
     modalGeoZoneLoader: false,
+    createScheduleShow: false,
+    editScheduleShow: false,
+    createRoundShow: false,
+    roundsListShow: false,
+    roundId: null,
+    routeId: null,
+    scheduleId: null,
     load: true,
    }
   },
@@ -231,6 +255,35 @@
    },
    modalGeoZoneListRun() {
     this.modalGeoZoneLoader = !this.modalGeoZoneLoader
+   },
+
+   // For Schedule component
+   scheduleRun(schedule){
+    this.roundsListShow = false
+    this.createRoundShow = false
+    this.createScheduleShow = schedule.status
+    this.routeId = schedule.id
+   },
+
+   roundRun(round){
+    this.roundsListShow = false
+    this.createScheduleShow = false
+    this.createRoundShow = round.status
+    this.roundId = round.id
+   },
+
+   roundListRun(round){
+    this.createScheduleShow = false
+    this.createRoundShow = false
+    this.roundsListShow = round.status
+    this.roundId = round.id
+   },
+
+   editScheduleRun(schedule){
+    this.createScheduleShow = false
+    this.createRoundShow = false
+    this.editScheduleShow = schedule.status
+    this.scheduleId = schedule.id
    },
 
    logout() {
