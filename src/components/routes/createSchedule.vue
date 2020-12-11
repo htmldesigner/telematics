@@ -96,7 +96,7 @@
                 type="text"
                 v-model="point.arrivetime"
          >
-         <span>+- мин.</span>
+         <span>+-</span>
          <input style="position: relative;top: 5px; width: 60px"
                 v-mask="'###'"
                 class="input-custom-small"
@@ -257,7 +257,7 @@
        arrivetimetolerance: 0,
        departuretime: '00:00',
        departuretimetolerance: 0,
-       address:  point.address,
+       address: point.address,
       }})
      }
     })
@@ -345,8 +345,15 @@
   },
   methods: {
 
-   createSchedule(){
+  async createSchedule(){
     let objects = this.selectedObject.map(object => {return{schedule_id: 0, object_id: object.id}})
+
+   if(this.name.length < 4){
+    return this.$store.dispatch('setError', 'Введите название расписания мин. 4 символа').then(() => {
+     this.$store.dispatch('clearError')
+    })
+   }
+
     let schedule =
      {
       route_id: this.routeId,
@@ -361,11 +368,11 @@
 
      }
 
-
-    console.log(schedule)
-    this.$store.dispatch('addSchedule', schedule)
-    schedule = null
-    this.$store.dispatch('getRouteList')
+   await this.$store.dispatch('addSchedule', schedule)
+   await this.$store.dispatch('getRouteList')
+   schedule = null
+   this.name = ''
+   this.$emit('close')
    },
 
    addObject(obj) {

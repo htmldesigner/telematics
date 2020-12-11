@@ -157,12 +157,12 @@
     },
 
     filters: {},
-    selectedKeys: null,
+    // selectedKeys: null,
     expandedKeys: {},
     checked: false,
     activeObjectSelector: null,
     interval: null,
-    root: null,
+    // root: null,
 
     dateto: null,
     datefrom: null,
@@ -179,6 +179,38 @@
     getSelectedObjects: 'getSelectedObjects',
     getMonitor: 'getMonitorObjects',
    }),
+   root: {
+    get(){
+     return this.$service.objectsArrayCreate(this.objectsgroups, this.objects)
+    },
+    set(){}
+   },
+   selectedKeys: {
+    get(){
+     let result = {}
+
+     for (let group of this.root) {
+      if (group.children.length) {
+       for (let odj of group.children) {
+        if (odj.data.selected) {
+         result[odj.key] = {checked: true, partialChecked: false}
+        }
+       }
+       let countChildren = group.children.filter(el => {
+        return el.data.selected
+       })
+
+       if (countChildren.length === group.children.length) {
+        result[group.key] = {checked: true, partialChecked: false}
+       } else if (countChildren.length > 0) {
+        result[group.key] = {checked: false, partialChecked: true}
+       }
+      }
+     }
+     return  result
+    },
+    set(){}
+   }
   },
 
   watch: {
@@ -499,7 +531,6 @@
   },
 
   mounted() {
-   this.root = this.$service.objectsArrayCreate(this.objectsgroups, this.objects);
    eventBus.$on('map-Clear', () => {
     this.selectedKeys = null
    });

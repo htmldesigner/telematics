@@ -5,6 +5,8 @@ export default {
   routeList: null,
   geoZone: null,
   schedule: null,
+  round: null,
+  roundList: null
  },
  mutations: {
   SETROUTERLIST(state, payload) {
@@ -16,6 +18,15 @@ export default {
 
   SET_SCHEDULE(state, payload){
    state.schedule = payload
+  },
+
+  SET_ROUND_LISTS(state, payload){
+   state.roundList = payload
+   console.log(state.roundList)
+  },
+
+  SET_ROUND(state, payload){
+   state.round = payload
   },
 
  },
@@ -82,6 +93,7 @@ export default {
    try {
    let response =  await api.getSchedulesById(payload)
     commit('SET_SCHEDULE', response.data.data)
+    commit('SET_ROUND', response.data.data)
     commit('setLoading', false)
    } catch (error) {
     commit('setLoading', false)
@@ -90,7 +102,18 @@ export default {
    }
   },
 
-
+ async editSchedule({commit}, payload){
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    await api.editSchedule(payload)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', error)
+    throw error
+   }
+  },
 
   async deleteSchedule({commit}, payload) {
    commit('clearError')
@@ -119,7 +142,7 @@ export default {
    try {
     await api.deleteRoute(payload)
    } catch (error) {
-    commit('setError', error)
+    commit('setError', 'Необходимо удалить зависимые расписания')
    }
   },
 
@@ -136,10 +159,50 @@ export default {
   },
 
 
+  async getFlightsForRoute({commit}, id){
+   commit('clearError')
+   try {
+    const response = await api.getFlightsForRoute(id)
+    const items = response.data
+    commit('SET_ROUND_LISTS', items)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', 'Нет данных')
+   }
+  },
+
+  async addFlight({commit}, payload){
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    await api.addFlight(payload)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', error)
+    throw error
+   }
+  },
+
+  async deleteFlight({commit}, payload){
+   commit('clearError')
+   commit('setLoading', true)
+   try {
+    await api.deleteFlight(payload)
+    commit('setLoading', false)
+   } catch (error) {
+    commit('setLoading', false)
+    commit('setError', error)
+    throw error
+   }
+  },
+
  },
  getters: {
   getSchedule: (state) => state.schedule,
+  getRound: (state) => state.round,
   getRouteList: (state) => state.routeList,
-  getGeoZoneCheckPoint: (state) => state.geoZone
+  getGeoZoneCheckPoint: (state) => state.geoZone,
+  getRoundList: (state) => state.roundList
  },
 }

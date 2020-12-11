@@ -108,8 +108,32 @@ export default {
 		return axios(this.dataGet("/route/getschedule/"+id));
 	},
 
+	editSchedule(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/editschedule'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
 
 
+	addFlight(params, isIndicatorRequired = true){
+		return axios({
+			method: 'post',
+			url: r('/route/addflight'),
+			data: params,
+			isIndicatorRequired: isIndicatorRequired
+		});
+	},
+
+	deleteFlight(param){
+		return axios(this.dataPost('/route/deleteflight', { id: param.id, reasonForLog: param.message, isIndicatorRequired: false}))
+	},
+
+	getFlightsForRoute(id){
+		return axios(this.dataGet("/route/flightsforroute/"+id));
+	},
 
 
 	// Load objects

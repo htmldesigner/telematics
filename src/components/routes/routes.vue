@@ -1,13 +1,13 @@
 <template>
  <div class="routes-container mt-3 px-2">
 
-  <div class="routes-control-actions" v-if="!createRoutes && editRoutes !== true">
+  <div class="routes-control-actions" v-if="!createRoutes && editRoutes !== true && copyRoutes !== true">
    <button type="button" class="btn-custom" @click="createRoutesButton">
     <span>Создать маршрут</span>
    </button>
   </div>
 
-  <div class="routes-control-create mt-3" v-if="createRoutes || editRoutes">
+  <div class="routes-control-create mt-3" v-if="createRoutes || editRoutes || copyRoutes">
 
    <div class="routes-create-name">
     <div class="form-group row">
@@ -72,7 +72,7 @@
 
    <div class="routes-control-create-actions mt-3 d-flex justify-content-end">
     <button class="btn-custom-outline"
-            @click="createRoutes = false, checkPointWindow = false, editRoutes = false, nullifyRoute()">Закрыть
+            @click="createRoutes = false, checkPointWindow = false, editRoutes = false, copyRoutes = false, nullifyRoute()">Закрыть
     </button>
     <button class="btn-custom ml-2"
             v-if="createRoutes"
@@ -81,10 +81,16 @@
     >Сохранить
     </button>
     <button class="btn-custom ml-2"
-            v-if="editRoutes"
+            v-if="editRoutes && !copyRoutes"
             :disabled="!route.points.length"
             @click="save"
     >Обнавить
+    </button>
+    <button class="btn-custom ml-2"
+            v-if="copyRoutes"
+            :disabled="!route.points.length"
+            @click="save"
+    >Копировать
     </button>
    </div>
 
@@ -110,7 +116,7 @@
       </div>
 
       <div class="created-routes-control">
-       <div class="ml-1 mr-2 d-flex" v-tooltip="'Расписание'" style="cursor: pointer"
+       <div class="ml-1 mr-2 d-flex" v-tooltip="'Создать расписание'" style="cursor: pointer"
             @click="addSchedule(route.id), editRoutes = false"
        >
         <img :src="icon.schedule" alt="Alt">
@@ -123,11 +129,27 @@
        ><img :src="icon.rounds" alt="Alt">
        </div>
 
-       <div class="ml-1 mr-1 d-flex"
+       <div v-if="route.schedules.length"
+            v-tooltip="'Имеет расписание редактировать нельзя'"
+            class="ml-1 mr-1 d-flex"
+            style="cursor: pointer"
+       ><img :src="icon.keyNotEdit" alt="Alt">
+       </div>
+
+       <div v-else-if="route.schedules.length === 0"
             v-tooltip="'Редактировать'"
+            class="ml-1 mr-1 d-flex"
             style="cursor: pointer"
             @click="editableRoute(route.id)"
        ><img :src="icon.key" alt="Alt">
+       </div>
+
+       <div
+            v-tooltip="'Копировать маршрутasx'"
+            class="ml-1 mr-1 d-flex"
+            style="cursor: pointer"
+            @click="copyRoute(route.id)"
+       ><img :src="icon.copy" alt="Alt">
        </div>
 
        <div class="ml-1 mr-2 d-flex"
@@ -149,14 +171,19 @@
 
      <ul v-if="route.schedules && selectedOption === 'Schedule'" class="w-100">
       <li v-for="schedule in route.schedules" class="mb-1 d-flex justify-content-between align-items-center">
+
        <span style="cursor: pointer" @click="editSchedule(schedule.id), editRoutes = false">{{schedule.name}}</span>
+
        <div class="d-flex">
         <img
-         @click="addRound(route.id)"
-         v-tooltip="'Создать рейс'"
+         @click="addRound(schedule.id, route.id)"
+         v-tooltip="'Ручное создание рейса для маршрута'"
          class="ml-1"
          :src="icon.pencil"
-         style="margin-right: 30px; width: 14px;" alt="Alt">
+         style="cursor: pointer; margin-right: 37px; width: 14px;" alt="Alt">
+
+        <img style="cursor: pointer; width: 13px;" v-tooltip="'Копировать маршрут'" :src="icon.copy" alt="Alt">
+
         <img @click="deleteSchedule(schedule.id)" v-tooltip="'Удалить расписание'" class="ml-1 mr-2" :src="icon.remove"
              alt="Alt" style="width: 18px; cursor: pointer">
        </div>
@@ -230,6 +257,7 @@
    return {
     createRoutes: false,
     editRoutes: false,
+    copyRoutes: false,
     selectAll: false,
     selectedOption: 'Routes',
     checkPointWindow: false,
@@ -255,8 +283,10 @@
      mapMarker: require('@/assets/map-marker.svg'),
      penta: require('@/assets/penta.svg'),
      key: require('@/assets/key.svg'),
+     keyNotEdit: require('@/assets/keyNotEdit.svg'),
      schedule: require('@/assets/schedule.svg'),
-     pencil: require('@/assets/pencil.svg')
+     pencil: require('@/assets/pencil.svg'),
+     copy: require('@/assets/copy.svg')
     },
 
     route: {
@@ -323,6 +353,27 @@
      })
      this.renderCheckPoints(...updatedRoute)
     }
+
+
+    if (this.copyRoutes === true) {
+     this.route.name = this.name
+     this.route.description = this.routeDescription
+     this.route.ispublished = false
+     this.route.points.forEach(point => {
+      point.geom = JSON.stringify(point.geom)
+     })
+     // console.log(this.route, 'edit')
+     await this.$store.dispatch('addRoute', this.route)
+     await this.$store.dispatch('getRouteList')
+
+     let updatedRoute = this.getRouteList.filter(el => {
+      return el.id === this.editableRouteID
+     })
+     this.renderCheckPoints(...updatedRoute)
+    }
+
+
+
     this.nullifyRoute()
    },
 
@@ -331,6 +382,7 @@
     this.editableRouteID = id
     this.$emit('add-schedule', {status: false})
     this.createRoutes = false
+    this.copyRoutes = false
     this.nullifyRoute()
     let element = this.getRouteList.filter(route => route.id === id)
     if (element[0]) { // .ispublished === true
@@ -346,6 +398,24 @@
     }
    },
 
+
+   async copyRoute(id) {
+    this.editableRouteID = id
+    this.$emit('add-schedule', {status: false})
+    this.createRoutes = false
+    this.editRoutes = false
+    this.nullifyRoute()
+    let element = this.getRouteList.filter(route => route.id === id)
+    if (element[0]) { // .ispublished === true
+     this.copyRoutes = true
+     this.route = element[0]
+     this.name = 'Копия'+ ' - ' + element[0].name
+     this.routeDescription = element[0].description
+     element = null
+    }
+   },
+
+
    async deleteRoute(id) {
     await this.$store.dispatch('deleteRoute', id)
     await this.$store.dispatch('getRouteList')
@@ -356,17 +426,18 @@
    },
 
    async editSchedule(id){
-    // editSchedule
     await this.$store.dispatch('getSchedulesById', id)
     await this.$emit('editSchedule', {status: true, id})
    },
 
-   addRound(id) {
-    this.$emit('add-round', {status: true, id})
+   async addRound(schedule_id, route_id) {
+    await this.$store.dispatch('getSchedulesById', schedule_id)
+    await this.$emit('add-round', {status: true, schedule_id, route_id})
    },
 
-   roundList(id) {
-    this.$emit('roundList', {status: true, id})
+   async roundList(id) {
+    this.$store.dispatch('getFlightsForRoute', id)
+    await this.$emit('roundList', {status: true, id})
    },
 
    async deleteSchedule(id) {
@@ -395,6 +466,7 @@
     this.createRoutes = !this.createRoutes
     this.name = 'Новый маршрут'
     this.routeDescription = ''
+    eventBus.$emit('closePanel');
    },
 
    //Drag

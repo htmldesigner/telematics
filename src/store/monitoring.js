@@ -10,9 +10,15 @@ export default {
  },
  mutations: {
   SETOBJECTS(state, payload) {
+   let selected = JSON.parse(localStorage.getItem('arr_selectedObjects'))
    state.objects = Object.values(payload)
    state.objects.forEach(el => {
     el.lastTrack = false
+    selected.forEach((id) => {
+     if(el.id === id){
+      el.selected = true
+     }
+    })
    })
   },
 
@@ -43,6 +49,15 @@ export default {
    for (let i in state.objects) {
     if (state.objects[i].id === payload.id) {
      state.objects[i].selected = payload.value
+
+     let selected = localStorage.getItem('arr_selectedObjects') != null ? JSON.parse(localStorage.getItem('arr_selectedObjects')) : [];
+     let index = selected.indexOf(parseInt(payload.id));
+     if (index !== -1) selected.splice(index, 1);
+     if (payload.value) {
+      selected.push(+payload.id);
+     }
+     localStorage.setItem('arr_selectedObjects', JSON.stringify(selected))
+
     }
    }
   },
@@ -60,6 +75,17 @@ export default {
     for (let j in state.objects) {
      if (state.objects[j].id === objId[i] && 'geo' in state.objects[j]) {
       state.objects[j].selected = payload.value
+
+
+      let selected = localStorage.getItem('arr_selectedObjects') != null ? JSON.parse(localStorage.getItem('arr_selectedObjects')) : [];
+      let index = selected.indexOf(parseInt(state.objects[j].id));
+      if (index !== -1) selected.splice(index, 1);
+      if (payload.value) {
+       selected.push(parseInt(state.objects[j].id));
+      }
+      localStorage.setItem('arr_selectedObjects', JSON.stringify(selected))
+
+
      }
     }
    }
@@ -145,6 +171,12 @@ export default {
     state.objects = Object.values(state.objects).filter(el => {
      return el.id !== params[0]
     })
+
+    let selected = localStorage.getItem('arr_selectedObjects') != null ? JSON.parse(localStorage.getItem('arr_selectedObjects')) : [];
+    let idx = selected.indexOf(params[0]);
+    if (idx !== -1) selected.splice(idx, 1);
+    localStorage.setItem('arr_selectedObjects', JSON.stringify(selected))
+
    } catch (error) {
     commit('setError', error)
     throw error

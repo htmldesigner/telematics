@@ -76,10 +76,12 @@
         <llmap ref="llmap"></llmap>
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
         <modalGL v-if="modalGeoZoneLoader" @close="modalGeoZoneLoader = false"></modalGL>
-        <createSchedule v-if="createScheduleShow" @close="createScheduleShow = false" :routeId="routeId"></createSchedule>
+        <createSchedule v-if="createScheduleShow" @close="createScheduleShow = false"
+                        :routeId="routeId"></createSchedule>
         <editSchedule v-if="editScheduleShow" @close="editScheduleShow = false" :scheduleId="scheduleId"></editSchedule>
-        <createRound v-if="createRoundShow" @close="createRoundShow = false" :roundId="roundId"></createRound>
-        <roundsList v-if="roundsListShow" @close="roundsListShow = false" :roundId="roundId"></roundsList>
+        <createRound v-if="createRoundShow" @close="createRoundShow = false" :routeId="routeId"
+                     :scheduleId="scheduleId"></createRound>
+        <roundsList v-if="roundsListShow" @close="roundsListShow = false" @setNewProps="setNewProps" :roundId="roundId"></roundsList>
        </pane>
 
        <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
@@ -126,6 +128,7 @@
  import 'splitpanes/dist/splitpanes.css'
  import {mapActions, mapGetters, mapMutations, mapState} from "vuex";
  import Loader from "../components/Loader";
+ import {eventBus} from "../eventBus";
 
  export default {
   components: {
@@ -258,32 +261,46 @@
    },
 
    // For Schedule component
-   scheduleRun(schedule){
+   // Создать расписание
+   scheduleRun(schedule) {
     this.roundsListShow = false
     this.createRoundShow = false
+    this.editScheduleShow = false
     this.createScheduleShow = schedule.status
     this.routeId = schedule.id
    },
 
-   roundRun(round){
+   //Создать рейс
+   roundRun(round) {
     this.roundsListShow = false
     this.createScheduleShow = false
+    this.editScheduleShow = false
     this.createRoundShow = round.status
-    this.roundId = round.id
+    this.routeId = round.route_id
+    this.scheduleId = round.schedule_id
+    console.log(round)
    },
 
-   roundListRun(round){
+   // Список рейсов к по маршруту
+   roundListRun(round) {
     this.createScheduleShow = false
     this.createRoundShow = false
+    this.editScheduleShow = false
     this.roundsListShow = round.status
     this.roundId = round.id
+    // this.scheduleId = round.schedule_id
    },
 
-   editScheduleRun(schedule){
+   // Редактировать расписание
+   editScheduleRun(schedule) {
     this.createScheduleShow = false
     this.createRoundShow = false
     this.editScheduleShow = schedule.status
     this.scheduleId = schedule.id
+   },
+
+   setNewProps(value){
+    this.roundId = value
    },
 
    logout() {
@@ -310,6 +327,16 @@
     this.mapInstance().invalidateSize()
    }, 400)
    $('.dropdown-toggle').dropdown()
+
+
+   eventBus.$on('closePanel', () => {
+     this.createScheduleShow =  false
+     this.editScheduleShow =  false
+     this.createRoundShow =  false
+     this.roundsListShow =  false
+   });
+
+
   },
  }
 </script>

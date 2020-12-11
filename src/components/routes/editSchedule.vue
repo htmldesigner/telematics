@@ -2,18 +2,10 @@
  <div class="schedule-container">
   <div class="schedule-container-header">
    <div class="schedule-title">
-    <p>Новое расписание</p>
+    <p>Расписание <span>"{{scheduleName}}"</span></p>
    </div>
   </div>
-
   <div class="schedule-sittings mt-3 ml-4">
-
-   <div class="row justify-content-between">
-    <div class="custom-form-label">Название:</div>
-    <div class="">
-     <input class="input-custom-time" v-model="name">
-    </div>
-   </div>
 
    <div class="row justify-content-between mt-2">
     <div class="custom-form-label">Срок действия (дни:часы:минуты):</div>
@@ -40,7 +32,6 @@
     <div class="custom-form-label mr-5">Удалить после завершения:</div>
     <input type="checkbox" v-model="deletewhencomplete">
    </div>
-
   </div>
 
   <ul class="nav nav-tabs mt-4">
@@ -78,14 +69,14 @@
         <th width="55%" class="text-left th-font">Точка</th>
         <th width="80px" class="text-center th-font">Прибытие (Час./Мин.)</th>
         <th width="80px" class="text-center th-font">
-         <input type="checkbox" @click="departure = !departure">
+         <input type="checkbox" @click="departuretimeenabled = !departuretimeenabled">
          Убытие (Час./Мин.)
         </th>
        </tr>
        </thead>
        <tbody>
 
-       <tr v-for="(point, index) of getSchedule.schedulePoints">
+       <tr v-for="(point, index) of schedulePoints">
         <td width="1%" class="text-center">{{index + 1}}</td>
         <td class="text-left">{{point.name}}</td>
 
@@ -94,30 +85,30 @@
                 v-mask="'##:##'"
                 class="input-custom-small"
                 type="text"
-                v-model="$moment(point.arrivetime).format('HH:mm')"
+                v-model="point.arrivetime"
          >
          <span>+-</span>
          <input style="position: relative;top: 5px; width: 60px"
                 v-mask="'###'"
                 class="input-custom-small"
                 type="text"
-                v-model="$moment(point.arrivetimetolerance).format('HH:mm')"
+                v-model="point.arrivetimetolerance"
          >
         </td>
 
         <td class="text-center">
-         <input :disabled="!departure" style="position: relative; top: -5px; width: 60px"
+         <input :disabled="!departuretimeenabled" style="position: relative; top: -5px; width: 60px"
                 v-mask="'##:##'"
                 class="input-custom-small"
                 type="text"
-                v-model="$moment(point.departuretime).format('HH:mm')"
+                v-model="point.departuretime"
          >
          <span>+-</span>
-         <input :disabled="!departure" style="position: relative; top: 5px; width: 60px"
+         <input :disabled="!departuretimeenabled" style="position: relative; top: 5px; width: 60px"
                 v-mask="'###'"
                 class="input-custom-small"
                 type="text"
-                v-model="$moment(point.departuretimetolerance).format('HH:mm')"
+                v-model="point.departuretimetolerance"
          >
         </td>
 
@@ -198,31 +189,32 @@
    <div class="tab-pane fade" :class="{ 'active show': isActive('object') }">
     <div class="ml-2 d-flex flex-wrap schedule-objects">
 
-      <div class="objects mr-3">
-       <ul>
-        <li v-for="object in objects" :key="object.id" v-tooltip="'Двайной клик для добавления'"
-            @dblclick="addObject(object)">
-         <span>{{object.name}}</span>
-        </li>
-       </ul>
-      </div>
+     <div class="objects mr-3">
+      <ul>
+       <li v-for="(object, index) in objects" :key="index" v-tooltip="'Двайной клик для добавления'"
+           @dblclick="addObject(object)">
+        <span>{{object.name}}</span>
+       </li>
+      </ul>
+     </div>
 
-      <div class="addedObjects">
-       <ul>
-        <li v-for="object in selectedObject" :key="object.id" v-tooltip="'Двайной клик для исключения'"
-            @dblclick="removeObject(object)">
-         <span>{{object.name}}</span>
-        </li>
-       </ul>
-      </div>
+     <div class="addedObjects">
+      <ul>
+       <li v-for="(object, index) in selectedObject" :key="index" v-tooltip="'Двайной клик для исключения'"
+           @dblclick="removeObject(object)">
+        <span>{{object.name}}</span>
+       </li>
+      </ul>
+     </div>
 
     </div>
    </div>
   </div>
   <div class="mt-2">
    <button class="btn-custom-outline" @click="$emit('close')">Закрыть</button>
-   <button class="btn-custom ml-2" @click="createSchedule">Сохранить</button>
+   <button class="btn-custom ml-2" @click="editSchedule">Сохранить</button>
   </div>
+  <div class="d-none">{{scheduleObj}}</div>
  </div>
 </template>
 
@@ -230,42 +222,67 @@
  import moment from 'moment'
  import {mask} from 'vue-the-mask'
  import {mapGetters} from "vuex";
+
  export default {
   directives: {mask},
   name: "edit-schedule",
-  props: {
-   scheduleId: {
-    type: Number
-   }
-  },
+
   computed: {
    ...mapGetters({
     getPaneSize: 'getPaneSize',
-    getSchedule: 'getSchedule'
    }),
 
+   deletewhencomplete: {
+    get() {
+     return this.$store.getters.getSchedule.deletewhencomplete
+    },
+    set(value) {
+     return this.$store.getters.getSchedule.deletewhencomplete = value
+    }
+   },
 
+   schedulePoints() {
+    let points = this.$store.getters.getSchedule.schedulePoints.map(point => {
+     return {
+      routepoint_id: point.routepoint_id,
+      id: point.id,
+      name: point.name,
+      arrivetime: point.arrivetime.slice(-5),
+      arrivetimetolerance: point.arrivetimetolerance,
+      departuretime: point.departuretime.slice(-5),
+      departuretimetolerance: point.departuretimetolerance,
+      address: point.address,
+      schedule_id: point.schedule_id,
+      route_id: point.route_id
+     }
+    })
+    return points
+   },
 
-   // schedulePoints() {
-   //  let points = []
-   //  let RouteList = this.$store.getters.getRouteList.filter((route) => route.id === this.routeId)
-   //  RouteList.forEach((el) => {
-   //   if(el.points){
-   //    points =  el.points.map((point) => {return {
-   //     routepoint_id: point.id,
-   //     name: point.name,
-   //     arrivetime: '00:00',
-   //     arrivetimetolerance: 0,
-   //     departuretime: '00:00',
-   //     departuretimetolerance: 0,
-   //     address:  point.address,
-   //    }})
-   //   }
-   //  })
-   //  return points
-   // }
+   scheduleName() {
+    return this.$store.getters.getSchedule.name
+   },
 
+   scheduleObj() {
+    let objects = this.$store.getters.getSchedule.scheduleObjects.map(el => {
+     return el.object
+    })
+    if (objects.length) {
+     this.selectedObject = objects
+    } else {
+     this.selectedObject = []
+    }
+   },
+
+   routeId() {
+    return this.$store.getters.getSchedule.route_id
+   },
+
+   scheduleId() {
+    return this.$store.getters.getSchedule.id
+   }
   },
+
   watch: {
    getPaneSize: {
     handler() {
@@ -273,6 +290,7 @@
     }
    },
   },
+
   data() {
    return {
     //helper variable
@@ -306,7 +324,7 @@
     weekDayShow: false,
     monthsShow: false,
     dayShow: false,
-    departure: false,
+    departuretimeenabled: false,
 
     icon: {
      even: require('@/assets/even.svg'),
@@ -334,37 +352,45 @@
     checkedWeekDay: [],
     checkedDay: [],
     validity: '00:25:00', // Срок действия
-    // arrivalTime: '00:00', // ПРибытие
-    // arrivalShiftTime: '00:00', // Сдвиг прибытия
-    // departureTime: '00:00',
-    // departureShiftTime: '00:00',
-    deletewhencomplete: true,
-    name: '',
 
     scheduleObjects: []
    }
   },
   methods: {
 
-   createSchedule(){
-    let objects = this.selectedObject.map(object => {return{schedule_id: 0, object_id: object.id}})
+   editSchedule() {
+    let objects = this.selectedObject.map(object => {
+     return {schedule_id: this.scheduleId, object_id: object.id}
+    })
+
+    let schedulesPoints = this.schedulePoints.map((point) => {
+     return {
+      id: point.id,
+      routepoint_id: point.routepoint_id,
+      schedule_id: this.scheduleId,
+      arrivetime: '01.01.0001' + ' ' + point.arrivetime,
+      arrivetimetolerance: point.arrivetimetolerance,
+      departuretime: '01.01.0001' + ' ' + point.departuretime,
+      departuretimetolerance: point.departuretimetolerance,
+     }
+    })
+
     let schedule =
      {
+      departuretimeenabled: this.departuretimeenabled,
+      name: this.scheduleName,
+      id: this.scheduleId,
       route_id: this.routeId,
       type: this.selectedScheduleType,
       pointorder: this.selectedSchedulePointOrder,
       deletewhencomplete: this.deletewhencomplete,
-      name: this.name,
       activetime: this.validity,
-      schedulePoints: this.schedulePoints,
+      schedulePoints: schedulesPoints,
       scheduleObjects: objects,
       flights: [],
-
      }
 
-
-    console.log(schedule)
-    this.$store.dispatch('addSchedule', schedule)
+    this.$store.dispatch('editSchedule', schedule)
     schedule = null
     this.$store.dispatch('getRouteList')
    },

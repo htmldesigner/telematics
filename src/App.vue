@@ -1,7 +1,7 @@
 <template>
  <div id="app">
   <template v-if="error" />
-  <Toast />
+  <Toast/>
   <router-view/>
  </div>
 </template>
@@ -57,7 +57,7 @@
    },
 
    showError(error) {
-    this.$toast.add({severity:'error', summary: 'Ошибка', detail: error, life: 3000});
+    this.$toast.add({severity:'error', summary: 'Ошибка', detail: error, life: 4000});
    },
 
   },
