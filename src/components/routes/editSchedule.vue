@@ -375,6 +375,14 @@
      }
     })
 
+    let time = this.validity
+    let arr = time.split(':')
+    let days = Math.round(arr[0]) * 1440
+    let hours = Math.round(arr[1]) * 60
+    let minuts = Math.round(arr[2])
+    let activetimeResult = days + hours + minuts
+
+
     let schedule =
      {
       departuretimeenabled: this.departuretimeenabled,
@@ -384,7 +392,7 @@
       type: this.selectedScheduleType,
       pointorder: this.selectedSchedulePointOrder,
       deletewhencomplete: this.deletewhencomplete,
-      activetime: this.validity,
+      activetime: activetimeResult,
       schedulePoints: schedulesPoints,
       scheduleObjects: objects,
       flights: [],

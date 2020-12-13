@@ -66,6 +66,7 @@
         @add-round="roundRun"
         @roundList="roundListRun"
         @editSchedule="editScheduleRun"
+        @copySchedule="copyScheduleRun"
        ></component>
       </keep-alive>
      </pane>
@@ -73,15 +74,26 @@
      <pane min-size="60" :size="100 - paneSize" max-size="100">
       <splitpanes horizontal @resized="horizontSplitResize">
        <pane>
+
         <llmap ref="llmap"></llmap>
+
         <modalOL v-if="modalObjectLoader" @close="modalObjectLoader = false"></modalOL>
+
         <modalGL v-if="modalGeoZoneLoader" @close="modalGeoZoneLoader = false"></modalGL>
+
         <createSchedule v-if="createScheduleShow" @close="createScheduleShow = false"
                         :routeId="routeId"></createSchedule>
+
         <editSchedule v-if="editScheduleShow" @close="editScheduleShow = false" :scheduleId="scheduleId"></editSchedule>
+
+        <copySchedule v-if="copyScheduleShow" @close="copyScheduleShow = false" :scheduleId="scheduleId"></copySchedule>
+
         <createRound v-if="createRoundShow" @close="createRoundShow = false" :routeId="routeId"
                      :scheduleId="scheduleId"></createRound>
-        <roundsList v-if="roundsListShow" @close="roundsListShow = false" @setNewProps="setNewProps" :roundId="roundId"></roundsList>
+
+        <roundsList v-if="roundsListShow" @close="roundsListShow = false" @setNewProps="setNewProps"
+                    :roundId="roundId"></roundsList>
+
        </pane>
 
        <pane v-if="currentLink === 'tracker' && getOverSpeedTrack"
@@ -122,6 +134,7 @@
  import modalGL from "../components/geozone/modalGeoZoneLoader";
  import createSchedule from "../components/routes/createSchedule";
  import editSchedule from "../components/routes/editSchedule";
+ import copySchedule from "../components/routes/copySchedule";
  import createRound from "../components/routes/createRound";
  import roundsList from "../components/routes/roundsList";
  import {Splitpanes, Pane} from 'splitpanes'
@@ -148,6 +161,7 @@
    modalGL,
    Loader,
    createSchedule,
+   copySchedule,
    editSchedule,
    createRound,
    roundsList
@@ -211,6 +225,7 @@
     modalGeoZoneLoader: false,
     createScheduleShow: false,
     editScheduleShow: false,
+    copyScheduleShow: false,
     createRoundShow: false,
     roundsListShow: false,
     roundId: null,
@@ -266,6 +281,7 @@
     this.roundsListShow = false
     this.createRoundShow = false
     this.editScheduleShow = false
+    this.copyScheduleShow = false
     this.createScheduleShow = schedule.status
     this.routeId = schedule.id
    },
@@ -275,6 +291,7 @@
     this.roundsListShow = false
     this.createScheduleShow = false
     this.editScheduleShow = false
+    this.copyScheduleShow = false
     this.createRoundShow = round.status
     this.routeId = round.route_id
     this.scheduleId = round.schedule_id
@@ -286,6 +303,7 @@
     this.createScheduleShow = false
     this.createRoundShow = false
     this.editScheduleShow = false
+    this.copyScheduleShow = false
     this.roundsListShow = round.status
     this.roundId = round.id
     // this.scheduleId = round.schedule_id
@@ -295,11 +313,23 @@
    editScheduleRun(schedule) {
     this.createScheduleShow = false
     this.createRoundShow = false
+    this.copyScheduleShow = false
+    this.roundsListShow = false
     this.editScheduleShow = schedule.status
     this.scheduleId = schedule.id
    },
 
-   setNewProps(value){
+   // Копировать расписание
+   copyScheduleRun(schedule) {
+    this.roundsListShow = false
+    this.createScheduleShow = false
+    this.createRoundShow = false
+    this.editScheduleShow = false
+    this.copyScheduleShow = schedule.status
+    this.scheduleId = schedule.id
+   },
+
+   setNewProps(value) {
     this.roundId = value
    },
 
@@ -330,10 +360,10 @@
 
 
    eventBus.$on('closePanel', () => {
-     this.createScheduleShow =  false
-     this.editScheduleShow =  false
-     this.createRoundShow =  false
-     this.roundsListShow =  false
+    this.createScheduleShow = false
+    this.editScheduleShow = false
+    this.createRoundShow = false
+    this.roundsListShow = false
    });
 
 

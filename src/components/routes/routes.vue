@@ -145,7 +145,7 @@
        </div>
 
        <div
-            v-tooltip="'Копировать маршрутasx'"
+            v-tooltip="'Копировать маршрутa'"
             class="ml-1 mr-1 d-flex"
             style="cursor: pointer"
             @click="copyRoute(route.id)"
@@ -182,7 +182,7 @@
          :src="icon.pencil"
          style="cursor: pointer; margin-right: 37px; width: 14px;" alt="Alt">
 
-        <img style="cursor: pointer; width: 13px;" v-tooltip="'Копировать маршрут'" :src="icon.copy" alt="Alt">
+        <img style="cursor: pointer; width: 13px;" @click="copySchedule(schedule.id), editRoutes = false" v-tooltip="'Копировать маршрут'" :src="icon.copy" alt="Alt">
 
         <img @click="deleteSchedule(schedule.id)" v-tooltip="'Удалить расписание'" class="ml-1 mr-2" :src="icon.remove"
              alt="Alt" style="width: 18px; cursor: pointer">
@@ -372,8 +372,6 @@
      this.renderCheckPoints(...updatedRoute)
     }
 
-
-
     this.nullifyRoute()
    },
 
@@ -428,6 +426,11 @@
    async editSchedule(id){
     await this.$store.dispatch('getSchedulesById', id)
     await this.$emit('editSchedule', {status: true, id})
+   },
+
+   async copySchedule(id){
+    await this.$store.dispatch('getSchedulesById', id)
+    await this.$emit('copySchedule', {status: true, id})
    },
 
    async addRound(schedule_id, route_id) {
