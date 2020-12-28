@@ -8,6 +8,10 @@ export default {
   geoZoneOverSpeed: null,
   mileageshort: null,
   mileagefull: null,
+  trackCheck: null,
+  trackCheckGroup: null,
+  sensorCheck: null,
+  sensorCheckGroup: null,
  },
 
  mutations: {
@@ -18,7 +22,59 @@ export default {
    state.geoZoneOverSpeed = payload
    state.mileageshort = payload
    state.mileagefull = payload
+
+   state.trackCheck = payload
+   state.trackCheckGroup = payload
+   state.sensorCheck = payload
+   state.sensorCheckGroup = payload
   },
+
+  /**
+   * Отчет по дискретные сенсорам (групповой)
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_SENSOR_CHECK_GROUP(state, payload) {
+   state.sensorCheckGroup = Array.from(new Set([payload]))
+  },
+
+
+  /**
+   * Отчет по дискретные сенсорам
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_SENSOR_CHECK(state, payload) {
+   state.sensorCheck = Array.from(new Set([payload]))
+   console.log(state.sensorCheck)
+  },
+
+  /**
+   * Отчет по работе навигационного оборудования (групповой)
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_TRACK_CHECK_GROUP(state, payload) {
+   state.trackCheckGroup = Array.from(new Set([payload]))
+  },
+
+  /**
+   * Отчет по работе навигационного оборудования
+   *
+   * @param state
+   * @param payload
+   * @constructor
+   */
+  SET_TRACK_CHECK(state, payload) {
+   state.trackCheck = Array.from(new Set([payload]))
+  },
+
   /**
    * По движению/стоянкам
    *
@@ -28,17 +84,14 @@ export default {
    */
   SET_TRACK_GROUP(state, payload) {
    state.trackGroup = Array.from(new Set([payload]))
-   console.log(state.trackGroup)
   },
 
   SET_MILEAGESHORT(state, payload) {
    state.mileageshort = Array.from(new Set([payload]))
-   console.log(state.mileageshort)
   },
 
   SET_MILEAGEFULL(state, payload) {
    state.mileagefull = Array.from(new Set([payload]))
-   console.log(state.mileagefull)
   },
 
   /**
@@ -50,7 +103,6 @@ export default {
    */
   SET_GROUP_GEOZONE(state, payload) {
    state.groupGeoZone = Array.from(new Set([payload]))
-   console.log(state.groupGeoZone)
   },
 
   /**
@@ -62,7 +114,6 @@ export default {
    */
   SET_GROUP_OVERSPEED(state, payload) {
    state.groupOverSpeed = Array.from(new Set([payload]))
-   console.log(state.groupOverSpeed)
   },
 
   /**
@@ -74,7 +125,6 @@ export default {
    */
   SET_GEOZONEOVERSPEED(state, payload) {
    state.geoZoneOverSpeed = Array.from(new Set([payload]))
-   console.log(state.geoZoneOverSpeed)
   },
  },
 
@@ -86,6 +136,50 @@ export default {
     let response = await api.serviceQuery(query)
 
     switch (response.data.data[0].data.report) {
+
+
+     case "track_check":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_TRACK_CHECK', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Отчет по работе навигационного оборудования')
+       return
+      }
+      break;
+
+
+     case "track_checkgroup":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_TRACK_CHECK_GROUP', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Отчет по работе навигационного оборудования (Групповой)')
+       return
+      }
+      break;
+
+     case "sensor_check":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_SENSOR_CHECK', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'отчет по дискретные сенсорам')
+       return
+      }
+      break;
+
+     case "sensor_checkgroup":
+      if (response.data.data[0].data?.data.length) {
+       commit('SET_SENSOR_CHECK_GROUP', response.data.data[0].data)
+      } else {
+       commit('setLoading', false)
+       commit('setError', 'Отчет по дискретные сенсорам (групповой)')
+       return
+      }
+      break;
+
+
 
      case "mileageshort":
       if (response.data.data[0].data?.data.length) {
@@ -193,6 +287,20 @@ export default {
   },
   getMileageFull(state) {
    return state.mileagefull
+  },
+
+  getTrackCheck(state) {
+   return state.trackCheck
+  },
+  getTrackCheckGroup(state) {
+   return state.trackCheckGroup
+  },
+  getSensorCheck(state) {
+   return state.sensorCheck
+  },
+  getSensorCheckGroup(state) {
+   return state.sensorCheckGroup
   }
+
  },
 }

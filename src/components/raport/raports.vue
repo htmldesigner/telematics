@@ -44,7 +44,7 @@
    </div>
   </div>
 
-  <div v-if="['group_geozone', 'group_overspeed', 'track_group'].includes(reporttype)">
+  <div v-if="['group_geozone', 'group_overspeed', 'track_group', 'track_checkgroup', 'sensor_checkgroup'].includes(reporttype)">
    <div class="row">
     <div class="col">
      <span class="title-custom">Выбрать транспортное средство:</span>
@@ -113,7 +113,7 @@
    <hr>
   </div>
 
-  <div v-if="['geozoneoverspeed', 'mileagefull', 'mileageshort'].includes(reporttype)">
+  <div v-if="['geozoneoverspeed', 'mileagefull', 'mileageshort', 'track_check', 'sensor_check'].includes(reporttype)">
    <div class="row mt-3">
     <div class="col">
      <span class="title-custom">Выбрать транспортное средство:</span>
@@ -237,11 +237,23 @@
      name: "Превышение скорости групповое", value: "group_overspeed"
     }, {
      name: "Превышение скорости в геозонах", value: "geozoneoverspeed"
-    }, {
+    },
+
+     {
      name: "По пробегу (полный)", value: "mileagefull"
     }, {
      name: "По пробегу (краткий)", value: "mileageshort"
-    }
+    },
+
+     {
+      name: "Отчет по работе навигационного оборудования", value: "track_check"
+     }, {
+      name: "Отчет по работе навигационного оборудования (Групповой)", value: "track_checkgroup"
+     }, {
+      name: "Отчет по дискретным сенсорам", value: "sensor_check"
+     }, {
+      name: "Отчет по дискретным сенсорам (Групповой)", value: "sensor_checkgroup"
+     }
     ],
 
     filters: {},
@@ -390,9 +402,6 @@
 
   },
 
-  async mounted() {
-
-  },
  }
 
 </script>

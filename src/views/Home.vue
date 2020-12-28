@@ -102,7 +102,12 @@
        </pane>
 
        <pane
-        v-if="currentLink === 'raports' && (getTrackGroup || getGroupGeoZone || getGroupOverSpeed || getGeoZoneOverSpeed || getMileageShort || getMileageFull)"
+        v-if="currentLink === 'raports' && (
+         getTrackGroup || getGroupGeoZone ||
+         getGroupOverSpeed || getGeoZoneOverSpeed ||
+         getMileageShort || getMileageFull ||
+         getTrackCheck || getTrackCheckGroup ||
+         getSensorCheck || getSensorCheckGroup)"
         max-size="100" min-size="5" style="overflow-y: scroll">
         <raportPanel/>
        </pane>
@@ -180,6 +185,11 @@
     getGeoZoneOverSpeed: 'getGeoZoneOverSpeed',
     getMileageShort: 'getMileageShort',
     getMileageFull: 'getMileageFull',
+
+    getTrackCheck: 'getTrackCheck',
+    getTrackCheckGroup: 'getTrackCheckGroup',
+    getSensorCheck: 'getSensorCheck',
+    getSensorCheckGroup: 'getSensorCheckGroup',
 
    }),
    currentLink: {
